@@ -40,7 +40,21 @@ type Props = {
 const fmt   = (n: number) => `$${n.toLocaleString('es-MX', { minimumFractionDigits: 0 })}`
 const fmtK  = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : fmt(n)
 
-const PALETTE = ['#2563EB', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe', '#eff6ff', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554', '#e0f2fe', '#0ea5e9', '#0284c7']
+const PALETTE = [
+  '#2563EB', // azul
+  '#7C3AED', // violeta
+  '#059669', // esmeralda
+  '#DC2626', // rojo
+  '#D97706', // ámbar
+  '#0891B2', // cian
+  '#DB2777', // rosa
+  '#65A30D', // lima
+  '#9333EA', // púrpura
+  '#0284C7', // cielo
+  '#B45309', // café dorado
+  '#047857', // verde oscuro
+  '#1D4ED8', // azul oscuro
+]
 
 function delta(actual: number, anterior: number) {
   if (anterior === 0) return null
@@ -357,31 +371,35 @@ export default function ReportesClient({
             <p className="text-xs text-zinc-400 mt-0.5">Mes actual</p>
           </div>
           {catData.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart style={{ outline: 'none' }}>
-                  <Pie data={catData} dataKey="valor" nameKey="nombre" cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2} style={{ outline: 'none' }}>
-                    {catData.map((_, i) => (
-                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<PieTooltip total={ingresosMes} />} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 flex flex-col gap-2 max-h-36 overflow-y-auto">
+            <div className="flex items-center gap-4">
+              {/* Donut fijo a la izquierda */}
+              <div style={{ width: 190, height: 190, flexShrink: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart style={{ outline: 'none' }}>
+                    <Pie data={catData} dataKey="valor" nameKey="nombre" cx="50%" cy="50%" innerRadius={52} outerRadius={82} paddingAngle={2} style={{ outline: 'none' }}>
+                      {catData.map((_, i) => (
+                        <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<PieTooltip total={ingresosMes} />} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Leyenda scrollable a la derecha */}
+              <div className="flex-1 overflow-y-auto" style={{ maxHeight: 190 }}>
                 {catData.map((c, i) => {
                   const pct = ingresosMes > 0 ? (c.valor / ingresosMes) * 100 : 0
                   return (
-                    <div key={c.nombre} className="flex items-center gap-2 text-xs">
+                    <div key={c.nombre} className="flex items-center gap-2 text-xs py-1.5 border-b border-zinc-50 last:border-0">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: PALETTE[i % PALETTE.length] }} />
-                      <span className="text-zinc-600 flex-1 truncate">{c.nombre}</span>
-                      <span className="text-zinc-400">{pct.toFixed(1)}%</span>
-                      <span className="font-semibold text-zinc-800 w-20 text-right">{fmt(c.valor)}</span>
+                      <span className="text-zinc-700 flex-1 truncate font-medium">{c.nombre}</span>
+                      <span className="text-zinc-400 w-10 text-right">{pct.toFixed(1)}%</span>
+                      <span className="font-semibold text-zinc-800 w-16 text-right">{fmt(c.valor)}</span>
                     </div>
                   )
                 })}
               </div>
-            </>
+            </div>
           ) : (
             <EmptyChart />
           )}
