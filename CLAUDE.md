@@ -22,20 +22,32 @@ SaaS multi-tenant interno para talleres mecánicos. Solo acceden el dueño (admi
 ## Tablas en Supabase (todas con tenant_id para multi-tenancy)
 - `tenants` — cada taller registrado
 - `usuarios` — roles: `admin` (dueño) | `asistente` (recepcionista)
-- `catalogo_servicios` — servicios con precio base configurable por el dueño
+- `categorias` — categorías de servicio. `is_system_default=true` → imborrables (sistema). `tenant_id=NULL` para sistema, uuid para personalizadas
+- `catalogo_servicios` — servicios con precio base. FK `categoria_id → categorias.id`
 - `clientes` — nombre, teléfono, email
-- `vehiculos` — placa, marca, modelo, año (vinculado a cliente)
+- `vehiculos` — marca, modelo, año (vinculado a cliente)
 - `ordenes` — estado: recibido | en_proceso | listo | entregado. Calcula automáticamente `descuento` y `pct_descuento`
 - `orden_servicios` — detalle de servicios por orden con precio_base y precio_cobrado
 
-## Catálogo de servicios (7 categorías)
-1. Cambio de Aceite → sintético, mineral, semisintético
-2. Suspensión y Balanceo → balanceo de llantas, alineación computarizada
-3. Motor y Scanner → scanner y diagnóstico, revisión general de motor
-4. Reparación de Clima → carga de gas refrigerante, revisión de sistema
-5. Frenos y Balatas → cambio de balatas, rectificado de discos, revisión general
-6. Dirección → corrección de dirección, cambio de terminales
-7. Tracción General
+## Catálogo de servicios (13 categorías del sistema + personalizadas por tenant)
+Categorías del sistema (`is_system_default = true`, imborrables):
+1. Cambio de Aceite y Filtros
+2. Sistema de Frenos
+3. Suspensión y Dirección
+4. Alineación y Balanceo
+5. Sistema Eléctrico y Batería
+6. Sistema de Enfriamiento
+7. Afinación de Motor
+8. Transmisión y Embrague
+9. Diagnóstico por Escáner
+10. Aire Acondicionado
+11. Sistema de Escape
+12. Luces y Visibilidad
+13. Reparación Mayor de Motor
+
+Los sub-servicios (registros en `catalogo_servicios`) son creados, editados y eliminados por el dueño.
+Eliminar servicio con historial en `orden_servicios` → bloqueado, solo desactivar.
+Eliminar categoría con servicios activos → bloqueado.
 
 ## Flujo principal (recepcionista)
 1. Llega cliente → buscar por nombre/teléfono o registrar nuevo (nombre, teléfono, email)
@@ -50,6 +62,9 @@ SaaS multi-tenant interno para talleres mecánicos. Solo acceden el dueño (admi
 - Precio cobrado: editable directamente por la asistente (sin calcular porcentajes)
 - Sistema calcula: descuento = precio_base - precio_cobrado, % = (descuento / precio_base) × 100
 - Los servicios del día salen el mismo día (no hay estadía de vehículos)
+- Descuento: el usuario ingresa el precio final, el sistema calcula descuento en $ y %
+- cliente_id: se genera automático con prefijo del tenant + 4 dígitos (ej. ACF-0001)
+- Placa eliminada del modelo de vehículos (poco confiable en México)
 
 ## Arquitectura de carpetas
 ```
@@ -78,9 +93,29 @@ src/
 - [x] Dashboard con métricas y tabla de órdenes del día
 - [x] Catálogo de servicios (datos hardcodeados)
 - [x] Nueva Orden (datos hardcodeados)
-- [ ] Conectar todas las páginas a Supabase (datos reales)
-- [ ] CRUD real del catálogo (agregar/editar/desactivar servicios)
-- [ ] Historial de clientes y vehículos
+- [x] RLS activo con políticas en las 7 tablas
+- [x] Trigger auto-insert en usuarios al registrarse en Auth
+- [x] Helper function get_my_tenant_id()
+- [x] Tenant "AutoCoreFix" creado (e8cb863c-d745-46f1-875b-838c62c2caa4)
+- [x] Usuario admin vinculado a Auth (d499fb64-37db-4377-b6ba-a2ff00f8d3d0)
+- [x] Tipos TypeScript generados desde Supabase (src/types/database.types.ts)
+- [x] Clientes Supabase tipados con Database (supabase-browser.ts y supabase-server.ts)
+- [x] Dashboard conectado a Supabase (datos reales)
+- [x] Catálogo conectado a Supabase con CRUD real (agregar, editar, toggle activo, eliminar con validación)
+- [x] Categorías dinámicas desde Supabase (13 del sistema + personalizadas por tenant)
+- [x] Gestión de categorías en catálogo: crear y eliminar personalizadas
+- [x] Nueva Orden conectada a Supabase (cliente, vehículo, servicios, orden)
+- [x] Búsqueda de clientes por nombre, teléfono, email o ID
+- [x] Generación automática de cliente_id (prefijo + 4 dígitos)
+- [x] Historial de vehículos por cliente
+- [x] Descuento por precio final con cálculo automático de %
+- [x] Página Clientes con historial de órdenes y vehículos por cliente
+- [x] Búsqueda de clientes en tiempo real
+- [x] Tipos TypeScript sincronizados con schema real (database.types.ts)
+- [x] Catálogo y Nueva Orden completamente conectados a Supabase
+- [x] CRUD real del catálogo (crear, editar, toggle, eliminar con validación)
+- [x] Nueva Orden responsive (mobile/tablet/desktop)
+- [x] Categorías compactas en grid 3 columnas con íconos
 - [ ] Reportes de ventas y descuentos
 - [ ] Diseño del login (mejorar UI)
 - [ ] Fidelización (recordatorios WhatsApp/SMS)
