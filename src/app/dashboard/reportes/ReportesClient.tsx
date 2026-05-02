@@ -63,9 +63,9 @@ function DeltaBadge({ pct }: { pct: number | null }) {
 
 const TOOLTIP_STYLE = {
   background: '#ffffff',
-  border: '1px solid #e4e4e7',
+  border: '1px solid #FFD700',
   borderRadius: '12px',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+  boxShadow: '0 4px 20px rgba(255,215,0,0.15)',
   padding: '10px 14px',
   fontSize: '13px',
 }
@@ -278,7 +278,7 @@ export default function ReportesClient({
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" vertical={false} />
                 <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                 <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
                 <Area type="monotone" dataKey="ingresos" stroke="#2563EB" strokeWidth={2.5} fill="url(#gradBlue)" dot={false} activeDot={{ r: 5, fill: '#2563EB' }} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
@@ -302,7 +302,7 @@ export default function ReportesClient({
                       <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
                     ))}
                   </Pie>
-                  <Tooltip content={<PieTooltip total={ordenesMesCnt} />} />
+                  <Tooltip content={<PieTooltip total={ordenesMesCnt} />} isAnimationActive={false} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2">
@@ -338,9 +338,9 @@ export default function ReportesClient({
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="nombre" tick={{ fontSize: 11, fill: '#52525b' }} axisLine={false} tickLine={false} width={140} />
-                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} />
+                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} />
                 <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}
-                  activeBar={{ fill: '#1d4ed8', stroke: '#D4AF37', strokeWidth: 1.5, radius: [0, 6, 6, 0] }} />
+                  activeBar={{ fill: '#1d4ed8', radius: [0, 6, 6, 0] }} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -363,7 +363,7 @@ export default function ReportesClient({
                       <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
                     ))}
                   </Pie>
-                  <Tooltip content={<PieTooltip total={ingresosMes} />} />
+                  <Tooltip content={<PieTooltip total={ingresosMes} />} isAnimationActive={false} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2 max-h-36 overflow-y-auto">
@@ -398,9 +398,9 @@ export default function ReportesClient({
               <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" vertical={false} />
               <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
-              <Tooltip content={<CustomTooltip />} cursor={false} />
+              <Tooltip content={<CustomTooltip />} cursor={false} isAnimationActive={false} />
               <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false}
-                activeBar={{ fill: '#1d4ed8', stroke: '#D4AF37', strokeWidth: 1.5, radius: [6, 6, 0, 0] }} />
+                activeBar={{ fill: '#1d4ed8', radius: [6, 6, 0, 0] }} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
