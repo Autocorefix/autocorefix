@@ -93,6 +93,31 @@ function CustomTooltipCount({ active, payload, label }: { active?: boolean; payl
   )
 }
 
+type PiePayloadItem = {
+  name: string
+  value: number
+  payload: { nombre?: string; estado?: string; valor?: number; cantidad?: number; color?: string }
+  fill?: string
+}
+function PieTooltip({ active, payload, total }: { active?: boolean; payload?: PiePayloadItem[]; total?: number }) {
+  if (!active || !payload?.length) return null
+  const item  = payload[0]
+  const name  = item.payload.nombre ?? item.payload.estado ?? item.name
+  const value = item.value
+  const pct   = total && total > 0 ? ((value / total) * 100).toFixed(1) : null
+  const color = item.fill ?? '#2563EB'
+  return (
+    <div style={{ ...TOOLTIP_STYLE, minWidth: 160 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
+        <p style={{ ...TOOLTIP_LABEL_STYLE, margin: 0, color: '#18181b', fontWeight: 600, fontSize: 12 }}>{name}</p>
+      </div>
+      <p style={TOOLTIP_ITEM_STYLE}>{item.payload.valor !== undefined ? fmt(value) : `${value} órdenes`}</p>
+      {pct && <p style={{ ...TOOLTIP_LABEL_STYLE, margin: '2px 0 0', fontSize: 11 }}>{pct}% del total</p>}
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ReportesClient({
@@ -271,18 +296,13 @@ export default function ReportesClient({
           {estadoData.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={estadoData} dataKey="cantidad" nameKey="estado" cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3}>
+                <PieChart style={{ outline: 'none' }}>
+                  <Pie data={estadoData} dataKey="cantidad" nameKey="estado" cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} style={{ outline: 'none' }}>
                     {estadoData.map((_, i) => (
-                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
+                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
-                    labelStyle={TOOLTIP_LABEL_STYLE}
-                    itemStyle={TOOLTIP_ITEM_STYLE}
-                    formatter={(v: number) => [`${v} órdenes`, '']}
-                  />
+                  <Tooltip content={<PieTooltip total={ordenesMesCnt} />} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2">
@@ -319,7 +339,8 @@ export default function ReportesClient({
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="nombre" tick={{ fontSize: 11, fill: '#52525b' }} axisLine={false} tickLine={false} width={140} />
                 <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} />
-                <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false} />
+                <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}
+                  activeBar={{ fill: '#1d4ed8', stroke: '#D4AF37', strokeWidth: 1.5, radius: [0, 6, 6, 0] }} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -336,18 +357,13 @@ export default function ReportesClient({
           {catData.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={catData} dataKey="valor" nameKey="nombre" cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2}>
+                <PieChart style={{ outline: 'none' }}>
+                  <Pie data={catData} dataKey="valor" nameKey="nombre" cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2} style={{ outline: 'none' }}>
                     {catData.map((_, i) => (
-                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
+                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
-                    labelStyle={TOOLTIP_LABEL_STYLE}
-                    itemStyle={TOOLTIP_ITEM_STYLE}
-                    formatter={(v: number) => [fmt(v), 'Ingresos']}
-                  />
+                  <Tooltip content={<PieTooltip total={ingresosMes} />} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2 max-h-36 overflow-y-auto">
@@ -383,7 +399,8 @@ export default function ReportesClient({
               <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
               <Tooltip content={<CustomTooltip />} cursor={false} />
-              <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false} />
+              <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false}
+                activeBar={{ fill: '#1d4ed8', stroke: '#D4AF37', strokeWidth: 1.5, radius: [6, 6, 0, 0] }} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
