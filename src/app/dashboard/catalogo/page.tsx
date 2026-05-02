@@ -81,7 +81,7 @@ export default function CatalogoPage() {
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-2 rounded-lg bg-[#0EA5E9] px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-500 transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4" strokeWidth={2.5} />
           Agregar servicio
@@ -104,7 +104,7 @@ export default function CatalogoPage() {
               {servicios.map((s) => (
                 <tr key={s.id} className="hover:bg-zinc-50 transition-colors">
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-xs font-medium text-[#0EA5E9] ring-1 ring-inset ring-sky-100">
+                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-[#2563EB] ring-1 ring-inset ring-blue-100">
                       {s.categoria}
                     </span>
                   </td>
@@ -148,7 +148,7 @@ export default function CatalogoPage() {
                 <select
                   value={form.categoria}
                   onChange={(e) => setForm(f => ({ ...f, categoria: e.target.value }))}
-                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent"
+                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
                 >
                   {CATEGORIAS.map(c => (
                     <option key={c} value={c}>{c}</option>
@@ -163,7 +163,7 @@ export default function CatalogoPage() {
                   value={form.nombre}
                   onChange={(e) => setForm(f => ({ ...f, nombre: e.target.value }))}
                   placeholder="Ej. Cambio de aceite sintético"
-                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent"
+                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
                 />
               </div>
 
@@ -177,7 +177,7 @@ export default function CatalogoPage() {
                     value={form.precio}
                     onChange={(e) => setForm(f => ({ ...f, precio: e.target.value }))}
                     placeholder="0"
-                    className="w-full rounded-lg border border-zinc-300 pl-7 pr-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent"
+                    className="w-full rounded-lg border border-zinc-300 pl-7 pr-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
                   />
                 </div>
               </div>
@@ -198,7 +198,7 @@ export default function CatalogoPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-[#0EA5E9] px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-500 transition-colors"
+                  className="flex-1 rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                 >
                   Guardar
                 </button>

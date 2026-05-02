@@ -5,8 +5,8 @@ const METRICS = [
     label: 'Órdenes Recibidas',
     value: '8',
     icon: ClipboardList,
-    iconBg: 'bg-sky-50',
-    iconColor: 'text-[#0EA5E9]',
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-[#2563EB]',
   },
   {
     label: 'En Proceso',
@@ -26,8 +26,8 @@ const METRICS = [
     label: 'Ingresos del Día',
     value: '$6,900',
     icon: Banknote,
-    iconBg: 'bg-sky-50',
-    iconColor: 'text-[#0EA5E9]',
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-[#2563EB]',
   },
 ]
 
@@ -83,7 +83,7 @@ const ORDERS = [
 ]
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
-  recibido:   { label: 'Recibido',   className: 'bg-sky-50 text-[#0EA5E9] ring-sky-100' },
+  recibido:   { label: 'Recibido',   className: 'bg-blue-50 text-[#2563EB] ring-blue-100' },
   en_proceso: { label: 'En proceso', className: 'bg-amber-50 text-amber-600 ring-amber-100' },
   listo:      { label: 'Listo',      className: 'bg-emerald-50 text-emerald-600 ring-emerald-100' },
   entregado:  { label: 'Entregado',  className: 'bg-zinc-100 text-zinc-500 ring-zinc-200' },

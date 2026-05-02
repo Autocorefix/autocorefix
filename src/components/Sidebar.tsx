@@ -36,7 +36,7 @@ export default function Sidebar() {
     <aside className="fixed inset-y-0 left-0 w-60 flex flex-col bg-white border-r border-zinc-100 z-20">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5 border-b border-zinc-100">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#0EA5E9]">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#2563EB]">
           <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
         </div>
         <span className="text-sm font-semibold text-zinc-900 tracking-tight">
@@ -56,7 +56,7 @@ export default function Sidebar() {
               href={href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-[#0EA5E9] text-white'
+                  ? 'bg-[#2563EB] text-white'
                   : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
               }`}
             >
