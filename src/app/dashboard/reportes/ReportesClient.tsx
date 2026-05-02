@@ -65,11 +65,21 @@ function DeltaBadge({ pct }: { pct: number | null }) {
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string }[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-zinc-200 rounded-xl shadow-lg px-4 py-3 text-sm">
-      <p className="text-zinc-500 mb-1 font-medium">{label}</p>
+    <div className="bg-zinc-900 rounded-xl shadow-lg px-4 py-3 text-sm">
+      <p className="text-zinc-400 mb-1 font-medium text-xs">{label}</p>
       {payload.map((p, i) => (
-        <p key={i} className="font-semibold text-zinc-900">{fmt(p.value)}</p>
+        <p key={i} className="font-semibold text-white">{fmt(p.value)}</p>
       ))}
+    </div>
+  )
+}
+
+function CustomTooltipCount({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="bg-zinc-900 rounded-xl shadow-lg px-4 py-3 text-sm">
+      <p className="text-zinc-400 mb-1 font-medium text-xs">{label}</p>
+      <p className="font-semibold text-white">{payload[0].value} {payload[0].value === 1 ? 'vez' : 'veces'}</p>
     </div>
   )
 }
@@ -85,6 +95,10 @@ export default function ReportesClient({
   const ordenesMesCnt = ordenesMes.length
   const ticketProm    = ordenesMesCnt > 0 ? ingresosMes / ordenesMesCnt : 0
   const descuentoMes  = ordenesMes.reduce((s, o) => s + (o.descuento ?? 0), 0)
+
+  // ── % promedio descuento mes actual
+  const totalBaseMes   = ordenesMes.reduce((s, o) => s + o.total_base, 0)
+  const pctDescProm    = totalBaseMes > 0 ? (descuentoMes / totalBaseMes) * 100 : 0
 
   // ── KPIs mes anterior
   const ingresosAnt   = ordenesAnt.reduce((s, o) => s + o.total_cobrado, 0)
@@ -159,14 +173,6 @@ export default function ReportesClient({
       icon: Tag,
       color: 'bg-emerald-50 text-emerald-600',
     },
-    {
-      label: 'Descuentos aplicados',
-      value: fmt(descuentoMes),
-      delta: delta(descuentoMes, descuentoAnt),
-      icon: Percent,
-      color: 'bg-amber-50 text-amber-600',
-      invertDelta: true,
-    },
   ]
 
   return (
@@ -200,6 +206,21 @@ export default function ReportesClient({
             </div>
           )
         })}
+
+        {/* KPI Descuentos — card especial con $ y % */}
+        <div className="bg-white rounded-2xl border border-zinc-100 p-5 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 text-amber-600">
+              <Percent className="w-5 h-5" strokeWidth={2} />
+            </div>
+            <DeltaBadge pct={delta(descuentoMes, descuentoAnt) !== null ? -(delta(descuentoMes, descuentoAnt)!) : null} />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-zinc-900">{fmt(descuentoMes)}</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Descuento total del mes</p>
+            <p className="text-sm font-semibold text-amber-600 mt-2">{pctDescProm.toFixed(1)}% promedio por orden</p>
+          </div>
+        </div>
       </div>
 
       {/* ── Gráfica tendencia + Estado órdenes ── */}
@@ -247,7 +268,11 @@ export default function ReportesClient({
                       <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: number) => [`${v} órdenes`, '']} />
+                  <Tooltip
+                    contentStyle={{ background: '#18181b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px' }}
+                    labelStyle={{ color: '#a1a1aa', marginBottom: 4 }}
+                    formatter={(v: number) => [`${v} órdenes`, '']}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2">
@@ -283,7 +308,7 @@ export default function ReportesClient({
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="nombre" tick={{ fontSize: 11, fill: '#52525b' }} axisLine={false} tickLine={false} width={140} />
-                <Tooltip formatter={(v: number) => [`${v} veces`, 'Solicitado']} cursor={{ fill: '#f4f4f5' }} />
+                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: '#f4f4f5' }} />
                 <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>
@@ -307,7 +332,11 @@ export default function ReportesClient({
                       <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: number) => [fmt(v), 'Ingresos']} />
+                  <Tooltip
+                    contentStyle={{ background: '#18181b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px' }}
+                    labelStyle={{ color: '#a1a1aa', marginBottom: 4 }}
+                    formatter={(v: number) => [fmt(v), 'Ingresos']}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2 max-h-36 overflow-y-auto">
