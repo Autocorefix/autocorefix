@@ -2,7 +2,7 @@
 
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList,
 } from 'recharts'
 import { TrendingUp, TrendingDown, Minus, DollarSign, ShoppingBag, Tag, Percent } from 'lucide-react'
 
@@ -340,7 +340,9 @@ export default function ReportesClient({
                 <YAxis type="category" dataKey="nombre" tick={{ fontSize: 11, fill: '#52525b' }} axisLine={false} tickLine={false} width={140} />
                 <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} />
                 <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}
-                  activeBar={{ fill: '#1d4ed8', radius: [0, 6, 6, 0] }} />
+                  activeBar={{ fill: '#1d4ed8', radius: [0, 6, 6, 0] }}>
+                  <LabelList dataKey="cantidad" position="right" style={{ fill: '#71717a', fontSize: 11, fontWeight: 600 }} formatter={(v: number) => v === 1 ? '1 vez' : `${v} veces`} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -400,7 +402,9 @@ export default function ReportesClient({
               <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
               <Tooltip content={<CustomTooltip />} cursor={false} isAnimationActive={false} />
               <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false}
-                activeBar={{ fill: '#1d4ed8', radius: [6, 6, 0, 0] }} />
+                activeBar={{ fill: '#1d4ed8', radius: [6, 6, 0, 0] }}>
+                <LabelList dataKey="ingresos" position="top" style={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }} formatter={(v: number) => fmtK(v)} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
