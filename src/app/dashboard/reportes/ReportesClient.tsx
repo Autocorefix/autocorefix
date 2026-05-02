@@ -61,25 +61,34 @@ function DeltaBadge({ pct }: { pct: number | null }) {
   )
 }
 
-// Tooltip personalizado para gráficas
-function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string }[]; label?: string }) {
+const TOOLTIP_STYLE = {
+  background: '#ffffff',
+  border: '1px solid #e4e4e7',
+  borderRadius: '12px',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+  padding: '10px 14px',
+  fontSize: '13px',
+}
+const TOOLTIP_LABEL_STYLE = { color: '#71717a', marginBottom: 4, fontSize: '11px', fontWeight: 500 }
+const TOOLTIP_ITEM_STYLE  = { color: '#18181b', fontWeight: 600 }
+
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-zinc-900 rounded-xl shadow-lg px-4 py-3 text-sm">
-      <p className="text-zinc-400 mb-1 font-medium text-xs">{label}</p>
-      {payload.map((p, i) => (
-        <p key={i} className="font-semibold text-white">{fmt(p.value)}</p>
-      ))}
+    <div style={TOOLTIP_STYLE}>
+      <p style={TOOLTIP_LABEL_STYLE}>{label}</p>
+      <p style={TOOLTIP_ITEM_STYLE}>{fmt(payload[0].value)}</p>
     </div>
   )
 }
 
 function CustomTooltipCount({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
   if (!active || !payload?.length) return null
+  const v = payload[0].value
   return (
-    <div className="bg-zinc-900 rounded-xl shadow-lg px-4 py-3 text-sm">
-      <p className="text-zinc-400 mb-1 font-medium text-xs">{label}</p>
-      <p className="font-semibold text-white">{payload[0].value} {payload[0].value === 1 ? 'vez' : 'veces'}</p>
+    <div style={TOOLTIP_STYLE}>
+      <p style={TOOLTIP_LABEL_STYLE}>{label}</p>
+      <p style={TOOLTIP_ITEM_STYLE}>{v} {v === 1 ? 'vez' : 'veces'}</p>
     </div>
   )
 }
@@ -245,7 +254,7 @@ export default function ReportesClient({
                 <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                 <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="ingresos" stroke="#2563EB" strokeWidth={2.5} fill="url(#gradBlue)" dot={false} activeDot={{ r: 5, fill: '#2563EB' }} />
+                <Area type="monotone" dataKey="ingresos" stroke="#2563EB" strokeWidth={2.5} fill="url(#gradBlue)" dot={false} activeDot={{ r: 5, fill: '#2563EB' }} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
@@ -269,8 +278,9 @@ export default function ReportesClient({
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ background: '#18181b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px' }}
-                    labelStyle={{ color: '#a1a1aa', marginBottom: 4 }}
+                    contentStyle={TOOLTIP_STYLE}
+                    labelStyle={TOOLTIP_LABEL_STYLE}
+                    itemStyle={TOOLTIP_ITEM_STYLE}
                     formatter={(v: number) => [`${v} órdenes`, '']}
                   />
                 </PieChart>
@@ -308,8 +318,8 @@ export default function ReportesClient({
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="nombre" tick={{ fontSize: 11, fill: '#52525b' }} axisLine={false} tickLine={false} width={140} />
-                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: '#f4f4f5' }} />
-                <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} />
+                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} />
+                <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -333,8 +343,9 @@ export default function ReportesClient({
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ background: '#18181b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px' }}
-                    labelStyle={{ color: '#a1a1aa', marginBottom: 4 }}
+                    contentStyle={TOOLTIP_STYLE}
+                    labelStyle={TOOLTIP_LABEL_STYLE}
+                    itemStyle={TOOLTIP_ITEM_STYLE}
                     formatter={(v: number) => [fmt(v), 'Ingresos']}
                   />
                 </PieChart>
@@ -371,8 +382,8 @@ export default function ReportesClient({
               <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" vertical={false} />
               <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} />
+              <Tooltip content={<CustomTooltip />} cursor={false} />
+              <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
