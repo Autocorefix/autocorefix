@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, UserPlus, X, Trash2 } from 'lucide-react'
+import { Search, UserPlus, X, Trash2, Droplets, Gauge, Cpu, Wind, Disc, Navigation2, Settings2, type LucideIcon } from 'lucide-react'
 
 type Cliente = {
   id: number
@@ -25,6 +25,7 @@ type Servicio = {
 
 type CategoriaData = {
   nombre: string
+  icon: LucideIcon
   servicios: Servicio[]
 }
 
@@ -39,6 +40,7 @@ const MOCK_CLIENTES: Cliente[] = [
 const CATEGORIAS: CategoriaData[] = [
   {
     nombre: 'Cambio de Aceite',
+    icon: Droplets,
     servicios: [
       { id: 1, nombre: 'Cambio de aceite sintético',     precio: 850 },
       { id: 2, nombre: 'Cambio de aceite semisintético', precio: 650 },
@@ -47,6 +49,7 @@ const CATEGORIAS: CategoriaData[] = [
   },
   {
     nombre: 'Suspensión y Balanceo',
+    icon: Gauge,
     servicios: [
       { id: 4, nombre: 'Balanceo de llantas',      precio: 400 },
       { id: 5, nombre: 'Alineación computarizada', precio: 600 },
@@ -54,13 +57,15 @@ const CATEGORIAS: CategoriaData[] = [
   },
   {
     nombre: 'Motor y Scanner',
+    icon: Cpu,
     servicios: [
-      { id: 6, nombre: 'Scanner y diagnóstico',    precio: 450  },
+      { id: 6, nombre: 'Scanner y diagnóstico',     precio: 450  },
       { id: 7, nombre: 'Revisión general de motor', precio: 1200 },
     ],
   },
   {
     nombre: 'Clima',
+    icon: Wind,
     servicios: [
       { id: 8, nombre: 'Carga de gas refrigerante',    precio: 800 },
       { id: 9, nombre: 'Revisión de sistema de clima', precio: 500 },
@@ -68,6 +73,7 @@ const CATEGORIAS: CategoriaData[] = [
   },
   {
     nombre: 'Frenos y Balatas',
+    icon: Disc,
     servicios: [
       { id: 10, nombre: 'Cambio de balatas delanteras', precio: 950 },
       { id: 11, nombre: 'Rectificado de discos',        precio: 700 },
@@ -76,6 +82,7 @@ const CATEGORIAS: CategoriaData[] = [
   },
   {
     nombre: 'Dirección',
+    icon: Navigation2,
     servicios: [
       { id: 13, nombre: 'Corrección de dirección',           precio: 550 },
       { id: 14, nombre: 'Cambio de terminales de dirección', precio: 800 },
@@ -83,6 +90,7 @@ const CATEGORIAS: CategoriaData[] = [
   },
   {
     nombre: 'Tracción General',
+    icon: Settings2,
     servicios: [
       { id: 15, nombre: 'Revisión de transmisión',      precio: 600 },
       { id: 16, nombre: 'Cambio de aceite diferencial', precio: 500 },
@@ -91,7 +99,7 @@ const CATEGORIAS: CategoriaData[] = [
 ]
 
 const EMPTY_NUEVO_CLIENTE = { nombre: '', telefono: '', email: '' }
-const EMPTY_VEHICULO = { placa: '', marca: '', modelo: '', anio: '' }
+const EMPTY_VEHICULO = { marca: '', modelo: '', anio: '' }
 
 const INPUT_CLASS =
   'rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent'
@@ -262,13 +270,6 @@ export default function NuevaOrdenPage() {
           <div className="bg-white rounded-2xl border border-zinc-100 p-5">
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Vehículo</h2>
             <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                value={vehiculo.placa}
-                onChange={(e) => setVehiculo((p) => ({ ...p, placa: e.target.value.toUpperCase() }))}
-                placeholder="Placa"
-                className={INPUT_CLASS + ' uppercase'}
-              />
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="text"
@@ -306,20 +307,39 @@ export default function NuevaOrdenPage() {
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Servicios</h2>
 
             {/* Category buttons */}
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIAS.map((cat) => (
-                <button
-                  key={cat.nombre}
-                  onClick={() => toggleCategoria(cat.nombre)}
-                  className={`rounded-lg px-3 py-2.5 text-sm font-medium text-left transition-colors border ${
-                    categoriaActiva === cat.nombre
-                      ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                      : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300'
-                  }`}
-                >
-                  {cat.nombre}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-3">
+              {CATEGORIAS.map((cat) => {
+                const active = categoriaActiva === cat.nombre
+                return (
+                  <button
+                    key={cat.nombre}
+                    onClick={() => toggleCategoria(cat.nombre)}
+                    className={`group flex flex-col gap-3 p-4 rounded-xl border text-left transition-all duration-150 ${
+                      active
+                        ? 'bg-[#2563EB] border-[#2563EB] shadow-md'
+                        : 'bg-white border-zinc-200 hover:bg-[#2563EB] hover:border-[#2563EB] hover:shadow-md'
+                    }`}
+                  >
+                    <div className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${
+                      active
+                        ? 'bg-white/20'
+                        : 'bg-blue-50 group-hover:bg-white/20'
+                    }`}>
+                      <cat.icon
+                        className={`w-5 h-5 transition-colors ${
+                          active ? 'text-white' : 'text-[#2563EB] group-hover:text-white'
+                        }`}
+                        strokeWidth={2}
+                      />
+                    </div>
+                    <span className={`text-sm font-semibold leading-tight transition-colors ${
+                      active ? 'text-white' : 'text-zinc-700 group-hover:text-white'
+                    }`}>
+                      {cat.nombre}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
 
             {/* Sub-services */}
