@@ -302,7 +302,7 @@ export default function ReportesClient({
                       <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
                     ))}
                   </Pie>
-                  <Tooltip content={<PieTooltip total={ordenesMesCnt} />} isAnimationActive={false} />
+                  <Tooltip content={<PieTooltip total={ordenesMesCnt} />} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2">
@@ -338,7 +338,7 @@ export default function ReportesClient({
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="nombre" tick={{ fontSize: 11, fill: '#52525b' }} axisLine={false} tickLine={false} width={140} />
-                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} />
+                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                 <Bar dataKey="cantidad" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}
                   activeBar={{ fill: '#1d4ed8', radius: [0, 6, 6, 0] }}>
                   <LabelList dataKey="cantidad" position="right" style={{ fill: '#71717a', fontSize: 11, fontWeight: 600 }} formatter={(v: number) => v === 1 ? '1 vez' : `${v} veces`} />
@@ -365,7 +365,7 @@ export default function ReportesClient({
                       <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
                     ))}
                   </Pie>
-                  <Tooltip content={<PieTooltip total={ingresosMes} />} isAnimationActive={false} />
+                  <Tooltip content={<PieTooltip total={ingresosMes} />} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 flex flex-col gap-2 max-h-36 overflow-y-auto">
@@ -400,7 +400,7 @@ export default function ReportesClient({
               <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" vertical={false} />
               <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
-              <Tooltip content={<CustomTooltip />} cursor={false} isAnimationActive={false} />
+              <Tooltip content={<CustomTooltip />} cursor={false} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
               <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false}
                 activeBar={{ fill: '#1d4ed8', radius: [6, 6, 0, 0] }}>
                 <LabelList dataKey="ingresos" position="top" style={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }} formatter={(v: number) => fmtK(v)} />
