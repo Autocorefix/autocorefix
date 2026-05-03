@@ -94,11 +94,11 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
             : '—'
 
           return (
-            <div key={c.id} className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+            <div key={c.id} className={`bg-white rounded-2xl border border-zinc-100 overflow-hidden border-l-4 transition-colors ${abierto ? 'border-l-[#2563EB]' : 'border-l-transparent hover:border-l-[#2563EB]'}`}>
               {/* Header del cliente */}
               <button
                 onClick={() => setExpandido(abierto ? null : c.id)}
-                className="w-full flex items-center justify-between px-6 py-4 hover:bg-zinc-50 transition-colors text-left"
+                className={`w-full flex items-center justify-between px-6 py-4 transition-colors text-left ${abierto ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
@@ -125,7 +125,12 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                     <p className="text-xs text-zinc-400">Órdenes</p>
                     <p className="text-sm font-semibold text-zinc-900">{c.ordenes.length}</p>
                   </div>
-                  {abierto ? <ChevronUp className="w-4 h-4 text-zinc-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />}
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors shrink-0 ${abierto ? 'bg-[#2563EB]' : 'bg-zinc-100'}`}>
+                    {abierto
+                      ? <ChevronUp className="w-3.5 h-3.5 text-white" />
+                      : <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
+                    }
+                  </div>
                 </div>
               </button>
 
