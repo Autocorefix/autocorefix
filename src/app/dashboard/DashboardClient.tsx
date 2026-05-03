@@ -1,8 +1,14 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ClipboardList, Wrench, CheckCircle2, Banknote, ChevronDown } from 'lucide-react'
+import { ClipboardList, Wrench, CheckCircle2, Banknote, ChevronDown, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
+
+type OrdenServicio = {
+  id: string
+  nombre_servicio: string | null
+  precio_cobrado: number | null
+}
 
 type Orden = {
   id: string
@@ -11,7 +17,7 @@ type Orden = {
   created_at: string | null
   clientes: { nombre: string } | { nombre: string }[] | null
   vehiculos: { marca: string | null; modelo: string | null; anio: number | null } | { marca: string | null; modelo: string | null; anio: number | null }[] | null
-  orden_servicios: { id: string }[] | null
+  orden_servicios: OrdenServicio[] | null
 }
 
 const ESTADOS = ['recibido', 'en_proceso', 'listo', 'entregado'] as const
@@ -51,7 +57,8 @@ function StatusDropdown({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [ordenId])
 
-  function handleOpen() {
+  function handleOpen(e: React.MouseEvent) {
+    e.stopPropagation()
     if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
       setPos({ top: rect.bottom + window.scrollY + 4, left: rect.left + window.scrollX })
@@ -80,7 +87,7 @@ function StatusDropdown({
           {ESTADOS.map(e => (
             <button
               key={e}
-              onClick={() => { onChange(ordenId, e); setOpen(false) }}
+              onClick={(ev) => { ev.stopPropagation(); onChange(ordenId, e); setOpen(false) }}
               className={`w-full text-left px-3 py-2.5 text-xs font-medium transition-colors ${
                 e === estado
                   ? STATUS_STYLES[e].badge + ' ring-1 ring-inset'
@@ -105,6 +112,7 @@ export default function DashboardClient({
 }) {
   const [ordenes, setOrdenes] = useState<Orden[]>(inicial)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const supabase = createClient()
 
   const recibidas   = ordenes.filter(o => o.estado === 'recibido').length
@@ -124,6 +132,10 @@ export default function DashboardClient({
     const { error } = await supabase.from('ordenes').update({ estado }).eq('id', id)
     if (!error) setOrdenes(prev => prev.map(o => o.id === id ? { ...o, estado } : o))
     setUpdating(null)
+  }
+
+  function toggleExpand(id: string) {
+    setExpandedId(prev => prev === id ? null : id)
   }
 
   return (
@@ -155,18 +167,19 @@ export default function DashboardClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-zinc-50 text-left">
-                <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">#Orden</th>
-                <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Cliente</th>
-                <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Vehículo</th>
-                <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Servicios</th>
-                <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Estado</th>
-                <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Total</th>
+                <th className="w-8 px-4 py-3"></th>
+                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">#Orden</th>
+                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Cliente</th>
+                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Vehículo</th>
+                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Servicios</th>
+                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Estado</th>
+                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-50">
+            <tbody>
               {ordenes.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-400 text-sm">
+                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-400 text-sm">
                     No hay órdenes registradas hoy
                   </td>
                 </tr>
@@ -174,31 +187,75 @@ export default function DashboardClient({
               {ordenes.map(order => {
                 const cliente      = Array.isArray(order.clientes) ? order.clientes[0] : order.clientes
                 const vehiculo     = Array.isArray(order.vehiculos) ? order.vehiculos[0] : order.vehiculos
-                const numServicios = order.orden_servicios?.length ?? 0
+                const servicios    = order.orden_servicios ?? []
+                const numServicios = servicios.length
                 const estadoActual = (order.estado ?? 'recibido') as Estado
+                const isExpanded   = expandedId === order.id
 
                 return (
-                  <tr key={order.id} className="hover:bg-zinc-50 transition-colors">
-                    <td className="px-6 py-5 font-mono text-xs text-zinc-400">{order.id.slice(0, 8).toUpperCase()}</td>
-                    <td className="px-6 py-5 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
-                    <td className="px-6 py-5 text-zinc-500">
-                      {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
-                    </td>
-                    <td className="px-6 py-5 text-zinc-500">
-                      {numServicios} {numServicios === 1 ? 'servicio' : 'servicios'}
-                    </td>
-                    <td className="px-6 py-5">
-                      <StatusDropdown
-                        ordenId={order.id}
-                        estado={estadoActual}
-                        updating={updating === order.id}
-                        onChange={cambiarEstado}
-                      />
-                    </td>
-                    <td className="px-6 py-5 font-semibold text-zinc-800 text-right">
-                      ${(order.total_cobrado ?? 0).toLocaleString('es-MX')}
-                    </td>
-                  </tr>
+                  <>
+                    <tr
+                      key={order.id}
+                      onClick={() => toggleExpand(order.id)}
+                      className={`cursor-pointer transition-colors border-t border-zinc-50 ${isExpanded ? 'bg-[#EFF6FF]' : 'hover:bg-zinc-50'}`}
+                    >
+                      {/* Toggle icon */}
+                      <td className="px-4 py-4 text-zinc-400">
+                        {isExpanded
+                          ? <ChevronDown className="w-4 h-4 text-[#2563EB]" />
+                          : <ChevronRight className="w-4 h-4" />
+                        }
+                      </td>
+                      <td className="px-4 py-4 font-mono text-xs text-zinc-400">{order.id.slice(0, 8).toUpperCase()}</td>
+                      <td className="px-4 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
+                      <td className="px-4 py-4 text-zinc-500">
+                        {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
+                      </td>
+                      <td className="px-4 py-4 text-zinc-500">
+                        <span className={`${isExpanded ? 'text-[#2563EB] font-medium' : ''}`}>
+                          {numServicios} {numServicios === 1 ? 'servicio' : 'servicios'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
+                        <StatusDropdown
+                          ordenId={order.id}
+                          estado={estadoActual}
+                          updating={updating === order.id}
+                          onChange={cambiarEstado}
+                        />
+                      </td>
+                      <td className="px-4 py-4 font-semibold text-zinc-800 text-right">
+                        ${(order.total_cobrado ?? 0).toLocaleString('es-MX')}
+                      </td>
+                    </tr>
+
+                    {/* Acordeón de servicios */}
+                    {isExpanded && (
+                      <tr key={`${order.id}-detail`} className="bg-[#EFF6FF]">
+                        <td colSpan={7} className="px-6 pb-4 pt-0">
+                          <div className="ml-6 border border-blue-100 rounded-xl overflow-hidden bg-white">
+                            <div className="px-4 py-2.5 border-b border-blue-50 bg-blue-50/60">
+                              <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wide">Detalle de servicios</p>
+                            </div>
+                            <div className="divide-y divide-zinc-50">
+                              {servicios.length === 0 ? (
+                                <p className="px-4 py-3 text-xs text-zinc-400">Sin servicios registrados</p>
+                              ) : (
+                                servicios.map((s, i) => (
+                                  <div key={s.id ?? i} className="flex items-center justify-between px-4 py-2.5">
+                                    <span className="text-sm text-zinc-700">{s.nombre_servicio ?? '—'}</span>
+                                    <span className="text-sm font-semibold text-zinc-800">
+                                      ${(s.precio_cobrado ?? 0).toLocaleString('es-MX')}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 )
               })}
             </tbody>

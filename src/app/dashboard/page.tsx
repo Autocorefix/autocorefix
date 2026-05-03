@@ -16,7 +16,7 @@ export default async function DashboardPage() {
       created_at,
       clientes ( nombre ),
       vehiculos ( marca, modelo, anio ),
-      orden_servicios ( id )
+      orden_servicios ( id, nombre_servicio, precio_cobrado )
     `)
     .gte('created_at', today.toISOString())
     .order('created_at', { ascending: false })

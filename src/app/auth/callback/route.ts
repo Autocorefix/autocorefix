@@ -38,4 +38,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Vincular asistent
+    // Vincular asistente invitado a su tenant (no-op si ya está vinculado o no es invitación)
+    await (supabase as any).rpc('accept_invitation')
+  }
+
+  return response
+}
