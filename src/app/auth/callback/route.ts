@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
   const code       = new URL(request.url).searchParams.get('code')
   const errorParam = new URL(request.url).searchParams.get('error')
 
-  // Si Google devolvió error, redirigir a login con mensaje
   if (errorParam) {
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(errorParam)}`, request.url))
   }
@@ -31,14 +30,15 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-    // Si falla el intercambio, redirigir a login con error visible
     if (error) {
       return NextResponse.redirect(
         new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
       )
     }
 
-    // Vincular asistente invitado a su tenant (no-op si ya está vinculado o no es invitación)
+    // Vincular asistente invitado a su tenant
+    // Esta RPC detecta si existe una invitación pendiente para el email
+    // del usuario recién autenticado y asigna tenant_id + rol 'asistente'
     await (supabase as any).rpc('accept_invitation')
   }
 

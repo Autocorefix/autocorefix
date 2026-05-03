@@ -10,14 +10,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login')
   }
 
-  // Verificar que el usuario tiene tenant asignado
   const { data: usuario } = await supabase
     .from('usuarios')
-    .select('tenant_id, rol')
+    .select('tenant_id, rol, nombre')
     .eq('id', user.id)
     .maybeSingle()
 
+  // Asistentes invitados sin tenant aún: accept_invitation puede haber
+  // tardado — redirigir a onboarding solo si es admin sin tenant.
+  // Los asistentes sin tenant tienen un problema de invitación, no onboarding.
   if (!usuario?.tenant_id) {
+    if (usuario?.rol === 'asistente') {
+      // La RPC falló o aún no corrió — redirigir a login con mensaje
+      redirect('/login?error=Tu+invitacion+no+pudo+procesarse.+Contacta+al+administrador.')
+    }
     redirect('/onboarding')
   }
 
