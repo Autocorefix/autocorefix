@@ -242,7 +242,7 @@ export default function OrdenesPage() {
                   <tr
                     key={o.id}
                     onClick={() => router.push(`/dashboard/ordenes/${o.id}`)}
-                    className="hover:bg-[#EFF6FF] transition-all cursor-pointer group border-l-4 border-transparent hover:border-[#2563EB] last:border-b last:border-zinc-100"
+                    className="hover:bg-[#EFF6FF] transition-all cursor-pointer group border-l-4 border-transparent hover:border-[#2563EB]"
                   >
                     <td className="px-5 py-4 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
                     <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
