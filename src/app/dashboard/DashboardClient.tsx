@@ -121,10 +121,10 @@ export default function DashboardClient({
   const ingresos    = ordenes.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
 
   const METRICS = [
-    { label: 'Órdenes Recibidas', value: String(recibidas),   Icon: ClipboardList, iconBg: 'bg-blue-50',    iconColor: 'text-[#2563EB]' },
+    { label: 'Ordenes Recibidas', value: String(recibidas),   Icon: ClipboardList, iconBg: 'bg-blue-50',    iconColor: 'text-[#2563EB]' },
     { label: 'En Proceso',        value: String(enProceso),   Icon: Wrench,        iconBg: 'bg-amber-50',   iconColor: 'text-amber-500' },
     { label: 'Completadas',       value: String(completadas), Icon: CheckCircle2,  iconBg: 'bg-emerald-50', iconColor: 'text-emerald-500' },
-    { label: 'Ingresos del Día',  value: `$${ingresos.toLocaleString('es-MX')}`, Icon: Banknote, iconBg: 'bg-blue-50', iconColor: 'text-[#2563EB]' },
+    { label: 'Ingresos del Dia',  value: '$' + ingresos.toLocaleString('es-MX'), Icon: Banknote, iconBg: 'bg-blue-50', iconColor: 'text-[#2563EB]' },
   ]
 
   async function cambiarEstado(id: string, estado: Estado) {
@@ -161,7 +161,7 @@ export default function DashboardClient({
 
       <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-zinc-100">
-          <h2 className="text-sm font-semibold text-zinc-900">Órdenes de hoy</h2>
+          <h2 className="text-sm font-semibold text-zinc-900">Ordenes de hoy</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -170,7 +170,7 @@ export default function DashboardClient({
                 <th className="w-12 px-4 py-3"></th>
                 <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">#Orden</th>
                 <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Cliente</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Vehículo</th>
+                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Vehiculo</th>
                 <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Servicios</th>
                 <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Estado</th>
                 <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Total</th>
@@ -180,7 +180,7 @@ export default function DashboardClient({
               {ordenes.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-10 text-center text-zinc-400 text-sm">
-                    No hay órdenes registradas hoy
+                    No hay ordenes registradas hoy
                   </td>
                 </tr>
               )}
@@ -194,13 +194,11 @@ export default function DashboardClient({
 
                 return (
                   <React.Fragment key={order.id}>
-                    {/* Fila principal */}
                     <tr
                       onClick={() => toggleExpand(order.id)}
                       className={`cursor-pointer transition-colors border-t border-zinc-50 ${isExpanded ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
                     >
-                      {/* Chevron con borde izquierdo en la primera td */}
-                      <td className={`pl-3 pr-2 py-4 border-l-4 transition-colors ${isExpanded ? 'border-l-[#2563EB]' : 'border-l-transparent hover:border-l-[#2563EB]'}`}>
+                      <td className={`pl-3 pr-2 py-4 border-l-4 transition-colors ${isExpanded ? 'border-l-[#2563EB]' : 'border-l-transparent'}`}>
                         <div className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${isExpanded ? 'bg-[#2563EB]' : 'bg-zinc-100'}`}>
                           {isExpanded
                             ? <ChevronDown className="w-3.5 h-3.5 text-white" />
@@ -227,11 +225,10 @@ export default function DashboardClient({
                         />
                       </td>
                       <td className="px-4 py-4 font-semibold text-zinc-800 text-right">
-                        ${(order.total_cobrado ?? 0).toLocaleString('es-MX')}
+                        {'$' + (order.total_cobrado ?? 0).toLocaleString('es-MX')}
                       </td>
                     </tr>
 
-                    {/* Fila del acordeón */}
                     {isExpanded && (
                       <tr className="bg-[#EFF6FF]">
                         <td colSpan={7} className="border-l-4 border-l-[#2563EB] px-5 pb-4 pt-1">
@@ -247,66 +244,7 @@ export default function DashboardClient({
                                   <div key={s.id ?? i} className="flex items-center justify-between px-4 py-2.5">
                                     <span className="text-sm text-zinc-700">{s.nombre_servicio ?? '—'}</span>
                                     <span className="text-sm font-semibold text-zinc-800">
-                                      ${(s.precio_cobrado ?? 0).toLocaleString('es-MX')}
-                                    </span>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
-                      <td className="px-4 py-4 font-mono text-xs text-zinc-400">{order.id.slice(0, 8).toUpperCase()}</td>
-                      <td className="px-4 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
-                      <td className="px-4 py-4 text-zinc-500">
-                        {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
-                      </td>
-                      <td className="px-4 py-4 text-zinc-500">
-                        <span className={isExpanded ? 'text-[#2563EB] font-medium' : ''}>
-                          {numServicios} {numServicios === 1 ? 'servicio' : 'servicios'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
-                        <StatusDropdown
-                          ordenId={order.id}
-                          estado={estadoActual}
-                          updating={updating === order.id}
-                          onChange={cambiarEstado}
-                        />
-                      </td>
-                      <td className="px-4 py-4 font-semibold text-zinc-800 text-right">
-                        $\{(order.total_cobrado ?? 0).toLocaleString('es-MX')}
-                      </td>
-                    </tr>
-
-                    {/* Fila del acordeón */}
-                    {isExpanded && (
-                      <tr className="bg-[#EFF6FF]">
-                        <td colSpan={7} className="border-l-4 border-l-[#2563EB] px-5 pb-4 pt-1">
-                          <div className="ml-8 border border-blue-100 rounded-xl overflow-hidden bg-white shadow-sm">
-                            <div className="px-4 py-2 border-b border-blue-50 bg-blue-50">
-                              <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wide">Servicios realizados</p>
-                            </div>
-                            <div className="divide-y divide-zinc-50">
-                              {servicios.length === 0 ? (
-                                <p className="px-4 py-3 text-xs text-zinc-400">Sin servicios registrados</p>
-                              ) : (
-                                servicios.map((s, i) => (
-                                  <div key={s.id ?? i} className="flex items-center justify-between px-4 py-2.5">
-                                    <span className="text-sm text-zinc-700">{s.nombre_servicio ?? '—'}</span>
-                                    <span className="text-sm font-semibold text-zinc-800">
-                                      $\{(s.precio_cobrado ?? 0).toLocaleString('es-MX')}
+                                      {'$' + (s.precio_cobrado ?? 0).toLocaleString('es-MX')}
                                     </span>
                                   </div>
                                 ))
