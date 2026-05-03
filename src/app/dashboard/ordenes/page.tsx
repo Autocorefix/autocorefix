@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ChevronDown, Search } from 'lucide-react'
+import { ChevronDown, Search, ChevronRight } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 type Orden = {
@@ -216,6 +216,7 @@ export default function OrdenesPage() {
                 <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Estado</th>
                 <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Fecha</th>
                 <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Total</th>
+                <th className="px-3 py-3 w-8" />
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
@@ -241,7 +242,7 @@ export default function OrdenesPage() {
                   <tr
                     key={o.id}
                     onClick={() => router.push(`/dashboard/ordenes/${o.id}`)}
-                    className="hover:bg-zinc-50 transition-colors cursor-pointer"
+                    className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
                   >
                     <td className="px-5 py-4 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
                     <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
@@ -262,6 +263,9 @@ export default function OrdenesPage() {
                     <td className="px-5 py-4 text-zinc-500 text-xs">{fecha}</td>
                     <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
                       ${(o.total_cobrado ?? 0).toLocaleString('es-MX')}
+                    </td>
+                    <td className="px-3 py-4 text-zinc-300 group-hover:text-[#2563EB] transition-colors">
+                      <ChevronRight className="w-4 h-4" />
                     </td>
                   </tr>
                 )

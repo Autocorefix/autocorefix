@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ArrowLeft, User, Car, ChevronDown } from 'lucide-react'
+import { ArrowLeft, User, Car, ChevronDown, ChevronRight } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 
@@ -233,7 +233,7 @@ export default function OrdenDetallePage() {
           {(orden.descuento ?? 0) > 0 && (
             <div className="flex items-center gap-8 text-sm">
               <span className="text-amber-600">
-                Descuento {orden.pct_descuento != null ? `(${orden.pct_descuento}%)` : ''}
+                Descuento {orden.pct_descuento != null ? `(${Math.round(orden.pct_descuento)}%)` : ''}
               </span>
               <span className="font-medium text-amber-600 w-24 text-right">−{fmt(orden.descuento ?? 0)}</span>
             </div>
