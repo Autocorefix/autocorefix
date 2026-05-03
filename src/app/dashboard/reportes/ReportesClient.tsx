@@ -509,7 +509,7 @@ export default function ReportesClient({
                 const pct = maxTotal > 0 ? (c.total / maxTotal) * 100 : 0
                 const color = PALETTE[i % PALETTE.length]
                 return (
-                  <div key={c.nombre} className="flex flex-col gap-1">
+                  <div key={`${c.nombre}-${i}`} className="flex flex-col gap-1">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <span className="flex items-center justify-center w-5 h-5 rounded-full text-white font-bold text-xs shrink-0" style={{ background: color, fontSize: 9 }}>
