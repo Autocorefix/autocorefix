@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { ClipboardList, Wrench, CheckCircle2, Banknote, ChevronDown, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -193,9 +193,8 @@ export default function DashboardClient({
                 const isExpanded   = expandedId === order.id
 
                 return (
-                  <>
+                  <React.Fragment key={order.id}>
                     <tr
-                      key={order.id}
                       onClick={() => toggleExpand(order.id)}
                       className={`cursor-pointer transition-all border-t border-zinc-50 group border-l-4 ${isExpanded ? 'bg-[#EFF6FF] border-l-[#2563EB]' : 'border-l-transparent hover:bg-[#EFF6FF] hover:border-l-[#2563EB]'}`}
                     >
@@ -255,7 +254,7 @@ export default function DashboardClient({
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 )
               })}
             </tbody>
