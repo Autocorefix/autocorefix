@@ -154,26 +154,19 @@ function PieTooltip({ active, payload, total }: { active?: boolean; payload?: Pi
   )
 }
 
-// ─── Custom YAxis tick con wrap de 2 líneas ───────────────────────────────────
+// ─── Custom YAxis tick — máximo 2 líneas, corte en espacio más cercano al centro
+
+function wrapToTwoLines(name: string): string[] {
+  if (name.length <= 18) return [name]
+  const mid     = Math.floor(name.length / 2)
+  let splitAt   = name.indexOf(' ', mid)
+  if (splitAt < 0) splitAt = name.lastIndexOf(' ', mid)
+  if (splitAt < 0) return [name]
+  return [name.slice(0, splitAt), name.slice(splitAt + 1)]
+}
 
 function SvcYAxisTick({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) {
-  const name   = payload?.value ?? ''
-  const words  = name.split(' ')
-  const lines: string[] = []
-  let current  = ''
-  const maxLen = 15
-
-  words.forEach(word => {
-    const candidate = current ? `${current} ${word}` : word
-    if (candidate.length <= maxLen) {
-      current = candidate
-    } else {
-      if (current) lines.push(current)
-      current = word
-    }
-  })
-  if (current) lines.push(current)
-
+  const lines  = wrapToTwoLines(payload?.value ?? '')
   const lineH  = 13
   const startY = (y ?? 0) - ((lines.length - 1) * lineH) / 2
 
