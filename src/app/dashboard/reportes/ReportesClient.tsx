@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList,
 } from 'recharts'
-import { TrendingUp, TrendingDown, Minus, DollarSign, ShoppingBag, Tag, Percent, Users, Download, Printer } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, DollarSign, ShoppingBag, Tag, Percent, Users, Download, Printer, ChevronDown } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -188,31 +188,42 @@ export default function ReportesClient({
   mesLabel, mesAntLabel, desde, hasta,
 }: Props) {
 
-  const router = useRouter()
+  const router   = useRouter()
   const [desdeLocal, setDesdeLocal] = useState(desde)
   const [hastaLocal, setHastaLocal] = useState(hasta)
+  const [open, setOpen]             = useState(false)
+  const pickerRef                   = useRef<HTMLDivElement>(null)
 
-  function aplicarFiltro(d?: string, h?: string) {
-    router.push(`/dashboard/reportes?desde=${d ?? desdeLocal}&hasta=${h ?? hastaLocal}`)
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function aplicarFiltro(d: string, h: string) {
+    setOpen(false)
+    router.push(`/dashboard/reportes?desde=${d}&hasta=${h}`)
+  }
+
+  function aplicarCustom() {
+    aplicarFiltro(desdeLocal, hastaLocal)
   }
 
   function preset(tipo: string) {
-    const hoy   = new Date()
-    const pad   = (n: number) => String(n).padStart(2, '0')
-    const iso   = (d: Date)   => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-    const ayer  = new Date(hoy); ayer.setDate(hoy.getDate() - 1)
-    const l7    = new Date(hoy); l7.setDate(hoy.getDate() - 6)
-    const l30   = new Date(hoy); l30.setDate(hoy.getDate() - 29)
-    const iniMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
-    const iniMesAnt = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)
-    const finMesAnt = new Date(hoy.getFullYear(), hoy.getMonth(), 0)
+    const hoy = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const iso = (d: Date)   => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    const shift = (n: number) => { const d = new Date(hoy); d.setDate(hoy.getDate() + n); return d }
     const ranges: Record<string, [string, string]> = {
-      hoy:       [iso(hoy),     iso(hoy)],
-      ayer:      [iso(ayer),    iso(ayer)],
-      '7d':      [iso(l7),      iso(hoy)],
-      '30d':     [iso(l30),     iso(hoy)],
-      mes:       [iso(iniMes),  iso(hoy)],
-      mes_ant:   [iso(iniMesAnt), iso(finMesAnt)],
+      hoy:     [iso(hoy),                                           iso(hoy)],
+      ayer:    [iso(shift(-1)),                                     iso(shift(-1))],
+      '7d':    [iso(shift(-6)),                                     iso(hoy)],
+      '14d':   [iso(shift(-13)),                                    iso(hoy)],
+      '30d':   [iso(shift(-29)),                                    iso(hoy)],
+      mes:     [iso(new Date(hoy.getFullYear(), hoy.getMonth(), 1)),iso(hoy)],
+      mes_ant: [iso(new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)), iso(new Date(hoy.getFullYear(), hoy.getMonth(), 0))],
     }
     const [d, h] = ranges[tipo]
     setDesdeLocal(d)
@@ -223,11 +234,16 @@ export default function ReportesClient({
   const PRESETS = [
     { key: 'hoy',     label: 'Hoy' },
     { key: 'ayer',    label: 'Ayer' },
-    { key: '7d',      label: 'Últ. 7 días' },
-    { key: '30d',     label: 'Últ. 30 días' },
+    { key: '7d',      label: 'Últimos 7 días' },
+    { key: '14d',     label: 'Últimos 14 días' },
+    { key: '30d',     label: 'Últimos 30 días' },
     { key: 'mes',     label: 'Este mes' },
     { key: 'mes_ant', label: 'Mes anterior' },
   ]
+
+  const btnLabel = desde === hasta
+    ? new Date(desde + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+    : `${new Date(desde + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })} – ${new Date(hasta + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}`
 
   function exportarCSV() {
     const rows = [
@@ -359,40 +375,68 @@ export default function ReportesClient({
           <p className="text-sm text-zinc-400 mt-0.5">{mesLabel} · comparado con {mesAntLabel}</p>
         </div>
 
-        {/* Filtro fechas + botones */}
-        <div className="flex flex-col items-end gap-2 print:hidden">
-          {/* Presets */}
-          <div className="flex flex-wrap gap-1">
-            {PRESETS.map(p => (
-              <button
-                key={p.key}
-                onClick={() => preset(p.key)}
-                className="px-2.5 py-1 text-xs font-medium border border-zinc-200 text-zinc-500 rounded-lg hover:bg-zinc-50 hover:border-zinc-400 transition-colors"
-              >
-                {p.label}
-              </button>
-            ))}
+        {/* Filtro + acciones */}
+        <div className="flex items-center gap-2 print:hidden">
+
+          {/* Date range picker */}
+          <div className="relative" ref={pickerRef}>
+            <button
+              onClick={() => setOpen(p => !p)}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium border border-zinc-200 text-zinc-700 rounded-lg hover:bg-zinc-50 transition-colors"
+            >
+              <span>{btnLabel}</span>
+              <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+
+            {open && (
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl flex overflow-hidden min-w-[420px]">
+                {/* Presets */}
+                <div className="flex flex-col border-r border-zinc-100 py-2 min-w-[160px]">
+                  {PRESETS.map(p => (
+                    <button
+                      key={p.key}
+                      onClick={() => preset(p.key)}
+                      className="text-left px-4 py-2 text-sm text-zinc-600 hover:bg-blue-50 hover:text-[#2563EB] transition-colors"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom range */}
+                <div className="flex flex-col gap-3 p-4 flex-1">
+                  <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide">Personalizado</p>
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <label className="text-xs text-zinc-500 mb-1 block">Desde</label>
+                      <input
+                        type="date"
+                        value={desdeLocal}
+                        onChange={e => setDesdeLocal(e.target.value)}
+                        className="w-full text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-500 mb-1 block">Hasta</label>
+                      <input
+                        type="date"
+                        value={hastaLocal}
+                        onChange={e => setHastaLocal(e.target.value)}
+                        className="w-full text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={aplicarCustom}
+                    className="w-full px-4 py-2 text-sm font-medium bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="date"
-            value={desdeLocal}
-            onChange={e => setDesdeLocal(e.target.value)}
-            className="text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
-          />
-          <span className="text-zinc-400 text-sm">—</span>
-          <input
-            type="date"
-            value={hastaLocal}
-            onChange={e => setHastaLocal(e.target.value)}
-            className="text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
-          />
-          <button
-            onClick={aplicarFiltro}
-            className="px-4 py-2 text-sm font-medium bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors"
-          >
-            Aplicar
-          </button>
+
           <button
             onClick={exportarCSV}
             className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-zinc-200 text-zinc-600 rounded-lg hover:bg-zinc-50 transition-colors"
@@ -407,7 +451,6 @@ export default function ReportesClient({
             <Printer className="w-4 h-4" />
             Imprimir
           </button>
-        </div>
         </div>
       </div>
 
