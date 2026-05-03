@@ -219,7 +219,7 @@ export default function OrdenesPage() {
                 <th className="px-3 py-3 w-8" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody>
               {loading && (
                 <tr>
                   <td colSpan={7} className="px-5 py-10 text-center text-zinc-400 text-sm">Cargando...</td>
