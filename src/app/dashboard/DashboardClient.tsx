@@ -202,7 +202,7 @@ export default function DashboardClient({
                         <div className={`flex items-center justify-center w-6 h-6 rounded-md border transition-colors ${
                           isExpanded
                             ? 'bg-[#2563EB] border-[#2563EB]'
-                            : 'bg-white border-zinc-300 group-hover:border-[#2563EB]'
+                            : 'bg-white border-[#2563EB] group-hover:bg-[#2563EB]'
                         }`}>
                           {isExpanded
                             ? <ChevronDown className="w-3.5 h-3.5 text-white" />
