@@ -267,3 +267,62 @@ export default function DashboardClient({
     </div>
   )
 }
+                      <td className="px-4 py-4 font-mono text-xs text-zinc-400">{order.id.slice(0, 8).toUpperCase()}</td>
+                      <td className="px-4 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
+                      <td className="px-4 py-4 text-zinc-500">
+                        {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
+                      </td>
+                      <td className="px-4 py-4 text-zinc-500">
+                        <span className={isExpanded ? 'text-[#2563EB] font-medium' : ''}>
+                          {numServicios} {numServicios === 1 ? 'servicio' : 'servicios'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
+                        <StatusDropdown
+                          ordenId={order.id}
+                          estado={estadoActual}
+                          updating={updating === order.id}
+                          onChange={cambiarEstado}
+                        />
+                      </td>
+                      <td className="px-4 py-4 font-semibold text-zinc-800 text-right">
+                        $\{(order.total_cobrado ?? 0).toLocaleString('es-MX')}
+                      </td>
+                    </tr>
+
+                    {/* Fila del acordeón */}
+                    {isExpanded && (
+                      <tr className="bg-[#EFF6FF]">
+                        <td colSpan={7} className="border-l-4 border-l-[#2563EB] px-5 pb-4 pt-1">
+                          <div className="ml-8 border border-blue-100 rounded-xl overflow-hidden bg-white shadow-sm">
+                            <div className="px-4 py-2 border-b border-blue-50 bg-blue-50">
+                              <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wide">Servicios realizados</p>
+                            </div>
+                            <div className="divide-y divide-zinc-50">
+                              {servicios.length === 0 ? (
+                                <p className="px-4 py-3 text-xs text-zinc-400">Sin servicios registrados</p>
+                              ) : (
+                                servicios.map((s, i) => (
+                                  <div key={s.id ?? i} className="flex items-center justify-between px-4 py-2.5">
+                                    <span className="text-sm text-zinc-700">{s.nombre_servicio ?? '—'}</span>
+                                    <span className="text-sm font-semibold text-zinc-800">
+                                      $\{(s.precio_cobrado ?? 0).toLocaleString('es-MX')}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}

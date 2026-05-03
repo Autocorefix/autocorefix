@@ -1,7 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, ChevronDown, ChevronUp, Car, ClipboardList } from 'lucide-react'
+import React, { useState } from 'react'
+import { Search, ChevronDown, ChevronUp, ChevronRight, Car, ClipboardList } from 'lucide-react'
+
+type OrdenServicio = {
+  id: string
+  nombre_servicio: string | null
+  precio_cobrado: number | null
+}
 
 type Vehiculo = {
   id: string
@@ -15,6 +21,7 @@ type Orden = {
   estado: string | null
   total_cobrado: number | null
   created_at: string | null
+  orden_servicios: OrdenServicio[]
 }
 
 type Cliente = {
@@ -45,8 +52,9 @@ function StatusBadge({ estado }: { estado: string }) {
 }
 
 export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
-  const [query, setQuery]       = useState('')
-  const [expandido, setExpandido] = useState<string | null>(null)
+  const [query,        setQuery]        = useState('')
+  const [expandido,    setExpandido]    = useState<string | null>(null)
+  const [expandedOrden, setExpandedOrden] = useState<string | null>(null)
 
   const filtrados = clientes.filter(c =>
     c.nombre.toLowerCase().includes(query.toLowerCase()) ||
@@ -56,6 +64,10 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
   )
 
   const fmt = (n: number) => `$${n.toLocaleString('es-MX')}`
+
+  function toggleOrden(ordenId: string) {
+    setExpandedOrden(prev => prev === ordenId ? null : ordenId)
+  }
 
   return (
     <div className="max-w-6xl">
@@ -87,18 +99,28 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
         )}
 
         {filtrados.map(c => {
-          const abierto       = expandido === c.id
-          const totalGastado  = c.ordenes.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
-          const ultimaVisita  = c.ordenes[0]?.created_at
+          const abierto      = expandido === c.id
+          const totalGastado = c.ordenes.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
+          const ultimaVisita = c.ordenes[0]?.created_at
             ? new Date(c.ordenes[0].created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
             : '—'
 
           return (
-            <div key={c.id} className={`bg-white rounded-2xl border border-zinc-100 overflow-hidden border-l-4 transition-colors ${abierto ? 'border-l-[#2563EB]' : 'border-l-transparent hover:border-l-[#2563EB]'}`}>
+            <div
+              key={c.id}
+              className={`bg-white rounded-2xl border border-zinc-100 overflow-hidden border-l-4 transition-colors ${
+                abierto ? 'border-l-[#2563EB]' : 'border-l-transparent hover:border-l-[#2563EB]'
+              }`}
+            >
               {/* Header del cliente */}
               <button
-                onClick={() => setExpandido(abierto ? null : c.id)}
-                className={`w-full flex items-center justify-between px-6 py-4 transition-colors text-left ${abierto ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
+                onClick={() => {
+                  setExpandido(abierto ? null : c.id)
+                  setExpandedOrden(null)
+                }}
+                className={`w-full flex items-center justify-between px-6 py-4 transition-colors text-left ${
+                  abierto ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'
+                }`}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
@@ -172,7 +194,7 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                     </div>
                   )}
 
-                  {/* Historial de órdenes */}
+                  {/* Historial de órdenes con acordeón */}
                   {c.ordenes.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
@@ -182,23 +204,124 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="bg-zinc-50 text-left">
+                              <th className="w-10 px-3 py-2.5"></th>
                               <th className="px-4 py-2.5 text-xs font-medium text-zinc-400 uppercase tracking-wide">#Orden</th>
                               <th className="px-4 py-2.5 text-xs font-medium text-zinc-400 uppercase tracking-wide">Fecha</th>
                               <th className="px-4 py-2.5 text-xs font-medium text-zinc-400 uppercase tracking-wide">Estado</th>
                               <th className="px-4 py-2.5 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Total</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-zinc-50">
-                            {c.ordenes.map(o => (
-                              <tr key={o.id} className="hover:bg-zinc-50 transition-colors">
-                                <td className="px-4 py-3 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
-                                <td className="px-4 py-3 text-zinc-600">
-                                  {o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                                </td>
-                                <td className="px-4 py-3"><StatusBadge estado={o.estado ?? 'recibido'} /></td>
-                                <td className="px-4 py-3 font-semibold text-zinc-800 text-right">{fmt(o.total_cobrado ?? 0)}</td>
-                              </tr>
-                            ))}
+                          <tbody>
+                            {c.ordenes.map(o => {
+                              const ordenAbierta = expandedOrden === o.id
+                              const servicios    = o.orden_servicios ?? []
+                              return (
+                                <React.Fragment key={o.id}>
+                                  <tr
+                                    onClick={() => toggleOrden(o.id)}
+                                    className={`cursor-pointer transition-colors border-t border-zinc-50 ${ordenAbierta ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
+                                  >
+                                    <td className={`pl-3 pr-2 py-3 border-l-4 transition-colors ${ordenAbierta ? 'border-l-[#2563EB]' : 'border-l-transparent'}`}>
+                                      <div className={`flex items-center justify-center w-5 h-5 rounded transition-colors ${ordenAbierta ? 'bg-[#2563EB]' : 'bg-zinc-100'}`}>
+                                        {ordenAbierta
+                                          ? <ChevronDown className="w-3 h-3 text-white" />
+                                          : <ChevronRight className="w-3 h-3 text-zinc-500" />
+                                        }
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
+                                    <td className="px-4 py-3 text-zinc-600">
+                                      {o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                                    </td>
+                                    <td className="px-4 py-3"><StatusBadge estado={o.estado ?? 'recibido'} /></td>
+                                    <td className="px-4 py-3 font-semibold text-zinc-800 text-right">{fmt(o.total_cobrado ?? 0)}</td>
+                                  </tr>
+
+                                  {/* Acordeón de servicios de la orden */}
+                                  {ordenAbierta && (
+                                    <tr className="bg-[#EFF6FF]">
+                                      <td colSpan={5} className="border-l-4 border-l-[#2563EB] px-4 pb-3 pt-1">
+                                        <div className="ml-6 border border-blue-100 rounded-lg overflow-hidden bg-white">
+                                          <div className="px-3 py-2 border-b border-blue-50 bg-blue-50">
+                                            <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wide">Servicios realizados</p>
+                                          </div>
+                                          <div className="divide-y divide-zinc-50">
+                                            {servicios.length === 0 ? (
+                                              <p className="px-3 py-2.5 text-xs text-zinc-400">Sin servicios registrados</p>
+                                            ) : (
+                                              servicios.map((s, i) => (
+                                                <div key={s.id ?? i} className="flex items-center justify-between px-3 py-2">
+                                                  <span className="text-xs text-zinc-700">{s.nombre_servicio ?? '—'}</span>
+                                                  <span className="text-xs font-semibold text-zinc-800">{fmt(s.precio_cobrado ?? 0)}</span>
+                                                </div>
+                                              ))
+                                            )}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+                                    onClick={() => toggleOrden(o.id)}
+                                    className={`cursor-pointer transition-colors border-t border-zinc-50 ${ordenAbierta ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
+                                  >
+                                    <td className={`pl-3 pr-2 py-3 border-l-4 transition-colors ${ordenAbierta ? 'border-l-[#2563EB]' : 'border-l-transparent'}`}>
+                                      <div className={`flex items-center justify-center w-5 h-5 rounded transition-colors ${ordenAbierta ? 'bg-[#2563EB]' : 'bg-zinc-100'}`}>
+                                        {ordenAbierta
+                                          ? <ChevronDown className="w-3 h-3 text-white" />
+                                          : <ChevronRight className="w-3 h-3 text-zinc-500" />
+                                        }
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
+                                    <td className="px-4 py-3 text-zinc-600">
+                                      {o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                                    </td>
+                                    <td className="px-4 py-3"><StatusBadge estado={o.estado ?? 'recibido'} /></td>
+                                    <td className="px-4 py-3 font-semibold text-zinc-800 text-right">{fmt(o.total_cobrado ?? 0)}</td>
+                                  </tr>
+                                  {ordenAbierta && (
+                                    <tr className="bg-[#EFF6FF]">
+                                      <td colSpan={5} className="border-l-4 border-l-[#2563EB] px-4 pb-3 pt-1">
+                                        <div className="ml-6 border border-blue-100 rounded-lg overflow-hidden bg-white">
+                                          <div className="px-3 py-2 border-b border-blue-50 bg-blue-50">
+                                            <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wide">Servicios realizados</p>
+                                          </div>
+                                          <div className="divide-y divide-zinc-50">
+                                            {servicios.length === 0 ? (
+                                              <p className="px-3 py-2.5 text-xs text-zinc-400">Sin servicios registrados</p>
+                                            ) : (
+                                              servicios.map((s, i) => (
+                                                <div key={s.id ?? i} className="flex items-center justify-between px-3 py-2">
+                                                  <span className="text-xs text-zinc-700">{s.nombre_servicio ?? '—'}</span>
+                                                  <span className="text-xs font-semibold text-zinc-800">{fmt(s.precio_cobrado ?? 0)}</span>
+                                                </div>
+                                              ))
+                                            )}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              )
+                            })}
                           </tbody>
                         </table>
                       </div>
