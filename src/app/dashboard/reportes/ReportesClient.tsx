@@ -192,9 +192,42 @@ export default function ReportesClient({
   const [desdeLocal, setDesdeLocal] = useState(desde)
   const [hastaLocal, setHastaLocal] = useState(hasta)
 
-  function aplicarFiltro() {
-    router.push(`/dashboard/reportes?desde=${desdeLocal}&hasta=${hastaLocal}`)
+  function aplicarFiltro(d?: string, h?: string) {
+    router.push(`/dashboard/reportes?desde=${d ?? desdeLocal}&hasta=${h ?? hastaLocal}`)
   }
+
+  function preset(tipo: string) {
+    const hoy   = new Date()
+    const pad   = (n: number) => String(n).padStart(2, '0')
+    const iso   = (d: Date)   => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    const ayer  = new Date(hoy); ayer.setDate(hoy.getDate() - 1)
+    const l7    = new Date(hoy); l7.setDate(hoy.getDate() - 6)
+    const l30   = new Date(hoy); l30.setDate(hoy.getDate() - 29)
+    const iniMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+    const iniMesAnt = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)
+    const finMesAnt = new Date(hoy.getFullYear(), hoy.getMonth(), 0)
+    const ranges: Record<string, [string, string]> = {
+      hoy:       [iso(hoy),     iso(hoy)],
+      ayer:      [iso(ayer),    iso(ayer)],
+      '7d':      [iso(l7),      iso(hoy)],
+      '30d':     [iso(l30),     iso(hoy)],
+      mes:       [iso(iniMes),  iso(hoy)],
+      mes_ant:   [iso(iniMesAnt), iso(finMesAnt)],
+    }
+    const [d, h] = ranges[tipo]
+    setDesdeLocal(d)
+    setHastaLocal(h)
+    aplicarFiltro(d, h)
+  }
+
+  const PRESETS = [
+    { key: 'hoy',     label: 'Hoy' },
+    { key: 'ayer',    label: 'Ayer' },
+    { key: '7d',      label: 'Últ. 7 días' },
+    { key: '30d',     label: 'Últ. 30 días' },
+    { key: 'mes',     label: 'Este mes' },
+    { key: 'mes_ant', label: 'Mes anterior' },
+  ]
 
   function exportarCSV() {
     const rows = [
@@ -327,7 +360,20 @@ export default function ReportesClient({
         </div>
 
         {/* Filtro fechas + botones */}
-        <div className="flex flex-wrap items-center gap-2 print:hidden">
+        <div className="flex flex-col items-end gap-2 print:hidden">
+          {/* Presets */}
+          <div className="flex flex-wrap gap-1">
+            {PRESETS.map(p => (
+              <button
+                key={p.key}
+                onClick={() => preset(p.key)}
+                className="px-2.5 py-1 text-xs font-medium border border-zinc-200 text-zinc-500 rounded-lg hover:bg-zinc-50 hover:border-zinc-400 transition-colors"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="date"
             value={desdeLocal}
@@ -361,6 +407,7 @@ export default function ReportesClient({
             <Printer className="w-4 h-4" />
             Imprimir
           </button>
+        </div>
         </div>
       </div>
 
