@@ -197,7 +197,7 @@ export default function DashboardClient({
                     <tr
                       key={order.id}
                       onClick={() => toggleExpand(order.id)}
-                      className={`cursor-pointer transition-colors border-t border-zinc-50 ${isExpanded ? 'bg-[#EFF6FF]' : 'hover:bg-zinc-50'}`}
+                      className={`cursor-pointer transition-all border-t border-zinc-50 group border-l-4 ${isExpanded ? 'bg-[#EFF6FF] border-l-[#2563EB]' : 'border-l-transparent hover:bg-[#EFF6FF] hover:border-l-[#2563EB]'}`}
                     >
                       {/* Toggle icon */}
                       <td className="px-4 py-4 text-zinc-400">
