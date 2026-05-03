@@ -1,6 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PUBLIC_ROUTES   = ['/login', '/register']
+const CALLBACK_PREFIX = '/auth/callback'
+const ONBOARDING      = '/onboarding'
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -24,21 +28,37 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
-  if (!user && pathname !== '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // OAuth callback — nunca interrumpir
+  if (pathname.startsWith(CALLBACK_PREFIX)) {
+    return supabaseResponse
   }
 
-  if (user && pathname === '/login') {
+  // Sin sesion — solo puede estar en rutas publicas
+  if (!user) {
+    if (!PUBLIC_ROUTES.includes(pathname)) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
+  // Con sesion — redirigir desde login/register al dashboard
+  if (PUBLIC_ROUTES.includes(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
+  // Onboarding — permitir paso libre (usuario sin tenant completando alta)
+  if (pathname.startsWith(ONBOARDING)) {
+    return supabaseResponse
+  }
+
+  // El check de tenant se hace en dashboard/layout.tsx (server component)
+  // para evitar queries pesadas en Edge Runtime
   return supabaseResponse
 }
 
