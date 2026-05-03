@@ -1,17 +1,32 @@
 import { createClient } from '@/lib/supabase-server'
 import ReportesClient from './ReportesClient'
 
-export default async function ReportesPage() {
+export default async function ReportesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ desde?: string; hasta?: string }>
+}) {
   const supabase = await createClient()
+  const params   = await searchParams
 
-  const now  = new Date()
-  const y    = now.getFullYear()
-  const m    = now.getMonth()
+  const now = new Date()
+  const y   = now.getFullYear()
+  const m   = now.getMonth()
 
-  const inicioMesActual   = new Date(y, m, 1).toISOString()
-  const inicioMesAnterior = new Date(y, m - 1, 1).toISOString()
-  const finMesAnterior    = new Date(y, m, 1).toISOString()
-  const inicio90dias      = new Date(y, m - 2, 1).toISOString()
+  // Rango seleccionado (default: mes actual)
+  const desdeStr = params.desde ?? new Date(y, m, 1).toISOString().split('T')[0]
+  const hastaStr = params.hasta ?? new Date(y, m + 1, 0).toISOString().split('T')[0]
+
+  const inicioActual = new Date(desdeStr + 'T00:00:00').toISOString()
+  const finActual    = new Date(hastaStr + 'T23:59:59').toISOString()
+
+  // Período anterior equivalente (misma duración)
+  const duracionMs = new Date(finActual).getTime() - new Date(inicioActual).getTime()
+  const inicioAnt  = new Date(new Date(inicioActual).getTime() - duracionMs - 1000).toISOString()
+  const finAnt     = new Date(new Date(inicioActual).getTime() - 1000).toISOString()
+
+  // Tendencia: siempre 90 días hacia atrás desde hoy
+  const inicio90dias = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
     { data: ordenesMes },
@@ -21,45 +36,48 @@ export default async function ReportesPage() {
     { data: porCategoria },
     { data: topClientes },
   ] = await Promise.all([
-    // Órdenes mes actual — incluye cliente_id para contar únicos
     supabase
       .from('ordenes')
-      .select('id, total_cobrado, total_base, descuento, created_at, estado, cliente_id')
-      .gte('created_at', inicioMesActual)
+      .select('id, total_cobrado, total_base, descuento, created_at, estado, cliente_id, clientes(nombre)')
+      .gte('created_at', inicioActual)
+      .lte('created_at', finActual)
       .order('created_at', { ascending: true }),
 
-    // Órdenes mes anterior — incluye cliente_id para comparar únicos
     supabase
       .from('ordenes')
       .select('id, total_cobrado, descuento, cliente_id')
-      .gte('created_at', inicioMesAnterior)
-      .lt('created_at', finMesAnterior),
+      .gte('created_at', inicioAnt)
+      .lte('created_at', finAnt),
 
-    // Órdenes últimos 3 meses
     supabase
       .from('ordenes')
       .select('id, total_cobrado, created_at')
       .gte('created_at', inicio90dias)
       .order('created_at', { ascending: true }),
 
-    // Top servicios — incluye categoría para colorear barras
     supabase
       .from('orden_servicios')
       .select('nombre_servicio, precio_cobrado, catalogo_servicios(categoria_id, categorias(nombre)), ordenes!inner(created_at)')
-      .gte('ordenes.created_at', inicioMesActual),
+      .gte('ordenes.created_at', inicioActual)
+      .lte('ordenes.created_at', finActual),
 
-    // Distribución por categoría
     supabase
       .from('orden_servicios')
       .select('precio_cobrado, catalogo_servicios(categoria_id, categorias(nombre)), ordenes!inner(created_at)')
-      .gte('ordenes.created_at', inicioMesActual),
+      .gte('ordenes.created_at', inicioActual)
+      .lte('ordenes.created_at', finActual),
 
-    // Top 5 clientes del mes por ingreso
     supabase
       .from('ordenes')
       .select('total_cobrado, cliente_id, clientes(nombre, cliente_id)')
-      .gte('created_at', inicioMesActual),
+      .gte('created_at', inicioActual)
+      .lte('created_at', finActual),
   ])
+
+  // Labels
+  const fmt = (s: string) => new Date(s + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+  const mesLabel    = desdeStr === hastaStr ? fmt(desdeStr) : `${fmt(desdeStr)} – ${fmt(hastaStr)}`
+  const mesAntLabel = `${fmt(inicioAnt.split('T')[0])} – ${fmt(finAnt.split('T')[0])}`
 
   return (
     <ReportesClient
@@ -69,8 +87,10 @@ export default async function ReportesPage() {
       topServicios={topServicios ?? []}
       porCategoria={porCategoria ?? []}
       topClientesRaw={topClientes ?? []}
-      mesLabel={now.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}
-      mesAntLabel={new Date(y, m - 1, 1).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}
+      mesLabel={mesLabel}
+      mesAntLabel={mesAntLabel}
+      desde={desdeStr}
+      hasta={hastaStr}
     />
   )
 }

@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList,
 } from 'recharts'
-import { TrendingUp, TrendingDown, Minus, DollarSign, ShoppingBag, Tag, Percent, Users } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, DollarSign, ShoppingBag, Tag, Percent, Users, Download, Printer } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +18,7 @@ type OrdenMes = {
   created_at: string | null
   estado: string | null
   cliente_id: string | null
+  clientes: { nombre: string } | { nombre: string }[] | null
 }
 type OrdenAnt   = { id: string; total_cobrado: number | null; descuento: number | null; cliente_id: string | null }
 type Orden90    = { id: string; total_cobrado: number | null; created_at: string | null }
@@ -45,6 +48,8 @@ type Props = {
   topClientesRaw:   TopClienteRaw[]
   mesLabel:         string
   mesAntLabel:      string
+  desde:            string
+  hasta:            string
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -53,19 +58,9 @@ const fmt   = (n: number) => `$${n.toLocaleString('es-MX', { minimumFractionDigi
 const fmtK  = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : fmt(n)
 
 const PALETTE = [
-  '#2563EB', // azul
-  '#7C3AED', // violeta
-  '#059669', // esmeralda
-  '#DC2626', // rojo
-  '#D97706', // ámbar
-  '#0891B2', // cian
-  '#DB2777', // rosa
-  '#65A30D', // lima
-  '#9333EA', // púrpura
-  '#0284C7', // cielo
-  '#B45309', // café dorado
-  '#047857', // verde oscuro
-  '#1D4ED8', // azul oscuro
+  '#2563EB', '#7C3AED', '#059669', '#DC2626', '#D97706',
+  '#0891B2', '#DB2777', '#65A30D', '#9333EA', '#0284C7',
+  '#B45309', '#047857', '#1D4ED8',
 ]
 
 function delta(actual: number, anterior: number) {
@@ -154,8 +149,6 @@ function PieTooltip({ active, payload, total }: { active?: boolean; payload?: Pi
   )
 }
 
-// ─── Custom YAxis tick — máximo 2 líneas, corte en espacio más cercano al centro
-
 function wrapToTwoLines(name: string): string[] {
   if (name.length <= 18) return [name]
   const mid     = Math.floor(name.length / 2)
@@ -169,19 +162,10 @@ function SvcYAxisTick({ x, y, payload }: { x?: number; y?: number; payload?: { v
   const lines  = wrapToTwoLines(payload?.value ?? '')
   const lineH  = 13
   const startY = (y ?? 0) - ((lines.length - 1) * lineH) / 2
-
   return (
     <g>
       {lines.map((line, i) => (
-        <text
-          key={i}
-          x={x}
-          y={startY + i * lineH}
-          textAnchor="end"
-          dominantBaseline="central"
-          fill="#52525b"
-          fontSize={11}
-        >
+        <text key={i} x={x} y={startY + i * lineH} textAnchor="end" dominantBaseline="central" fill="#52525b" fontSize={11}>
           {line}
         </text>
       ))}
@@ -189,11 +173,52 @@ function SvcYAxisTick({ x, y, payload }: { x?: number; y?: number; payload?: { v
   )
 }
 
+function EmptyChart() {
+  return (
+    <div className="flex items-center justify-center h-40 rounded-xl bg-zinc-50 border border-dashed border-zinc-200">
+      <p className="text-sm text-zinc-400">Sin datos para este período</p>
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ReportesClient({
-  ordenesMes, ordenesAnt, ordenes90, topServicios, porCategoria, topClientesRaw, mesLabel, mesAntLabel,
+  ordenesMes, ordenesAnt, ordenes90, topServicios, porCategoria, topClientesRaw,
+  mesLabel, mesAntLabel, desde, hasta,
 }: Props) {
+
+  const router = useRouter()
+  const [desdeLocal, setDesdeLocal] = useState(desde)
+  const [hastaLocal, setHastaLocal] = useState(hasta)
+
+  function aplicarFiltro() {
+    router.push(`/dashboard/reportes?desde=${desdeLocal}&hasta=${hastaLocal}`)
+  }
+
+  function exportarCSV() {
+    const rows = [
+      ['ID', 'Cliente', 'Estado', 'Total Cobrado', 'Descuento', 'Fecha'],
+      ...ordenesMes.map(o => {
+        const nombre = Array.isArray(o.clientes) ? o.clientes[0]?.nombre : o.clientes?.nombre
+        return [
+          o.id.slice(0, 8).toUpperCase(),
+          nombre ?? '',
+          o.estado ?? '',
+          o.total_cobrado ?? 0,
+          o.descuento ?? 0,
+          o.created_at ? new Date(o.created_at).toLocaleDateString('es-MX') : '',
+        ].join(',')
+      }),
+    ]
+    const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `ordenes_${desde}_${hasta}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   // ── KPIs mes actual
   const ingresosMes    = ordenesMes.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
@@ -201,19 +226,17 @@ export default function ReportesClient({
   const ticketProm     = ordenesMesCnt > 0 ? ingresosMes / ordenesMesCnt : 0
   const descuentoMes   = ordenesMes.reduce((s, o) => s + (o.descuento ?? 0), 0)
   const clientesUnicos = new Set(ordenesMes.map(o => o.cliente_id).filter(Boolean)).size
+  const totalBaseMes   = ordenesMes.reduce((s, o) => s + (o.total_base ?? 0), 0)
+  const pctDescProm    = totalBaseMes > 0 ? (descuentoMes / totalBaseMes) * 100 : 0
 
-  // ── % promedio descuento mes actual
-  const totalBaseMes  = ordenesMes.reduce((s, o) => s + (o.total_base ?? 0), 0)
-  const pctDescProm   = totalBaseMes > 0 ? (descuentoMes / totalBaseMes) * 100 : 0
-
-  // ── KPIs mes anterior
+  // ── KPIs período anterior
   const ingresosAnt       = ordenesAnt.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
   const ordenesAntCnt     = ordenesAnt.length
   const ticketAnt         = ordenesAntCnt > 0 ? ingresosAnt / ordenesAntCnt : 0
   const descuentoAnt      = ordenesAnt.reduce((s, o) => s + (o.descuento ?? 0), 0)
   const clientesUnicosAnt = new Set(ordenesAnt.map(o => o.cliente_id).filter(Boolean)).size
 
-  // ── Gráfica tendencia 90 días — agrupar por día
+  // ── Gráfica tendencia 90 días
   const tendencia = (() => {
     const map: Record<string, number> = {}
     ordenes90.forEach(o => {
@@ -224,7 +247,7 @@ export default function ReportesClient({
     return Object.entries(map).map(([fecha, ingresos]) => ({ fecha, ingresos }))
   })()
 
-  // ── Ingresos diarios mes actual
+  // ── Ingresos diarios período actual
   const diariosMes = (() => {
     const map: Record<string, number> = {}
     ordenesMes.forEach(o => {
@@ -235,34 +258,28 @@ export default function ReportesClient({
     return Object.entries(map).map(([fecha, ingresos]) => ({ fecha, ingresos }))
   })()
 
-  // ── Mapa categoría → color (asigna paleta en orden de aparición)
+  // ── Mapa categoría → color
   const catColorMap: Record<string, string> = {}
   let catIdx = 0
   ;[...topServicios, ...porCategoria].forEach(s => {
     const nombre = s.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
-    if (!(nombre in catColorMap)) {
-      catColorMap[nombre] = PALETTE[catIdx++ % PALETTE.length]
-    }
+    if (!(nombre in catColorMap)) catColorMap[nombre] = PALETTE[catIdx++ % PALETTE.length]
   })
 
-  // ── Top 8 servicios con color de su categoría
+  // ── Top 8 servicios
   const svcMap: Record<string, { count: number; cat: string }> = {}
   topServicios.forEach(s => {
     const nombre = s.nombre_servicio ?? 'Sin nombre'
-    const cat = s.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
+    const cat    = s.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
     if (!svcMap[nombre]) svcMap[nombre] = { count: 0, cat }
     svcMap[nombre].count += 1
   })
   const topSvcData = Object.entries(svcMap)
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 8)
-    .map(([nombre, { count, cat }]) => ({
-      nombre,
-      cantidad: count,
-      color: catColorMap[cat] ?? '#2563EB',
-    }))
+    .map(([nombre, { count, cat }]) => ({ nombre, cantidad: count, color: catColorMap[cat] ?? '#2563EB' }))
 
-  // ── Distribución por categoría (ingresos)
+  // ── Distribución por categoría
   const catMap: Record<string, number> = {}
   porCategoria.forEach(p => {
     const nombre = p.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
@@ -272,14 +289,14 @@ export default function ReportesClient({
     .sort((a, b) => b[1] - a[1])
     .map(([nombre, valor]) => ({ nombre, valor }))
 
-  // ── Estado de órdenes del mes
-  const estados = ['recibido', 'en_proceso', 'listo', 'entregado']
+  // ── Estado de órdenes
+  const estados   = ['recibido', 'en_proceso', 'listo', 'entregado']
   const estadoData = estados.map(e => ({
     estado: e.charAt(0).toUpperCase() + e.slice(1).replace('_', ' '),
     cantidad: ordenesMes.filter(o => o.estado === e).length,
   })).filter(e => e.cantidad > 0)
 
-  // ── Top 5 clientes por ingresos del mes
+  // ── Top 5 clientes
   const clienteAgg: Record<string, { nombre: string; total: number }> = {}
   topClientesRaw.forEach(r => {
     const id     = r.clientes?.cliente_id ?? r.cliente_id ?? 'unknown'
@@ -290,50 +307,60 @@ export default function ReportesClient({
   const top5Clientes = Object.values(clienteAgg)
     .sort((a, b) => b.total - a.total)
     .slice(0, 5)
-    .map(c => ({
-      nombre: c.nombre.length > 22 ? c.nombre.slice(0, 20) + '…' : c.nombre,
-      total: c.total,
-    }))
+    .map(c => ({ nombre: c.nombre.length > 22 ? c.nombre.slice(0, 20) + '…' : c.nombre, total: c.total }))
 
   const kpis = [
-    {
-      label: 'Ingresos del mes',
-      value: fmt(ingresosMes),
-      delta: delta(ingresosMes, ingresosAnt),
-      icon: DollarSign,
-      color: 'bg-blue-50 text-[#2563EB]',
-    },
-    {
-      label: 'Órdenes del mes',
-      value: ordenesMesCnt.toString(),
-      delta: delta(ordenesMesCnt, ordenesAntCnt),
-      icon: ShoppingBag,
-      color: 'bg-violet-50 text-violet-600',
-    },
-    {
-      label: 'Ticket promedio',
-      value: fmt(ticketProm),
-      delta: delta(ticketProm, ticketAnt),
-      icon: Tag,
-      color: 'bg-emerald-50 text-emerald-600',
-    },
-    {
-      label: 'Clientes únicos',
-      value: clientesUnicos.toString(),
-      delta: delta(clientesUnicos, clientesUnicosAnt),
-      icon: Users,
-      color: 'bg-sky-50 text-sky-600',
-    },
+    { label: 'Ingresos del período', value: fmt(ingresosMes),         delta: delta(ingresosMes, ingresosAnt),         icon: DollarSign,  color: 'bg-blue-50 text-[#2563EB]' },
+    { label: 'Órdenes del período',  value: ordenesMesCnt.toString(), delta: delta(ordenesMesCnt, ordenesAntCnt),     icon: ShoppingBag, color: 'bg-violet-50 text-violet-600' },
+    { label: 'Ticket promedio',      value: fmt(ticketProm),          delta: delta(ticketProm, ticketAnt),            icon: Tag,         color: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Clientes únicos',      value: clientesUnicos.toString(),delta: delta(clientesUnicos, clientesUnicosAnt),icon: Users,       color: 'bg-sky-50 text-sky-600' },
   ]
 
   return (
     <div className="max-w-7xl space-y-8">
 
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-4 print:block">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 capitalize">Reportes</h1>
-          <p className="text-sm text-zinc-400 mt-0.5 capitalize">{mesLabel} · comparado con {mesAntLabel}</p>
+          <h1 className="text-2xl font-semibold text-zinc-900">Reportes</h1>
+          <p className="text-sm text-zinc-400 mt-0.5">{mesLabel} · comparado con {mesAntLabel}</p>
+        </div>
+
+        {/* Filtro fechas + botones */}
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
+          <input
+            type="date"
+            value={desdeLocal}
+            onChange={e => setDesdeLocal(e.target.value)}
+            className="text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+          />
+          <span className="text-zinc-400 text-sm">—</span>
+          <input
+            type="date"
+            value={hastaLocal}
+            onChange={e => setHastaLocal(e.target.value)}
+            className="text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+          />
+          <button
+            onClick={aplicarFiltro}
+            className="px-4 py-2 text-sm font-medium bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors"
+          >
+            Aplicar
+          </button>
+          <button
+            onClick={exportarCSV}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-zinc-200 text-zinc-600 rounded-lg hover:bg-zinc-50 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            CSV
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-zinc-200 text-zinc-600 rounded-lg hover:bg-zinc-50 transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir
+          </button>
         </div>
       </div>
 
@@ -357,7 +384,7 @@ export default function ReportesClient({
           )
         })}
 
-        {/* KPI Descuentos — card especial con $ y % */}
+        {/* KPI Descuentos */}
         <div className="bg-white rounded-2xl border border-zinc-100 p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 text-amber-600">
@@ -367,20 +394,18 @@ export default function ReportesClient({
           </div>
           <div>
             <p className="text-2xl font-bold text-zinc-900">{fmt(descuentoMes)}</p>
-            <p className="text-xs text-zinc-400 mt-0.5">Descuento total del mes</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Descuento total del período</p>
             <p className="text-sm font-semibold text-amber-600 mt-2">{pctDescProm.toFixed(1)}% promedio por orden</p>
           </div>
         </div>
       </div>
 
-      {/* ── Gráfica tendencia + Estado órdenes ── */}
+      {/* ── Tendencia + Estado órdenes ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Tendencia 90 días */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-100 p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Tendencia de ingresos</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Últimos 3 meses</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Últimos 90 días</p>
           </div>
           {tendencia.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -398,25 +423,20 @@ export default function ReportesClient({
                 <Area type="monotone" dataKey="ingresos" stroke="#2563EB" strokeWidth={2.5} fill="url(#gradBlue)" dot={false} activeDot={{ r: 5, fill: '#2563EB' }} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
-          ) : (
-            <EmptyChart />
-          )}
+          ) : <EmptyChart />}
         </div>
 
-        {/* Estado de órdenes */}
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Estado de órdenes</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Mes actual</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado</p>
           </div>
           {estadoData.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={160}>
                 <PieChart style={{ outline: 'none' }}>
                   <Pie data={estadoData} dataKey="cantidad" nameKey="estado" cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} style={{ outline: 'none' }}>
-                    {estadoData.map((_, i) => (
-                      <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
-                    ))}
+                    {estadoData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />)}
                   </Pie>
                   <Tooltip content={<PieTooltip total={ordenesMesCnt} />} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                 </PieChart>
@@ -433,85 +453,71 @@ export default function ReportesClient({
                 ))}
               </div>
             </>
-          ) : (
-            <EmptyChart />
-          )}
+          ) : <EmptyChart />}
         </div>
       </div>
 
       {/* ── Top servicios + Categorías ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Top servicios — barras coloreadas por categoría */}
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Servicios más solicitados</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Mes actual · coloreados por categoría</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado · coloreados por categoría</p>
           </div>
           {topSvcData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={topSvcData} layout="vertical" margin={{ top: 0, right: 58, left: 4, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="nombre" tick={<SvcYAxisTick />} axisLine={false} tickLine={false} width={155} />
-                <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
-                <Bar dataKey="cantidad" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}>
-                  {topSvcData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                  <LabelList dataKey="cantidad" position="right" style={{ fill: '#71717a', fontSize: 11, fontWeight: 600 }} formatter={(v: number) => v === 1 ? '1 vez' : `${v}x`} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyChart />
-          )}
-          {/* Leyenda de categorías usadas */}
-          {topSvcData.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
-              {Object.entries(
-                topSvcData.reduce<Record<string, string>>((acc, s) => {
-                  const cat = [...topServicios].find(t => {
-                    const raw = t.nombre_servicio ?? ''
-                    const n = raw.length > 28 ? raw.slice(0, 26) + '…' : raw
-                    return n === s.nombre || raw === s.nombre
-                  })
-                  const catName = cat?.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
-                  acc[catName] = s.color
-                  return acc
-                }, {})
-              ).map(([catName, color]) => (
-                <div key={catName} className="flex items-center gap-1.5 text-xs text-zinc-500">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
-                  {catName}
-                </div>
-              ))}
-            </div>
-          )}
+            <>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={topSvcData} layout="vertical" margin={{ top: 0, right: 58, left: 4, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis type="category" dataKey="nombre" tick={<SvcYAxisTick />} axisLine={false} tickLine={false} width={155} />
+                  <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
+                  <Bar dataKey="cantidad" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}>
+                    {topSvcData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    <LabelList dataKey="cantidad" position="right" style={{ fill: '#71717a', fontSize: 11, fontWeight: 600 }} formatter={(v: number) => v === 1 ? '1 vez' : `${v}x`} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
+                {Object.entries(
+                  topSvcData.reduce<Record<string, string>>((acc, s) => {
+                    const cat = [...topServicios].find(t => {
+                      const raw = t.nombre_servicio ?? ''
+                      const n   = raw.length > 28 ? raw.slice(0, 26) + '…' : raw
+                      return n === s.nombre || raw === s.nombre
+                    })
+                    const catName = cat?.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
+                    acc[catName]  = s.color
+                    return acc
+                  }, {})
+                ).map(([catName, color]) => (
+                  <div key={catName} className="flex items-center gap-1.5 text-xs text-zinc-500">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                    {catName}
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : <EmptyChart />}
         </div>
 
-        {/* Ingresos por categoría */}
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Ingresos por categoría</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Mes actual</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado</p>
           </div>
           {catData.length > 0 ? (
             <div className="flex items-center gap-4">
-              {/* Donut fijo a la izquierda */}
               <div style={{ width: 190, height: 190, flexShrink: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart style={{ outline: 'none' }}>
                     <Pie data={catData} dataKey="valor" nameKey="nombre" cx="50%" cy="50%" innerRadius={52} outerRadius={82} paddingAngle={2} style={{ outline: 'none' }}>
-                      {catData.map((c, i) => (
-                        <Cell key={i} fill={catColorMap[c.nombre] ?? PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />
-                      ))}
+                      {catData.map((c, i) => <Cell key={i} fill={catColorMap[c.nombre] ?? PALETTE[i % PALETTE.length]} style={{ outline: 'none' }} />)}
                     </Pie>
                     <Tooltip content={<PieTooltip total={ingresosMes} />} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              {/* Leyenda scrollable a la derecha */}
               <div className="flex-1 overflow-y-auto" style={{ maxHeight: 190 }}>
                 {catData.map((c, i) => {
                   const pct = ingresosMes > 0 ? (c.valor / ingresosMes) * 100 : 0
@@ -526,32 +532,28 @@ export default function ReportesClient({
                 })}
               </div>
             </div>
-          ) : (
-            <EmptyChart />
-          )}
+          ) : <EmptyChart />}
         </div>
       </div>
 
       {/* ── Top 5 clientes + Ingresos diarios ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Top 5 clientes */}
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Top 5 clientes</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Mes actual · por ingresos generados</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado · por ingresos generados</p>
           </div>
           {top5Clientes.length > 0 ? (
             <div className="flex flex-col gap-3">
               {top5Clientes.map((c, i) => {
                 const maxTotal = top5Clientes[0].total
-                const pct = maxTotal > 0 ? (c.total / maxTotal) * 100 : 0
-                const color = PALETTE[i % PALETTE.length]
+                const pct      = maxTotal > 0 ? (c.total / maxTotal) * 100 : 0
+                const color    = PALETTE[i % PALETTE.length]
                 return (
                   <div key={`${c.nombre}-${i}`} className="flex flex-col gap-1">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-5 h-5 rounded-full text-white font-bold text-xs shrink-0" style={{ background: color, fontSize: 9 }}>
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full text-white font-bold shrink-0" style={{ background: color, fontSize: 9 }}>
                           {i + 1}
                         </span>
                         <span className="font-medium text-zinc-700 truncate max-w-[120px]">{c.nombre}</span>
@@ -559,25 +561,19 @@ export default function ReportesClient({
                       <span className="font-semibold text-zinc-900 shrink-0">{fmt(c.total)}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-zinc-100 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, background: color }}
-                      />
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
                     </div>
                   </div>
                 )
               })}
             </div>
-          ) : (
-            <EmptyChart />
-          )}
+          ) : <EmptyChart />}
         </div>
 
-        {/* Ingresos diarios del mes */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-100 p-6">
           <div className="mb-5">
-            <h2 className="text-sm font-semibold text-zinc-900 capitalize">Ingresos diarios — {mesLabel}</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Total cobrado por día en el mes actual</p>
+            <h2 className="text-sm font-semibold text-zinc-900">Ingresos diarios</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">{mesLabel}</p>
           </div>
           {diariosMes.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
@@ -586,26 +582,15 @@ export default function ReportesClient({
                 <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
                 <Tooltip content={<CustomTooltipMoney />} cursor={false} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
-                <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false}
-                  activeBar={{ fill: '#1d4ed8' }}>
+                <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false} activeBar={{ fill: '#1d4ed8' }}>
                   <LabelList dataKey="ingresos" position="top" style={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }} formatter={(v: number) => fmtK(v)} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : (
-            <EmptyChart />
-          )}
+          ) : <EmptyChart />}
         </div>
       </div>
 
-    </div>
-  )
-}
-
-function EmptyChart() {
-  return (
-    <div className="flex items-center justify-center h-40 rounded-xl bg-zinc-50 border border-dashed border-zinc-200">
-      <p className="text-sm text-zinc-400">Sin datos para este período</p>
     </div>
   )
 }
