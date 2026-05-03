@@ -39,7 +39,7 @@ export default function SettingsPage() {
       .eq('rol', 'asistente')
 
     // Obtener invitaciones pendientes
-    const { data: invs } = await supabase
+    const { data: invs } = await (supabase as any)
       .from('invitaciones')
       .select('id, email, created_at')
       .eq('estado', 'pendiente')
@@ -81,7 +81,7 @@ export default function SettingsPage() {
   }
 
   async function cancelarInvitacion(invId: string) {
-    await supabase.from('invitaciones').update({ estado: 'cancelada' }).eq('id', invId)
+    await (supabase as any).from('invitaciones').update({ estado: 'cancelada' }).eq('id', invId)
     setInvitaciones(p => p.filter(i => i.id !== invId))
   }
 
