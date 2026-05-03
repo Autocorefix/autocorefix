@@ -33,18 +33,18 @@ export default function SettingsPage() {
   async function fetchData() {
     setLoading(true)
 
-    const { data: users } = await supabase
-      .from('usuarios')
-      .select('id, nombre')
-      .eq('rol', 'asistente')
+    // Asistentes via API segura (service role, sin restricción RLS)
+    const res = await fetch('/api/assistants')
+    const json = res.ok ? await res.json() : { asistentes: [] }
+    setAsistentes(json.asistentes ?? [])
 
+    // Invitaciones pendientes
     const { data: invs } = await (supabase as any)
       .from('invitaciones')
       .select('id, email, created_at')
       .eq('estado', 'pendiente')
       .order('created_at', { ascending: false })
 
-    setAsistentes(users ?? [])
     setInvitaciones(invs ?? [])
     setLoading(false)
   }
@@ -94,7 +94,6 @@ export default function SettingsPage() {
     })
     if (res.ok) {
       setInvitaciones(p => p.filter(i => i.id !== inv.id))
-      // Si el usuario ya tenía acceso activo, actualizar lista de asistentes
       fetchData()
     }
     setCancelling(null)
@@ -159,8 +158,8 @@ export default function SettingsPage() {
             {asistentes.map(a => (
               <li key={a.id} className="flex items-center justify-between px-6 py-4">
                 <div>
-                  <p className="text-sm font-medium text-zinc-800">{a.nombre ?? '—'}</p>
-                  <p className="text-xs text-zinc-400 mt-0.5">Asistente activo</p>
+                  <p className="text-sm font-medium text-zinc-800">{a.nombre ?? a.email ?? '—'}</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">{a.email ?? 'Asistente activo'}</p>
                 </div>
                 <button
                   onClick={() => revocarAcceso(a.id)}
