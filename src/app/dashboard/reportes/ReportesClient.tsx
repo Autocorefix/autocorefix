@@ -10,30 +10,30 @@ import { TrendingUp, TrendingDown, Minus, DollarSign, ShoppingBag, Tag, Percent,
 
 type OrdenMes = {
   id: string
-  total_cobrado: number
-  total_base: number
-  descuento: number
-  created_at: string
-  estado: string
-  cliente_id: string
+  total_cobrado: number | null
+  total_base: number | null
+  descuento: number | null
+  created_at: string | null
+  estado: string | null
+  cliente_id: string | null
 }
-type OrdenAnt   = { id: string; total_cobrado: number; descuento: number; cliente_id: string }
-type Orden90    = { id: string; total_cobrado: number; created_at: string }
+type OrdenAnt   = { id: string; total_cobrado: number | null; descuento: number | null; cliente_id: string | null }
+type Orden90    = { id: string; total_cobrado: number | null; created_at: string | null }
 type TopSvc     = {
-  nombre_servicio: string
-  precio_cobrado: number
-  catalogo_servicios: { categoria_id: string; categorias: { nombre: string } } | null
-  ordenes: { created_at: string }
+  nombre_servicio: string | null
+  precio_cobrado: number | null
+  catalogo_servicios: { categoria_id: string; categorias: { nombre: string } | null } | null
+  ordenes: { created_at: string | null }
 }
 type PorCat     = {
-  precio_cobrado: number
-  catalogo_servicios: { categoria_id: string; categorias: { nombre: string } } | null
-  ordenes: { created_at: string }
+  precio_cobrado: number | null
+  catalogo_servicios: { categoria_id: string; categorias: { nombre: string } | null } | null
+  ordenes: { created_at: string | null }
 }
 type TopClienteRaw = {
-  total_cobrado: number
-  cliente_id: string
-  clientes: { nombre: string; cliente_id: string } | null
+  total_cobrado: number | null
+  cliente_id: string | null
+  clientes: { nombre: string; cliente_id: string | null } | null
 }
 
 type Props = {
@@ -196,18 +196,18 @@ export default function ReportesClient({
 }: Props) {
 
   // ── KPIs mes actual
-  const ingresosMes    = ordenesMes.reduce((s, o) => s + o.total_cobrado, 0)
+  const ingresosMes    = ordenesMes.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
   const ordenesMesCnt  = ordenesMes.length
   const ticketProm     = ordenesMesCnt > 0 ? ingresosMes / ordenesMesCnt : 0
   const descuentoMes   = ordenesMes.reduce((s, o) => s + (o.descuento ?? 0), 0)
   const clientesUnicos = new Set(ordenesMes.map(o => o.cliente_id).filter(Boolean)).size
 
   // ── % promedio descuento mes actual
-  const totalBaseMes  = ordenesMes.reduce((s, o) => s + o.total_base, 0)
+  const totalBaseMes  = ordenesMes.reduce((s, o) => s + (o.total_base ?? 0), 0)
   const pctDescProm   = totalBaseMes > 0 ? (descuentoMes / totalBaseMes) * 100 : 0
 
   // ── KPIs mes anterior
-  const ingresosAnt       = ordenesAnt.reduce((s, o) => s + o.total_cobrado, 0)
+  const ingresosAnt       = ordenesAnt.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
   const ordenesAntCnt     = ordenesAnt.length
   const ticketAnt         = ordenesAntCnt > 0 ? ingresosAnt / ordenesAntCnt : 0
   const descuentoAnt      = ordenesAnt.reduce((s, o) => s + (o.descuento ?? 0), 0)
@@ -217,8 +217,9 @@ export default function ReportesClient({
   const tendencia = (() => {
     const map: Record<string, number> = {}
     ordenes90.forEach(o => {
+      if (!o.created_at) return
       const d = new Date(o.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })
-      map[d] = (map[d] ?? 0) + o.total_cobrado
+      map[d] = (map[d] ?? 0) + (o.total_cobrado ?? 0)
     })
     return Object.entries(map).map(([fecha, ingresos]) => ({ fecha, ingresos }))
   })()
@@ -227,8 +228,9 @@ export default function ReportesClient({
   const diariosMes = (() => {
     const map: Record<string, number> = {}
     ordenesMes.forEach(o => {
+      if (!o.created_at) return
       const d = new Date(o.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })
-      map[d] = (map[d] ?? 0) + o.total_cobrado
+      map[d] = (map[d] ?? 0) + (o.total_cobrado ?? 0)
     })
     return Object.entries(map).map(([fecha, ingresos]) => ({ fecha, ingresos }))
   })()
@@ -246,9 +248,10 @@ export default function ReportesClient({
   // ── Top 8 servicios con color de su categoría
   const svcMap: Record<string, { count: number; cat: string }> = {}
   topServicios.forEach(s => {
+    const nombre = s.nombre_servicio ?? 'Sin nombre'
     const cat = s.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
-    if (!svcMap[s.nombre_servicio]) svcMap[s.nombre_servicio] = { count: 0, cat }
-    svcMap[s.nombre_servicio].count += 1
+    if (!svcMap[nombre]) svcMap[nombre] = { count: 0, cat }
+    svcMap[nombre].count += 1
   })
   const topSvcData = Object.entries(svcMap)
     .sort((a, b) => b[1].count - a[1].count)
@@ -263,7 +266,7 @@ export default function ReportesClient({
   const catMap: Record<string, number> = {}
   porCategoria.forEach(p => {
     const nombre = p.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
-    catMap[nombre] = (catMap[nombre] ?? 0) + p.precio_cobrado
+    catMap[nombre] = (catMap[nombre] ?? 0) + (p.precio_cobrado ?? 0)
   })
   const catData = Object.entries(catMap)
     .sort((a, b) => b[1] - a[1])
@@ -279,10 +282,10 @@ export default function ReportesClient({
   // ── Top 5 clientes por ingresos del mes
   const clienteAgg: Record<string, { nombre: string; total: number }> = {}
   topClientesRaw.forEach(r => {
-    const id     = r.clientes?.cliente_id ?? r.cliente_id
+    const id     = r.clientes?.cliente_id ?? r.cliente_id ?? 'unknown'
     const nombre = r.clientes?.nombre ?? 'Desconocido'
     if (!clienteAgg[id]) clienteAgg[id] = { nombre, total: 0 }
-    clienteAgg[id].total += r.total_cobrado
+    clienteAgg[id].total += (r.total_cobrado ?? 0)
   })
   const top5Clientes = Object.values(clienteAgg)
     .sort((a, b) => b.total - a.total)
