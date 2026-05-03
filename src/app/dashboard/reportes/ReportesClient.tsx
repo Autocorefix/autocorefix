@@ -472,8 +472,9 @@ export default function ReportesClient({
               {Object.entries(
                 topSvcData.reduce<Record<string, string>>((acc, s) => {
                   const cat = [...topServicios].find(t => {
-                    const n = t.nombre_servicio.length > 28 ? t.nombre_servicio.slice(0, 26) + '…' : t.nombre_servicio
-                    return n === s.nombre || t.nombre_servicio === s.nombre
+                    const raw = t.nombre_servicio ?? ''
+                    const n = raw.length > 28 ? raw.slice(0, 26) + '…' : raw
+                    return n === s.nombre || raw === s.nombre
                   })
                   const catName = cat?.catalogo_servicios?.categorias?.nombre ?? 'Sin categoría'
                   acc[catName] = s.color
