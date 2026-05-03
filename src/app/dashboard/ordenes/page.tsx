@@ -242,7 +242,7 @@ export default function OrdenesPage() {
                   <tr
                     key={o.id}
                     onClick={() => router.push(`/dashboard/ordenes/${o.id}`)}
-                    className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                    className="hover:bg-[#EFF6FF] transition-all cursor-pointer group border-l-4 border-transparent hover:border-[#2563EB]"
                   >
                     <td className="px-5 py-4 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
                     <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
@@ -264,8 +264,8 @@ export default function OrdenesPage() {
                     <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
                       ${(o.total_cobrado ?? 0).toLocaleString('es-MX')}
                     </td>
-                    <td className="px-3 py-4 text-zinc-300 group-hover:text-[#2563EB] transition-colors">
-                      <ChevronRight className="w-4 h-4" />
+                    <td className="px-3 py-4 text-zinc-400 group-hover:text-[#2563EB] transition-colors">
+                      <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                     </td>
                   </tr>
                 )
