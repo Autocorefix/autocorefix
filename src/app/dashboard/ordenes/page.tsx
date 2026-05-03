@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ChevronDown, Search, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
+
 type Orden = {
   id: string
   estado: string | null
@@ -44,7 +45,8 @@ function StatusDropdown({ ordenId, estado, updating, onChange }: {
     return () => document.removeEventListener('mousedown', handler)
   }, [ordenId])
 
-  function handleOpen() {
+  function handleOpen(e: React.MouseEvent) {
+    e.stopPropagation()
     if (btnRef.current) {
       const r = btnRef.current.getBoundingClientRect()
       setPos({ top: r.bottom + window.scrollY + 4, left: r.left + window.scrollX })
@@ -72,7 +74,7 @@ function StatusDropdown({ ordenId, estado, updating, onChange }: {
           {ESTADOS.map(e => (
             <button
               key={e}
-              onClick={() => { onChange(ordenId, e); setOpen(false) }}
+              onClick={(ev) => { ev.stopPropagation(); onChange(ordenId, e); setOpen(false) }}
               className={`w-full text-left px-3 py-2.5 text-xs font-medium transition-colors ${
                 e === estado
                   ? STATUS_STYLES[e].badge + ' ring-1 ring-inset'
@@ -91,11 +93,11 @@ function StatusDropdown({ ordenId, estado, updating, onChange }: {
 export default function OrdenesPage() {
   const router   = useRouter()
   const supabase = createClient()
-  const [ordenes, setOrdenes] = useState<Orden[]>([])
-  const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState<string | null>(null)
+  const [ordenes,      setOrdenes]      = useState<Orden[]>([])
+  const [loading,      setLoading]      = useState(true)
+  const [updating,     setUpdating]     = useState<string | null>(null)
   const [filtroEstado, setFiltroEstado] = useState<Estado | 'todos'>('todos')
-  const [busqueda, setBusqueda] = useState('')
+  const [busqueda,     setBusqueda]     = useState('')
 
   const hoy = new Date()
   const [desde, setDesde] = useState(() =>
@@ -135,7 +137,7 @@ export default function OrdenesPage() {
 
   const filtradas = ordenes.filter(o => {
     const cliente = Array.isArray(o.clientes) ? o.clientes[0] : o.clientes
-    const matchEstado = filtroEstado === 'todos' || o.estado === filtroEstado
+    const matchEstado   = filtroEstado === 'todos' || o.estado === filtroEstado
     const matchBusqueda = !busqueda ||
       cliente?.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
       o.id.toLowerCase().includes(busqueda.toLowerCase())
@@ -153,7 +155,7 @@ export default function OrdenesPage() {
         </p>
       </div>
 
-      {/* Filters */}
+      {/* Filtros */}
       <div className="bg-white rounded-2xl border border-zinc-100 p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -182,7 +184,7 @@ export default function OrdenesPage() {
         </div>
       </div>
 
-      {/* Estado pills */}
+      {/* Pills de estado */}
       <div className="flex flex-wrap gap-2 mb-4">
         {(['todos', ...ESTADOS] as const).map(e => {
           const count = e === 'todos' ? ordenes.length : ordenes.filter(o => o.estado === e).length
@@ -203,31 +205,32 @@ export default function OrdenesPage() {
         })}
       </div>
 
-      {/* Table */}
+      {/* Tabla */}
       <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-zinc-50 text-left">
-                <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">#</th>
-                <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Cliente</th>
-                <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Vehículo</th>
-                <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Servicios</th>
-                <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Estado</th>
-                <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Fecha</th>
-                <th className="px-5 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Total</th>
-                <th className="px-3 py-3 w-8" />
+              <tr className="bg-zinc-50 border-b border-zinc-200 text-left">
+                <th className="w-12 px-3 py-3"></th>
+                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">#Orden</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Cliente</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Vehículo</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Servicios</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estado</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Fecha</th>
+                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Total</th>
+                <th className="px-3 py-3 w-10"></th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-zinc-400 text-sm">Cargando...</td>
+                  <td colSpan={9} className="px-5 py-10 text-center text-zinc-400 text-sm">Cargando...</td>
                 </tr>
               )}
               {!loading && filtradas.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-zinc-400 text-sm">Sin órdenes en este período</td>
+                  <td colSpan={9} className="px-5 py-10 text-center text-zinc-400 text-sm">Sin órdenes en este período</td>
                 </tr>
               )}
               {!loading && filtradas.map(o => {
@@ -242,16 +245,27 @@ export default function OrdenesPage() {
                   <tr
                     key={o.id}
                     onClick={() => router.push(`/dashboard/ordenes/${o.id}`)}
-                    className="hover:bg-[#EFF6FF] transition-all cursor-pointer group border-l-4 border-transparent hover:border-[#2563EB]"
+                    className="group cursor-pointer transition-colors border-t border-zinc-100 hover:bg-[#EFF6FF]"
                   >
-                    <td className="px-5 py-4 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
+                    <td className="pl-3 pr-2 py-4 border-l-2 border-l-transparent group-hover:border-l-[#2563EB] transition-colors">
+                      <div className="flex items-center justify-center w-6 h-6 rounded-md border border-[#2563EB] bg-white group-hover:bg-[#2563EB] transition-colors">
+                        <ChevronRight className="w-3.5 h-3.5 text-[#2563EB] group-hover:text-white transition-colors" />
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-1 rounded-md">
+                        #{o.id.slice(0, 8).toUpperCase()}
+                      </span>
+                    </td>
                     <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
                     <td className="px-5 py-4 text-zinc-500">
                       {vehiculo
                         ? `${vehiculo.marca ?? ''} ${vehiculo.modelo ?? ''} ${vehiculo.anio ?? ''}`.trim()
                         : '—'}
                     </td>
-                    <td className="px-5 py-4 text-zinc-500">{numSvc} {numSvc === 1 ? 'servicio' : 'servicios'}</td>
+                    <td className="px-5 py-4 text-zinc-500">
+                      {numSvc} {numSvc === 1 ? 'servicio' : 'servicios'}
+                    </td>
                     <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
                       <StatusDropdown
                         ordenId={o.id}
@@ -260,12 +274,14 @@ export default function OrdenesPage() {
                         onChange={cambiarEstado}
                       />
                     </td>
-                    <td className="px-5 py-4 text-zinc-500 text-xs">{fecha}</td>
+                    <td className="px-5 py-4 text-zinc-500">{fecha}</td>
                     <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
-                      ${(o.total_cobrado ?? 0).toLocaleString('es-MX')}
+                      {'$' + (o.total_cobrado ?? 0).toLocaleString('es-MX')}
                     </td>
-                    <td className="px-3 py-4 text-zinc-400 group-hover:text-[#2563EB] transition-colors">
-                      <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+                    <td className="px-3 py-4">
+                      <div className="flex items-center justify-center w-6 h-6 rounded-md border border-[#2563EB] bg-white group-hover:bg-[#2563EB] transition-colors">
+                        <ChevronRight className="w-3.5 h-3.5 text-[#2563EB] group-hover:text-white transition-colors" />
+                      </div>
                     </td>
                   </tr>
                 )
