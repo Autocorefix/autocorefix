@@ -33,7 +33,8 @@ export default function OnboardingPage() {
 
     const supabase = createClient()
 
-    const { error } = await supabase.rpc('complete_onboarding', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).rpc('complete_onboarding', {
       p_nombre_taller:       nombreTaller.trim(),
       p_nombre_propietario:  nombre.trim(),
     })
