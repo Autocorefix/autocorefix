@@ -112,13 +112,13 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
             >
               <button
                 onClick={() => { setExpandido(abierto ? null : c.id); setExpandedOrden(null) }}
-                className={`w-full flex items-center justify-between px-6 py-4 transition-colors text-left ${
+                className={`w-full flex items-center justify-between px-6 py-4 transition-colors text-left group ${
                   abierto ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-semibold text-[#2563EB]">{c.nombre.charAt(0).toUpperCase()}</span>
+                  <div className="w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center shrink-0">
+                    <span className="text-sm font-semibold text-white">{c.nombre.charAt(0).toUpperCase()}</span>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-zinc-900">{c.nombre}</p>
@@ -139,11 +139,11 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                     <p className="text-sm font-semibold text-zinc-900 mt-0.5">{c.ordenes.length}</p>
                   </div>
                   <div className={`flex items-center justify-center w-7 h-7 rounded-lg border transition-colors shrink-0 ${
-                    abierto ? 'bg-[#2563EB] border-[#2563EB]' : 'bg-white border-zinc-300'
+                    abierto ? 'bg-[#2563EB] border-[#2563EB]' : 'bg-white border-[#2563EB] group-hover:bg-[#2563EB]'
                   }`}>
                     {abierto
                       ? <ChevronUp className="w-4 h-4 text-white" />
-                      : <ChevronDown className="w-4 h-4 text-zinc-500" />
+                      : <ChevronDown className="w-4 h-4 text-[#2563EB] group-hover:text-white" />
                     }
                   </div>
                 </div>
@@ -215,11 +215,11 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                                       <div className={`flex items-center justify-center w-6 h-6 rounded-md border transition-colors ${
                                         ordenAbierta
                                           ? 'bg-[#2563EB] border-[#2563EB]'
-                                          : 'bg-white border-zinc-300 group-hover:border-[#2563EB]'
+                                          : 'bg-white border-[#2563EB] group-hover:bg-[#2563EB]'
                                       }`}>
                                         {ordenAbierta
                                           ? <ChevronDown className="w-3.5 h-3.5 text-white" />
-                                          : <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#2563EB]" />
+                                          : <ChevronRight className="w-3.5 h-3.5 text-[#2563EB] group-hover:text-white" />
                                         }
                                       </div>
                                     </td>

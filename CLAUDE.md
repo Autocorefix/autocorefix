@@ -31,10 +31,16 @@ Estas reglas aplican a TODOS los acordeones, tablas expandibles y tarjetas del p
 - Nunca usar `border-l-4` en ambos niveles — crea saturación visual
 
 ### Chevron (botón expandir/colapsar)
-- Colapsado: `w-6 h-6 rounded-md border bg-white border-zinc-300` + icon `text-zinc-400`
-- Hover (usar clase `group` en `<tr>` o contenedor): `group-hover:border-[#2563EB]` + icon `group-hover:text-[#2563EB]`
-- Expandido: `bg-[#2563EB] border-[#2563EB]` + icon `text-white`
-- Tamaño icono: `w-3.5 h-3.5`
+- **Reposo**: `border border-[#2563EB] bg-white` + icon `text-[#2563EB]` — siempre visible, siempre invita a interactuar
+- **Hover** (usar clase `group` en `<tr>` o `<button>` contenedor): `group-hover:bg-[#2563EB]` + icon `group-hover:text-white`
+- **Expandido/activo**: `bg-[#2563EB] border-[#2563EB]` + icon `text-white`
+- Tamaño card-level: `w-7 h-7 rounded-lg` | Tamaño row-level: `w-6 h-6 rounded-md`
+- Tamaño icono: `w-4 h-4` (card) / `w-3.5 h-3.5` (row)
+
+### Avatar de iniciales
+- Siempre: `w-10 h-10 rounded-full bg-[#2563EB] flex items-center justify-center shrink-0`
+- Letra: `text-sm font-semibold text-white`
+- Nunca usar `bg-blue-50` — se pierde sobre fondos `#EFF6FF`
 
 ### Hover de filas
 - `hover:bg-[#EFF6FF]` siempre, con `cursor-pointer`

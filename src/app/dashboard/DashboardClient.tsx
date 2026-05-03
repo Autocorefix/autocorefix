@@ -206,7 +206,7 @@ export default function DashboardClient({
                         }`}>
                           {isExpanded
                             ? <ChevronDown className="w-3.5 h-3.5 text-white" />
-                            : <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#2563EB]" />
+                            : <ChevronRight className="w-3.5 h-3.5 text-[#2563EB] group-hover:text-white" />
                           }
                         </div>
                       </td>
