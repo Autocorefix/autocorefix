@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Email requerido' }, { status: 400 })
   }
 
-  // Verificar que quien llama es admin
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,35 +36,56 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
   }
 
-  // Verificar que no existe ya una invitación pendiente para ese email
-  const { data: existing } = await supabase
+  // Verificar invitación pendiente duplicada
+  const { data: existingInv } = await (supabase as any)
     .from('invitaciones')
     .select('id')
     .eq('email', email)
     .eq('estado', 'pendiente')
     .maybeSingle()
 
-  if (existing) {
+  if (existingInv) {
     return NextResponse.json({ error: 'Ya existe una invitación pendiente para ese email' }, { status: 409 })
   }
 
-  // Usar service role para enviar invitación
   const adminClient = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  // Verificar si el usuario ya existe en Auth
+  const { data: existingUsers } = await adminClient.auth.admin.listUsers()
+  const existingAuthUser = existingUsers?.users?.find((u: { email?: string }) => u.email === email)
+
+  if (existingAuthUser) {
+    // Usuario ya tiene cuenta: asignar tenant directamente sin re-invitar
+    await adminClient
+      .from('usuarios')
+      .update({ tenant_id: usuario.tenant_id, rol: 'asistente' })
+      .eq('id', existingAuthUser.id)
+
+    // Registrar invitación como aceptada directamente
+    await (supabase as any).from('invitaciones').insert({
+      email,
+      tenant_id: usuario.tenant_id,
+      rol: 'asistente',
+      invitado_por: user.id,
+      estado: 'aceptada',
+    })
+
+    return NextResponse.json({ ok: true, existing: true })
+  }
+
+  // Usuario nuevo: enviar invitación por email
   const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '') ?
-      'https://autocorefix.vercel.app' : 'http://localhost:3000'}/auth/callback`,
+    redirectTo: 'https://autocorefix.vercel.app/auth/callback',
   })
 
   if (inviteError) {
     return NextResponse.json({ error: inviteError.message }, { status: 500 })
   }
 
-  // Registrar invitación en la tabla
-  await supabase.from('invitaciones').insert({
+  await (supabase as any).from('invitaciones').insert({
     email,
     tenant_id: usuario.tenant_id,
     rol: 'asistente',

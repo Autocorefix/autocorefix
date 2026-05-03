@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const [loading,      setLoading]      = useState(true)
   const [sending,      setSending]      = useState(false)
   const [revoking,     setRevoking]     = useState<string | null>(null)
+  const [cancelling,   setCancelling]   = useState<string | null>(null)
   const [msg,          setMsg]          = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   useEffect(() => { fetchData() }, [])
@@ -32,13 +33,11 @@ export default function SettingsPage() {
   async function fetchData() {
     setLoading(true)
 
-    // Obtener asistentes del tenant (todos excepto admin)
     const { data: users } = await supabase
       .from('usuarios')
       .select('id, nombre')
       .eq('rol', 'asistente')
 
-    // Obtener invitaciones pendientes
     const { data: invs } = await (supabase as any)
       .from('invitaciones')
       .select('id, email, created_at')
@@ -66,7 +65,7 @@ export default function SettingsPage() {
     if (!res.ok) {
       setMsg({ type: 'err', text: data.error ?? 'Error al enviar invitación' })
     } else {
-      setMsg({ type: 'ok', text: `Invitación enviada a ${email.trim()}` })
+      setMsg({ type: 'ok', text: `Acceso otorgado a ${email.trim()}` })
       setEmail('')
       fetchData()
     }
@@ -75,14 +74,30 @@ export default function SettingsPage() {
 
   async function revocarAcceso(userId: string) {
     setRevoking(userId)
-    await (supabase as any).rpc('revoke_assistant', { p_user_id: userId })
-    setAsistentes(p => p.filter(a => a.id !== userId))
+    const res = await fetch('/api/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    })
+    if (res.ok) {
+      setAsistentes(p => p.filter(a => a.id !== userId))
+    }
     setRevoking(null)
   }
 
-  async function cancelarInvitacion(invId: string) {
-    await (supabase as any).from('invitaciones').update({ estado: 'cancelada' }).eq('id', invId)
-    setInvitaciones(p => p.filter(i => i.id !== invId))
+  async function cancelarInvitacion(inv: Invitacion) {
+    setCancelling(inv.id)
+    const res = await fetch('/api/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ invitacionId: inv.id, email: inv.email }),
+    })
+    if (res.ok) {
+      setInvitaciones(p => p.filter(i => i.id !== inv.id))
+      // Si el usuario ya tenía acceso activo, actualizar lista de asistentes
+      fetchData()
+    }
+    setCancelling(null)
   }
 
   return (
@@ -126,7 +141,7 @@ export default function SettingsPage() {
         )}
 
         <p className="mt-3 text-xs text-zinc-400">
-          La asistente recibirá un correo con un enlace para crear su cuenta. Tendrá acceso a Dashboard, Órdenes, Nueva Orden y Clientes.
+          Si el correo ya tiene cuenta, el acceso se otorga de inmediato. Si es nuevo, recibirá un enlace para registrarse.
         </p>
       </div>
 
@@ -145,7 +160,7 @@ export default function SettingsPage() {
               <li key={a.id} className="flex items-center justify-between px-6 py-4">
                 <div>
                   <p className="text-sm font-medium text-zinc-800">{a.nombre ?? '—'}</p>
-                  <p className="text-xs text-zinc-400 mt-0.5">Asistente</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">Asistente activo</p>
                 </div>
                 <button
                   onClick={() => revocarAcceso(a.id)}
@@ -176,10 +191,11 @@ export default function SettingsPage() {
                   <p className="text-sm text-zinc-700">{inv.email}</p>
                 </div>
                 <button
-                  onClick={() => cancelarInvitacion(inv.id)}
-                  className="text-xs text-zinc-400 hover:text-red-500 transition-colors"
+                  onClick={() => cancelarInvitacion(inv)}
+                  disabled={cancelling === inv.id}
+                  className="text-xs text-zinc-400 hover:text-red-500 disabled:opacity-50 transition-colors"
                 >
-                  Cancelar
+                  {cancelling === inv.id ? 'Cancelando…' : 'Cancelar'}
                 </button>
               </li>
             ))}
