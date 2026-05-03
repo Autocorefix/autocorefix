@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   ClipboardPlus,
+  ClipboardList,
   Users,
   BookOpen,
   BarChart2,
@@ -16,6 +17,7 @@ import { createClient } from '@/lib/supabase-browser'
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/nueva-orden', label: 'Nueva Orden', icon: ClipboardPlus },
+  { href: '/dashboard/ordenes', label: 'Órdenes', icon: ClipboardList },
   { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
   { href: '/dashboard/catalogo', label: 'Catálogo', icon: BookOpen },
   { href: '/dashboard/reportes', label: 'Reportes', icon: BarChart2 },
