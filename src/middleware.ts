@@ -18,7 +18,10 @@ export function middleware(request: NextRequest) {
   // Detectar sesion activa via cookie de Supabase
   const cookies = request.cookies.getAll()
   const hasSession = cookies.some(
-    (c) => c.name.startsWith('sb-') && c.name.endsWith('-auth-token') && !c.name.includes('code-verifier')
+    (c) =>
+      c.name.startsWith('sb-') &&
+      (c.name.endsWith('-auth-token') || c.name.includes('-auth-token.')) &&
+      !c.name.includes('code-verifier')
   )
 
   const isPublic = PUBLIC_ROUTES.includes(pathname)
