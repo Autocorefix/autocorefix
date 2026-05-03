@@ -2,17 +2,20 @@
 
 ## Stack
 - Next.js 15 (App Router) + TypeScript + Tailwind CSS
-- Supabase (DB + Auth) + lucide-react (iconos)
+- Supabase (DB + Auth + RLS) + lucide-react (iconos) + Recharts (gráficas)
 - Vercel (deploy) + GitHub (repo)
 - Carpeta local: `D:\autocorefix`
 
 ## Cuentas y URLs
 - GitHub: https://github.com/Autocorefix/autocorefix
 - Supabase: https://syrksjucfnioapduqvwl.supabase.co
-- Vercel: conectado al repo, deploy automático en push a `main`
+- Vercel: https://autocorefix.vercel.app — deploy automático en push a `main`
 
 ## Producto
-SaaS multi-tenant interno para talleres mecánicos. Solo acceden el dueño (admin) y la asistente (recepcionista). Sin portal de clientes. Interfaz simple y rápida — la asistente tiene poca experiencia técnica.
+SaaS multi-tenant para talleres mecánicos. Cada taller tiene su propia cuenta aislada.
+Solo acceden el dueño (admin) y la asistente (recepcionista). Sin portal de clientes.
+Interfaz simple y rápida — la asistente tiene poca experiencia técnica.
+Modelo de negocio: ingresos recurrentes por suscripción, cada taller = un tenant.
 
 ## Diseño
 - Color primario: `#2563EB` (azul eléctrico)
@@ -20,105 +23,118 @@ SaaS multi-tenant interno para talleres mecánicos. Solo acceden el dueño (admi
 - Tipografía limpia, bordes sutiles, esquinas redondeadas
 
 ## Tablas en Supabase (todas con tenant_id para multi-tenancy)
-- `tenants` — cada taller registrado
+- `tenants` — cada taller registrado (id, nombre, prefijo, created_at)
 - `usuarios` — roles: `admin` (dueño) | `asistente` (recepcionista)
-- `categorias` — categorías de servicio. `is_system_default=true` → imborrables (sistema). `tenant_id=NULL` para sistema, uuid para personalizadas
+- `categorias` — categorías de servicio. `is_system_default=true` → imborrables. `tenant_id=NULL` para sistema, uuid para personalizadas
 - `catalogo_servicios` — servicios con precio base. FK `categoria_id → categorias.id`
-- `clientes` — nombre, teléfono, email
-- `vehiculos` — marca, modelo, año (vinculado a cliente)
-- `ordenes` — estado: recibido | en_proceso | listo | entregado. Calcula automáticamente `descuento` y `pct_descuento`
+- `clientes` — nombre, teléfono, email, cliente_id (prefijo+4 dígitos)
+- `vehiculos` — marca, modelo, año (vinculado a cliente, sin placa)
+- `ordenes` — estado: recibido | en_proceso | listo | entregado. Calcula descuento y pct_descuento
 - `orden_servicios` — detalle de servicios por orden con precio_base y precio_cobrado
 
-## Catálogo de servicios (13 categorías del sistema + personalizadas por tenant)
-Categorías del sistema (`is_system_default = true`, imborrables):
-1. Cambio de Aceite y Filtros
-2. Sistema de Frenos
-3. Suspensión y Dirección
-4. Alineación y Balanceo
-5. Sistema Eléctrico y Batería
-6. Sistema de Enfriamiento
-7. Afinación de Motor
-8. Transmisión y Embrague
-9. Diagnóstico por Escáner
-10. Aire Acondicionado
-11. Sistema de Escape
-12. Luces y Visibilidad
-13. Reparación Mayor de Motor
+## Funciones en Supabase (SECURITY DEFINER)
+- `get_my_tenant_id()` — devuelve el tenant_id del usuario autenticado
+- `complete_onboarding(p_nombre_taller, p_nombre_propietario)` — crea tenant + vincula usuario admin. Usada en `/onboarding` para nuevos usuarios OAuth
 
-Los sub-servicios (registros en `catalogo_servicios`) son creados, editados y eliminados por el dueño.
-Eliminar servicio con historial en `orden_servicios` → bloqueado, solo desactivar.
-Eliminar categoría con servicios activos → bloqueado.
+## Flujo de registro multi-tenant
+### Email + contraseña:
+1. `/register` → `supabase.auth.signUp()` con metadata `{ nombre_taller, nombre }`
+2. Trigger en Supabase crea el registro en `usuarios` automáticamente
+3. Usuario confirma email → puede hacer login
+4. Al entrar al dashboard, si no tiene `tenant_id` → redirige a `/onboarding`
 
-## Flujo principal (recepcionista)
-1. Llega cliente → buscar por nombre/teléfono o registrar nuevo (nombre, teléfono, email)
-2. Registrar vehículo (placa, marca, modelo, año)
-3. Seleccionar servicios por categoría → sub-servicios como botones
-4. Precio base se carga automático, editable en la orden
-5. Sistema calcula descuento en $ y % automáticamente
-6. Guardar orden → estado inicial: recibido
-
-## Reglas de negocio
-- Precio base: definido por el dueño en el catálogo
-- Precio cobrado: editable directamente por la asistente (sin calcular porcentajes)
-- Sistema calcula: descuento = precio_base - precio_cobrado, % = (descuento / precio_base) × 100
-- Los servicios del día salen el mismo día (no hay estadía de vehículos)
-- Descuento: el usuario ingresa el precio final, el sistema calcula descuento en $ y %
-- cliente_id: se genera automático con prefijo del tenant + 4 dígitos (ej. ACF-0001)
-- Placa eliminada del modelo de vehículos (poco confiable en México)
+### Google OAuth:
+1. `/login` o `/register` → `supabase.auth.signInWithOAuth({ provider: 'google', redirectTo: '/auth/callback' })`
+2. Google autentica → redirige a `https://syrksjucfnioapduqvwl.supabase.co/auth/v1/callback`
+3. Supabase redirige a `/auth/callback?code=...`
+4. Route handler `exchangeCodeForSession(code)` — las cookies se escriben en el response del redirect, NO en cookieStore
+5. Redirect a `/dashboard`
+6. `dashboard/layout.tsx` verifica user + tenant
+7. Si no tiene tenant → `/onboarding` → llama RPC `complete_onboarding`
 
 ## Arquitectura de carpetas
 ```
 src/
   app/
-    page.tsx                    → redirect según sesión
-    login/page.tsx              → login con email + contraseña
+    page.tsx                         → redirect según sesión
+    login/page.tsx                   → login email+password + Google OAuth (split panel)
+    register/page.tsx                → registro email+password + Google OAuth (split panel)
+    onboarding/page.tsx              → configurar taller (solo usuarios nuevos sin tenant)
+    auth/callback/route.ts           → exchange OAuth code → escribe cookies en response
     dashboard/
-      layout.tsx                → layout con Sidebar
-      page.tsx                  → dashboard con métricas y tabla de órdenes
-      catalogo/page.tsx         → catálogo de servicios
-      nueva-orden/page.tsx      → crear orden de servicio
+      layout.tsx                     → verifica auth + tenant (server component)
+      page.tsx                       → dashboard con métricas y tabla de órdenes
+      catalogo/page.tsx              → catálogo de servicios con CRUD
+      nueva-orden/page.tsx           → crear orden de servicio
+      clientes/page.tsx              → listado + historial de clientes
+      reportes/
+        page.tsx                     → server component, fetch de datos
+        ReportesClient.tsx           → gráficas con Recharts
   components/
-    Sidebar.tsx                 → navegación fija izquierda
+    Sidebar.tsx                      → navegación fija izquierda
   lib/
-    supabase.ts                 → re-exporta browser client
-    supabase-browser.ts         → cliente para componentes client
-    supabase-server.ts          → cliente para server components
-  middleware.ts                 → protección de rutas
+    supabase.ts                      → re-exporta browser client
+    supabase-browser.ts              → cliente para componentes 'use client'
+    supabase-server.ts               → cliente para server components
+  middleware.ts                      → protección de rutas (Edge Runtime, sin Supabase SDK)
+  types/
+    database.types.ts                → tipos generados desde Supabase CLI
 ```
 
+## Middleware — reglas críticas
+- **NO usar @supabase/ssr en middleware** — crashea en Edge Runtime de Vercel
+- Detectar sesión leyendo cookies directamente: `cookies.some(c => c.name.startsWith('sb-') && !c.name.includes('code-verifier'))`
+- Rutas que siempre pasan: `/auth/*`, `/onboarding`, `/_next`, `/favicon`
+- Rutas públicas: `/login`, `/register`
+- Sin sesión en ruta protegida → redirect `/login`
+- Con sesión en ruta pública → redirect `/dashboard`
+
+## Auth/Callback — patrón correcto
+```typescript
+// CORRECTO: cookies escritas en el response del redirect
+const response = NextResponse.redirect(new URL('/dashboard', request.url))
+const supabase = createServerClient(URL, KEY, {
+  cookies: {
+    getAll() { return request.cookies.getAll() },       // leer del REQUEST
+    setAll(cookiesToSet) {
+      cookiesToSet.forEach(({ name, value, options }) =>
+        response.cookies.set(name, value, options)      // escribir en RESPONSE
+      )
+    },
+  },
+})
+await supabase.auth.exchangeCodeForSession(code)
+return response
+```
+
+## TypeScript con Supabase
+- Todos los campos numéricos de Supabase devuelven `number | null` — usar `?? 0` en cálculos
+- Todos los campos string devuelven `string | null` — usar `?? ''` o guards
+- Las RPCs no declaradas en `database.types.ts` requieren cast: `(supabase as any).rpc('nombre')`
+- El archivo `database.types.ts` debe estar en UTF-8 (no UTF-16LE) — Windows puede guardarlo en UTF-16LE causando error de build en Vercel: "File is not a module"
+
 ## Estado actual
-- [x] Auth con Supabase (email + contraseña)
-- [x] Middleware protección de rutas
+- [x] Auth email + contraseña
+- [x] Auth Google OAuth
+- [x] Registro multi-tenant (email y Google)
+- [x] Onboarding para nuevos usuarios
+- [x] Middleware protección de rutas (Edge-safe)
 - [x] Layout + Sidebar con navegación
-- [x] Dashboard con métricas y tabla de órdenes del día
-- [x] Catálogo de servicios (datos hardcodeados)
-- [x] Nueva Orden (datos hardcodeados)
-- [x] RLS activo con políticas en las 7 tablas
-- [x] Trigger auto-insert en usuarios al registrarse en Auth
-- [x] Helper function get_my_tenant_id()
-- [x] Tenant "AutoCoreFix" creado (e8cb863c-d745-46f1-875b-838c62c2caa4)
-- [x] Usuario admin vinculado a Auth (d499fb64-37db-4377-b6ba-a2ff00f8d3d0)
-- [x] Tipos TypeScript generados desde Supabase (src/types/database.types.ts)
-- [x] Clientes Supabase tipados con Database (supabase-browser.ts y supabase-server.ts)
-- [x] Dashboard conectado a Supabase (datos reales)
-- [x] Catálogo conectado a Supabase con CRUD real (agregar, editar, toggle activo, eliminar con validación)
-- [x] Categorías dinámicas desde Supabase (13 del sistema + personalizadas por tenant)
-- [x] Gestión de categorías en catálogo: crear y eliminar personalizadas
-- [x] Nueva Orden conectada a Supabase (cliente, vehículo, servicios, orden)
-- [x] Búsqueda de clientes por nombre, teléfono, email o ID
-- [x] Generación automática de cliente_id (prefijo + 4 dígitos)
-- [x] Historial de vehículos por cliente
-- [x] Descuento por precio final con cálculo automático de %
-- [x] Página Clientes con historial de órdenes y vehículos por cliente
+- [x] Dashboard con métricas reales
+- [x] Catálogo de servicios CRUD completo
+- [x] 13 categorías del sistema + categorías personalizadas por tenant
+- [x] Nueva Orden (cliente, vehículo, servicios, descuento automático)
 - [x] Búsqueda de clientes en tiempo real
-- [x] Tipos TypeScript sincronizados con schema real (database.types.ts)
-- [x] Catálogo y Nueva Orden completamente conectados a Supabase
-- [x] CRUD real del catálogo (crear, editar, toggle, eliminar con validación)
-- [x] Nueva Orden responsive (mobile/tablet/desktop)
-- [x] Categorías compactas en grid 3 columnas con íconos
-- [ ] Reportes de ventas y descuentos
-- [ ] Diseño del login (mejorar UI)
+- [x] Generación automática de cliente_id (prefijo + 4 dígitos)
+- [x] Página Clientes con historial
+- [x] Reportes con Recharts (KPIs, gráficas, top servicios, top clientes)
+- [x] RLS activo en todas las tablas
+- [x] Tipos TypeScript sincronizados con Supabase
+- [x] Deploy en Vercel funcionando
+- [ ] Reportes: filtro por rango de fechas
+- [ ] Reportes: exportar / imprimir
 - [ ] Fidelización (recordatorios WhatsApp/SMS)
+- [ ] Panel de administración de planes/suscripciones
 
 ## Convenciones
 - Nombres de tablas en español (catalogo_servicios, ordenes, etc.)
