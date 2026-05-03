@@ -22,6 +22,46 @@ Modelo de negocio: ingresos recurrentes por suscripción, cada taller = un tenan
 - Fondo siempre blanco (`#FFFFFF`), sin colores oscuros
 - Tipografía limpia, bordes sutiles, esquinas redondeadas
 
+## Sistema de Diseño — Acordeones y Tarjetas (regla global, NO modificar sin consenso)
+Estas reglas aplican a TODOS los acordeones, tablas expandibles y tarjetas del proyecto:
+
+### Jerarquía de bordes izquierdos
+- **Card contenedor** (nivel superior, ej. cliente): `border-l-4 border-l-[#2563EB]`
+- **Fila de acordeón interno** (nivel secundario, ej. orden dentro de cliente): `border-l-2 border-l-[#2563EB]`
+- Nunca usar `border-l-4` en ambos niveles — crea saturación visual
+
+### Chevron (botón expandir/colapsar)
+- Colapsado: `w-6 h-6 rounded-md border bg-white border-zinc-300` + icon `text-zinc-400`
+- Hover (usar clase `group` en `<tr>` o contenedor): `group-hover:border-[#2563EB]` + icon `group-hover:text-[#2563EB]`
+- Expandido: `bg-[#2563EB] border-[#2563EB]` + icon `text-white`
+- Tamaño icono: `w-3.5 h-3.5`
+
+### Hover de filas
+- `hover:bg-[#EFF6FF]` siempre, con `cursor-pointer`
+- Añadir clase `group` al `<tr>` para activar los group-hover del chevron
+
+### Headers de tabla
+- `text-[10px] font-bold text-zinc-500 uppercase tracking-widest`
+- Header row: `bg-zinc-50 border-b border-zinc-200`
+
+### Labels de campo (micro-etiquetas)
+- `text-[10px] font-semibold text-zinc-400 uppercase tracking-widest`
+- Nunca usar solo `text-xs text-zinc-400` sin uppercase — no crea jerarquía
+
+### IDs de orden (badge)
+- `font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-1 rounded-md`
+- Incluir prefijo `#` siempre
+
+### Panel de servicios (detalle expandido)
+- Header: `bg-blue-50 border-b border-blue-100` + texto `text-[10px] font-bold text-blue-700 uppercase tracking-widest`
+- Body: `bg-white divide-y divide-zinc-50`
+- Contenedor: `border border-blue-100 rounded-xl overflow-hidden shadow-sm`
+
+### Mini-cards de info (ej. teléfono, email)
+- `bg-zinc-50 rounded-xl p-3 border border-zinc-100`
+- Label: `text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1`
+- Valor: `text-sm font-semibold text-zinc-800`
+
 ## Tablas en Supabase (todas con tenant_id para multi-tenancy)
 - `tenants` — cada taller registrado (id, nombre, prefijo, created_at)
 - `usuarios` — roles: `admin` (dueño) | `asistente` (recepcionista)

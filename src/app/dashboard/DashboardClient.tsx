@@ -166,14 +166,14 @@ export default function DashboardClient({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-zinc-50 text-left">
+              <tr className="bg-zinc-50 border-b border-zinc-200 text-left">
                 <th className="w-12 px-4 py-3"></th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">#Orden</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Cliente</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Vehiculo</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Servicios</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Estado</th>
-                <th className="px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Total</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">#Orden</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Cliente</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Vehiculo</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Servicios</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estado</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -196,17 +196,25 @@ export default function DashboardClient({
                   <React.Fragment key={order.id}>
                     <tr
                       onClick={() => toggleExpand(order.id)}
-                      className={`cursor-pointer transition-colors border-t border-zinc-50 ${isExpanded ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
+                      className={`group cursor-pointer transition-colors border-t border-zinc-100 ${isExpanded ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
                     >
-                      <td className={`pl-3 pr-2 py-4 border-l-4 transition-colors ${isExpanded ? 'border-l-[#2563EB]' : 'border-l-transparent'}`}>
-                        <div className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${isExpanded ? 'bg-[#2563EB]' : 'bg-zinc-100'}`}>
+                      <td className={`pl-3 pr-2 py-4 border-l-2 transition-colors ${isExpanded ? 'border-l-[#2563EB]' : 'border-l-transparent'}`}>
+                        <div className={`flex items-center justify-center w-6 h-6 rounded-md border transition-colors ${
+                          isExpanded
+                            ? 'bg-[#2563EB] border-[#2563EB]'
+                            : 'bg-white border-zinc-300 group-hover:border-[#2563EB]'
+                        }`}>
                           {isExpanded
                             ? <ChevronDown className="w-3.5 h-3.5 text-white" />
-                            : <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+                            : <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-[#2563EB]" />
                           }
                         </div>
                       </td>
-                      <td className="px-4 py-4 font-mono text-xs text-zinc-400">{order.id.slice(0, 8).toUpperCase()}</td>
+                      <td className="px-4 py-4">
+                        <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-1 rounded-md">
+                          #{order.id.slice(0, 8).toUpperCase()}
+                        </span>
+                      </td>
                       <td className="px-4 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
                       <td className="px-4 py-4 text-zinc-500">
                         {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
@@ -231,10 +239,10 @@ export default function DashboardClient({
 
                     {isExpanded && (
                       <tr className="bg-[#EFF6FF]">
-                        <td colSpan={7} className="border-l-4 border-l-[#2563EB] px-5 pb-4 pt-1">
+                        <td colSpan={7} className="border-l-2 border-l-[#2563EB] px-5 pb-4 pt-1">
                           <div className="ml-8 border border-blue-100 rounded-xl overflow-hidden bg-white shadow-sm">
-                            <div className="px-4 py-2 border-b border-blue-50 bg-blue-50">
-                              <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wide">Servicios realizados</p>
+                            <div className="px-4 py-2.5 border-b border-blue-100 bg-blue-50">
+                              <p className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">Servicios realizados</p>
                             </div>
                             <div className="divide-y divide-zinc-50">
                               {servicios.length === 0 ? (

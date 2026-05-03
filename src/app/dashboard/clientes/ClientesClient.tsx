@@ -211,7 +211,7 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                                     onClick={() => toggleOrden(o.id)}
                                     className={`group cursor-pointer transition-colors border-t border-zinc-100 ${ordenAbierta ? 'bg-[#EFF6FF]' : 'hover:bg-[#EFF6FF]'}`}
                                   >
-                                    <td className={`pl-3 pr-2 py-3.5 border-l-4 transition-colors ${ordenAbierta ? 'border-l-[#2563EB]' : 'border-l-transparent'}`}>
+                                    <td className={`pl-3 pr-2 py-3.5 border-l-2 transition-colors ${ordenAbierta ? 'border-l-[#2563EB]' : 'border-l-transparent'}`}>
                                       <div className={`flex items-center justify-center w-6 h-6 rounded-md border transition-colors ${
                                         ordenAbierta
                                           ? 'bg-[#2563EB] border-[#2563EB]'
@@ -236,7 +236,7 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                                   </tr>
                                   {ordenAbierta && (
                                     <tr className="bg-[#EFF6FF]">
-                                      <td colSpan={5} className="border-l-4 border-l-[#2563EB] px-4 pb-4 pt-2">
+                                      <td colSpan={5} className="border-l-2 border-l-[#2563EB] px-4 pb-4 pt-2">
                                         <div className="ml-6 border border-blue-100 rounded-xl overflow-hidden bg-white shadow-sm">
                                           <div className="px-4 py-2.5 border-b border-blue-100 bg-blue-50">
                                             <p className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">Servicios realizados</p>
