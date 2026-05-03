@@ -25,4 +25,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen bg-zinc-50">
       <Sidebar rol={usuario.rol ?? 'asistente'} />
       <main className="ml-60 min-h-screen p-8">
-        {chi
+        {children}
+      </main>
+    </div>
+  )
+}

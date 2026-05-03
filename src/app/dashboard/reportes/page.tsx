@@ -88,4 +88,14 @@ export default async function ReportesPage({
     <ReportesClient
       ordenesMes={ordenesMes ?? []}
       ordenesAnt={ordenesAnt ?? []}
-      orden
+      ordenes90={ordenes90 ?? []}
+      topServicios={topServicios ?? []}
+      porCategoria={porCategoria ?? []}
+      topClientesRaw={topClientes ?? []}
+      mesLabel={mesLabel}
+      mesAntLabel={mesAntLabel}
+      desde={desdeStr}
+      hasta={hastaStr}
+    />
+  )
+}

@@ -76,4 +76,16 @@ export default function Sidebar({ rol }: { rol: string }) {
         })}
       </nav>
 
-      {/* Sign out 
+      {/* Sign out */}
+      <div className="px-3 py-4 border-t border-zinc-100">
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
+        >
+          <LogOut className="w-4 h-4 shrink-0" strokeWidth={2} />
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+  )
+}

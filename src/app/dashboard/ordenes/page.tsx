@@ -260,4 +260,20 @@ export default function OrdenesPage() {
                         onChange={cambiarEstado}
                       />
                     </td>
-                    <td className="px-5 py-4 text-zinc-500 text
+                    <td className="px-5 py-4 text-zinc-500 text-xs">{fecha}</td>
+                    <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
+                      ${(o.total_cobrado ?? 0).toLocaleString('es-MX')}
+                    </td>
+                    <td className="px-3 py-4 text-zinc-400 group-hover:text-[#2563EB] transition-colors">
+                      <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
