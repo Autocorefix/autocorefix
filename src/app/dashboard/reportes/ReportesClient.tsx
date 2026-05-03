@@ -583,7 +583,7 @@ export default function ReportesClient({
                 <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
                 <Tooltip content={<CustomTooltipMoney />} cursor={false} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                 <Bar dataKey="ingresos" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} isAnimationActive={false}
-                  activeBar={{ fill: '#1d4ed8', radius: [6, 6, 0, 0] }}>
+                  activeBar={{ fill: '#1d4ed8' }}>
                   <LabelList dataKey="ingresos" position="top" style={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }} formatter={(v: number) => fmtK(v)} />
                 </Bar>
               </BarChart>
