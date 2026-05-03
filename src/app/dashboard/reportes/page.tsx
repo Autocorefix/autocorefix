@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import ReportesClient from './ReportesClient'
 
@@ -8,6 +9,10 @@ export default async function ReportesPage({
 }) {
   const supabase = await createClient()
   const params   = await searchParams
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: usuario }  = await supabase.from('usuarios').select('rol').eq('id', user!.id).single()
+  if (usuario?.rol !== 'admin') redirect('/dashboard')
 
   const now = new Date()
   const y   = now.getFullYear()
@@ -83,14 +88,4 @@ export default async function ReportesPage({
     <ReportesClient
       ordenesMes={ordenesMes ?? []}
       ordenesAnt={ordenesAnt ?? []}
-      ordenes90={ordenes90 ?? []}
-      topServicios={topServicios ?? []}
-      porCategoria={porCategoria ?? []}
-      topClientesRaw={topClientes ?? []}
-      mesLabel={mesLabel}
-      mesAntLabel={mesAntLabel}
-      desde={desdeStr}
-      hasta={hastaStr}
-    />
-  )
-}
+      orden

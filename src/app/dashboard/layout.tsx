@@ -13,7 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Verificar que el usuario tiene tenant asignado
   const { data: usuario } = await supabase
     .from('usuarios')
-    .select('tenant_id')
+    .select('tenant_id, rol')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -23,10 +23,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <Sidebar />
+      <Sidebar rol={usuario.rol ?? 'asistente'} />
       <main className="ml-60 min-h-screen p-8">
-        {children}
-      </main>
-    </div>
-  )
-}
+        {chi

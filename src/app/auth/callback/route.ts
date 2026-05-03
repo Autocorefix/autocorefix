@@ -37,7 +37,5 @@ export async function GET(request: NextRequest) {
         new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
       )
     }
-  }
 
-  return response
-}
+    // Vincular asistent
