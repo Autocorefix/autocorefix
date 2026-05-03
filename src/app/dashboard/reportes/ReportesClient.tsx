@@ -154,6 +154,48 @@ function PieTooltip({ active, payload, total }: { active?: boolean; payload?: Pi
   )
 }
 
+// ─── Custom YAxis tick con wrap de 2 líneas ───────────────────────────────────
+
+function SvcYAxisTick({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) {
+  const name   = payload?.value ?? ''
+  const words  = name.split(' ')
+  const lines: string[] = []
+  let current  = ''
+  const maxLen = 15
+
+  words.forEach(word => {
+    const candidate = current ? `${current} ${word}` : word
+    if (candidate.length <= maxLen) {
+      current = candidate
+    } else {
+      if (current) lines.push(current)
+      current = word
+    }
+  })
+  if (current) lines.push(current)
+
+  const lineH  = 13
+  const startY = (y ?? 0) - ((lines.length - 1) * lineH) / 2
+
+  return (
+    <g>
+      {lines.map((line, i) => (
+        <text
+          key={i}
+          x={x}
+          y={startY + i * lineH}
+          textAnchor="end"
+          dominantBaseline="central"
+          fill="#52525b"
+          fontSize={11}
+        >
+          {line}
+        </text>
+      ))}
+    </g>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ReportesClient({
@@ -219,7 +261,7 @@ export default function ReportesClient({
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 8)
     .map(([nombre, { count, cat }]) => ({
-      nombre: nombre.length > 28 ? nombre.slice(0, 26) + '…' : nombre,
+      nombre,
       cantidad: count,
       color: catColorMap[cat] ?? '#2563EB',
     }))
@@ -412,10 +454,10 @@ export default function ReportesClient({
           </div>
           {topSvcData.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={topSvcData} layout="vertical" margin={{ top: 0, right: 52, left: 4, bottom: 0 }}>
+              <BarChart data={topSvcData} layout="vertical" margin={{ top: 0, right: 58, left: 4, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="nombre" tick={{ fontSize: 11, fill: '#52525b' }} axisLine={false} tickLine={false} width={140} />
+                <YAxis type="category" dataKey="nombre" tick={<SvcYAxisTick />} axisLine={false} tickLine={false} width={155} />
                 <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                 <Bar dataKey="cantidad" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}>
                   {topSvcData.map((entry, i) => (
