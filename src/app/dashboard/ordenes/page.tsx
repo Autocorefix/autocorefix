@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { ChevronDown, Search } from 'lucide-react'
 
@@ -88,6 +89,7 @@ function StatusDropdown({ ordenId, estado, updating, onChange }: {
 }
 
 export default function OrdenesPage() {
+  const router   = useRouter()
   const supabase = createClient()
   const [ordenes, setOrdenes] = useState<Orden[]>([])
   const [loading, setLoading] = useState(true)
@@ -236,7 +238,11 @@ export default function OrdenesPage() {
                   ? new Date(o.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
                   : '—'
                 return (
-                  <tr key={o.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr
+                    key={o.id}
+                    onClick={() => router.push(`/dashboard/ordenes/${o.id}`)}
+                    className="hover:bg-zinc-50 transition-colors cursor-pointer"
+                  >
                     <td className="px-5 py-4 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
                     <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
                     <td className="px-5 py-4 text-zinc-500">
@@ -245,7 +251,7 @@ export default function OrdenesPage() {
                         : '—'}
                     </td>
                     <td className="px-5 py-4 text-zinc-500">{numSvc} {numSvc === 1 ? 'servicio' : 'servicios'}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
                       <StatusDropdown
                         ordenId={o.id}
                         estado={estado}
