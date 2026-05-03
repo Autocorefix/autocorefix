@@ -219,18 +219,17 @@ export default function OrdenesPage() {
                 <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estado</th>
                 <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Fecha</th>
                 <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Total</th>
-                <th className="px-3 py-3 w-10"></th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={9} className="px-5 py-10 text-center text-zinc-400 text-sm">Cargando...</td>
+                  <td colSpan={8} className="px-5 py-10 text-center text-zinc-400 text-sm">Cargando...</td>
                 </tr>
               )}
               {!loading && filtradas.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-5 py-10 text-center text-zinc-400 text-sm">Sin órdenes en este período</td>
+                  <td colSpan={8} className="px-5 py-10 text-center text-zinc-400 text-sm">Sin órdenes en este período</td>
                 </tr>
               )}
               {!loading && filtradas.map(o => {
@@ -277,11 +276,6 @@ export default function OrdenesPage() {
                     <td className="px-5 py-4 text-zinc-500">{fecha}</td>
                     <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
                       {'$' + (o.total_cobrado ?? 0).toLocaleString('es-MX')}
-                    </td>
-                    <td className="px-3 py-4">
-                      <div className="flex items-center justify-center w-6 h-6 rounded-md border border-[#2563EB] bg-white group-hover:bg-[#2563EB] transition-colors">
-                        <ChevronRight className="w-3.5 h-3.5 text-[#2563EB] group-hover:text-white transition-colors" />
-                      </div>
                     </td>
                   </tr>
                 )

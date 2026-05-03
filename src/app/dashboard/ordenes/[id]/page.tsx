@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ArrowLeft, User, Car, ChevronDown, ChevronRight } from 'lucide-react'
+import { ArrowLeft, User, Car, ChevronDown } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 
@@ -146,9 +146,9 @@ export default function OrdenDetallePage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center w-8 h-8 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded-lg border border-[#2563EB] bg-white hover:bg-[#2563EB] transition-colors group"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-[#2563EB] group-hover:text-white transition-colors" />
           </button>
           <div>
             <h1 className="text-xl font-semibold text-zinc-900 font-mono">#{orden.id.slice(0, 8).toUpperCase()}</h1>
@@ -202,10 +202,10 @@ export default function OrdenDetallePage() {
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-zinc-50 text-left">
-              <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Servicio</th>
-              <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Precio base</th>
-              <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Cobrado</th>
+            <tr className="bg-zinc-50 border-b border-zinc-200 text-left">
+              <th className="px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Servicio</th>
+              <th className="px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Precio base</th>
+              <th className="px-6 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Cobrado</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-50">
