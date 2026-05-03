@@ -4,8 +4,14 @@ import type { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const code       = new URL(request.url).searchParams.get('code')
-  const redirectTo = new URL('/dashboard', request.url)
-  const response   = NextResponse.redirect(redirectTo)
+  const errorParam = new URL(request.url).searchParams.get('error')
+
+  // Si Google devolvió error, redirigir a login con mensaje
+  if (errorParam) {
+    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(errorParam)}`, request.url))
+  }
+
+  const response = NextResponse.redirect(new URL('/dashboard', request.url))
 
   if (code) {
     const supabase = createServerClient(
@@ -13,9 +19,7 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          // Lee cookies del request entrante
           getAll() { return request.cookies.getAll() },
-          // Escribe cookies directamente en el redirect response
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) =>
               response.cookies.set(name, value, options)
@@ -24,7 +28,15 @@ export async function GET(request: NextRequest) {
         },
       }
     )
-    await supabase.auth.exchangeCodeForSession(code)
+
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+    // Si falla el intercambio, redirigir a login con error visible
+    if (error) {
+      return NextResponse.redirect(
+        new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
+      )
+    }
   }
 
   return response
