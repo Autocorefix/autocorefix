@@ -219,7 +219,7 @@ export default function OrdenesPage() {
                 <th className="px-3 py-3 w-8" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 border-b border-zinc-100">
+            <tbody className="divide-y divide-zinc-100">
               {loading && (
                 <tr>
                   <td colSpan={7} className="px-5 py-10 text-center text-zinc-400 text-sm">Cargando...</td>
@@ -242,7 +242,7 @@ export default function OrdenesPage() {
                   <tr
                     key={o.id}
                     onClick={() => router.push(`/dashboard/ordenes/${o.id}`)}
-                    className="hover:bg-[#EFF6FF] transition-all cursor-pointer group border-l-4 border-transparent hover:border-[#2563EB]"
+                    className="hover:bg-[#EFF6FF] transition-all cursor-pointer group border-l-4 border-transparent hover:border-[#2563EB] last:border-b last:border-zinc-100"
                   >
                     <td className="px-5 py-4 font-mono text-xs text-zinc-400">{o.id.slice(0, 8).toUpperCase()}</td>
                     <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
