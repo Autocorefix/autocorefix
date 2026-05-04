@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { UserPlus, Trash2, Clock, Mail, CheckCircle2, RotateCcw } from 'lucide-react'
+import { UserPlus, Trash2, Clock, Mail, CheckCircle2, RotateCcw, AlertCircle } from 'lucide-react'
 
 type Asistente = {
   id: string
@@ -20,26 +20,30 @@ type Invitacion = {
 export default function SettingsPage() {
   const supabase = createClient()
 
-  const [asistentes,        setAsistentes]        = useState<Asistente[]>([])
-  const [invPendientes,     setInvPendientes]     = useState<Invitacion[]>([])
-  const [invAceptadas,      setInvAceptadas]      = useState<Invitacion[]>([])
-  const [email,             setEmail]             = useState('')
-  const [loading,           setLoading]           = useState(true)
-  const [sending,           setSending]           = useState(false)
-  const [resending,         setResending]         = useState<string | null>(null)
-  const [revoking,          setRevoking]          = useState<string | null>(null)
-  const [cancelling,        setCancelling]        = useState<string | null>(null)
-  const [msg,               setMsg]               = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [asistentes,    setAsistentes]    = useState<Asistente[]>([])
+  const [invPendientes, setInvPendientes] = useState<Invitacion[]>([])
+  const [invAceptadas,  setInvAceptadas]  = useState<Invitacion[]>([])
+  const [email,         setEmail]         = useState('')
+  const [loading,       setLoading]       = useState(true)
+  const [sending,       setSending]       = useState(false)
+  const [resending,     setResending]     = useState<string | null>(null)
+  const [revoking,      setRevoking]      = useState<string | null>(null)
+  const [cancelling,    setCancelling]    = useState<string | null>(null)
+  const [msg,           setMsg]           = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   useEffect(() => { fetchData() }, [])
 
   async function fetchData() {
     setLoading(true)
 
-    // Asistentes via API segura (service role, sin restricción RLS)
+    // Asistentes activos via API segura (service role)
     const res = await fetch('/api/assistants')
     const json = res.ok ? await res.json() : { asistentes: [] }
-    setAsistentes(json.asistentes ?? [])
+    const asistentesActivos: Asistente[] = json.asistentes ?? []
+    setAsistentes(asistentesActivos)
+
+    // Emails de asistentes activos para excluirlos de "aceptadas"
+    const emailsActivos = new Set(asistentesActivos.map((a: Asistente) => a.email))
 
     // Invitaciones pendientes
     const { data: pendientes } = await (supabase as any)
@@ -50,15 +54,24 @@ export default function SettingsPage() {
 
     setInvPendientes(pendientes ?? [])
 
-    // Invitaciones aceptadas (últimas 10)
-    const { data: aceptadas } = await (supabase as any)
+    // Invitaciones aceptadas — deduplicadas por email, excluyendo asistentes ya activos
+    const { data: aceptadasRaw } = await (supabase as any)
       .from('invitaciones')
       .select('id, email, created_at, estado')
       .eq('estado', 'aceptada')
       .order('created_at', { ascending: false })
-      .limit(10)
 
-    setInvAceptadas(aceptadas ?? [])
+    // Deduplicar: 1 por email (el más reciente), excluyendo los ya en asistentes activos
+    const seen = new Set<string>()
+    const aceptadasFiltradas: Invitacion[] = []
+    for (const inv of (aceptadasRaw ?? [])) {
+      if (!seen.has(inv.email) && !emailsActivos.has(inv.email)) {
+        seen.add(inv.email)
+        aceptadasFiltradas.push(inv)
+      }
+    }
+    setInvAceptadas(aceptadasFiltradas)
+
     setLoading(false)
   }
 
@@ -78,7 +91,7 @@ export default function SettingsPage() {
     if (!res.ok) {
       setMsg({ type: 'err', text: data.error ?? 'Error al enviar invitación' })
     } else if (data.existing) {
-      setMsg({ type: 'ok', text: `Invitación registrada. ${email.trim()} ya tiene cuenta y recibirá acceso al iniciar sesión.` })
+      setMsg({ type: 'ok', text: `Invitación registrada. ${email.trim()} ya tiene cuenta — recibirá acceso al iniciar sesión.` })
       setEmail('')
       fetchData()
     } else {
@@ -91,11 +104,11 @@ export default function SettingsPage() {
 
   async function reenviarInvitacion(inv: Invitacion) {
     setResending(inv.id)
-    // Cancelar la actual y enviar una nueva
+    setMsg(null)
     await fetch('/api/revoke', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ invitacionId: inv.id, email: inv.email }),
+      body: JSON.stringify({ invitacionId: inv.id }),
     })
     const res = await fetch('/api/invite', {
       method: 'POST',
@@ -125,12 +138,25 @@ export default function SettingsPage() {
     setRevoking(null)
   }
 
+  async function revocarPorEmail(emailTarget: string) {
+    setRevoking(emailTarget)
+    const res = await fetch('/api/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailTarget }),
+    })
+    if (res.ok) {
+      setInvAceptadas(p => p.filter(i => i.email !== emailTarget))
+    }
+    setRevoking(null)
+  }
+
   async function cancelarInvitacion(inv: Invitacion) {
     setCancelling(inv.id)
     const res = await fetch('/api/revoke', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ invitacionId: inv.id, email: inv.email }),
+      body: JSON.stringify({ invitacionId: inv.id }),
     })
     if (res.ok) {
       setInvPendientes(p => p.filter(i => i.id !== inv.id))
@@ -142,6 +168,10 @@ export default function SettingsPage() {
     if (!iso) return '—'
     return new Date(iso).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
   }
+
+  const totalInvitados = asistentes.length + invPendientes.length + invAceptadas.length
+  const maxAsistentes = 1 // plan básico: 1 asistente
+  const limitAlcanzado = asistentes.length >= maxAsistentes && invPendientes.length === 0
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -178,38 +208,44 @@ export default function SettingsPage() {
         </form>
 
         {msg && (
-          <p className={`mt-3 text-sm ${msg.type === 'ok' ? 'text-emerald-600' : 'text-red-500'}`}>
-            {msg.text}
-          </p>
+          <div className={`mt-3 flex items-start gap-2 text-sm ${msg.type === 'ok' ? 'text-emerald-600' : 'text-red-500'}`}>
+            {msg.type === 'err' && <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />}
+            <p>{msg.text}</p>
+          </div>
         )}
 
         <p className="mt-3 text-xs text-zinc-400">
-          Se enviará un enlace de invitación al correo indicado. La asistente deberá configurar su nombre y contraseña al aceptar.
+          Se enviará un enlace de acceso por correo. La asistente deberá configurar su nombre y contraseña al aceptar.
         </p>
       </div>
 
-      {/* Asistentes activos */}
+      {/* Asistentes con acceso activo */}
       <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-zinc-100">
+        <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Asistentes con acceso</h2>
+          {!loading && (
+            <span className="text-xs text-zinc-400">
+              {asistentes.length} activo{asistentes.length !== 1 ? 's' : ''}
+            </span>
+          )}
         </div>
         {loading ? (
           <p className="px-6 py-8 text-sm text-zinc-400">Cargando…</p>
         ) : asistentes.length === 0 ? (
-          <p className="px-6 py-8 text-sm text-zinc-400">Sin asistentes registrados</p>
+          <p className="px-6 py-8 text-sm text-zinc-400">Sin asistentes con acceso activo</p>
         ) : (
           <ul className="divide-y divide-zinc-50">
             {asistentes.map(a => (
               <li key={a.id} className="flex items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center shrink-0">
-                    <span className="text-xs font-semibold text-white">
+                  <div className="w-9 h-9 rounded-full bg-[#2563EB] flex items-center justify-center shrink-0">
+                    <span className="text-sm font-semibold text-white">
                       {(a.nombre ?? a.email ?? '?')[0].toUpperCase()}
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-zinc-800">{a.nombre ?? a.email ?? '—'}</p>
-                    {a.nombre && <p className="text-xs text-zinc-400 mt-0.5">{a.email}</p>}
+                    <p className="text-sm font-medium text-zinc-800">{a.nombre ?? '—'}</p>
+                    <p className="text-xs text-zinc-400 mt-0.5">{a.email}</p>
                   </div>
                 </div>
                 <button
@@ -241,7 +277,7 @@ export default function SettingsPage() {
                   <Mail className="w-4 h-4 text-zinc-300 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm text-zinc-700 truncate">{inv.email}</p>
-                    <p className="text-[10px] text-zinc-400 mt-0.5">{formatFecha(inv.created_at)}</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Enviada el {formatFecha(inv.created_at)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -267,21 +303,37 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Invitaciones aceptadas */}
+      {/* Invitaciones aceptadas sin acceso activo (edge case o acceso pendiente de sesión) */}
       {!loading && invAceptadas.length > 0 && (
         <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-zinc-100 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <h2 className="text-sm font-semibold text-zinc-900">Invitaciones aceptadas</h2>
+            <span className="ml-auto text-xs text-zinc-400">{invAceptadas.length}</span>
           </div>
-          <ul className="divide-y divide-zinc-50">
+          <div className="px-6 pt-3 pb-1">
+            <p className="text-xs text-zinc-400">
+              Estos correos aceptaron la invitación. Si no aparecen en "Asistentes con acceso", deben iniciar sesión para activar su cuenta.
+            </p>
+          </div>
+          <ul className="divide-y divide-zinc-50 mt-2">
             {invAceptadas.map(inv => (
-              <li key={inv.id} className="flex items-center justify-between px-6 py-3.5">
-                <div className="flex items-center gap-3">
+              <li key={inv.id} className="flex items-center justify-between px-6 py-4 gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <p className="text-sm text-zinc-600">{inv.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm text-zinc-700 truncate">{inv.email}</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Aceptada el {formatFecha(inv.created_at)}</p>
+                  </div>
                 </div>
-                <p className="text-[10px] text-zinc-400">{formatFecha(inv.created_at)}</p>
+                <button
+                  onClick={() => revocarPorEmail(inv.email)}
+                  disabled={revoking === inv.email}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 border border-red-100 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors shrink-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  {revoking === inv.email ? 'Revocando…' : 'Revocar'}
+                </button>
               </li>
             ))}
           </ul>

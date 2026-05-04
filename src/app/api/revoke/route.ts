@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
     }
   )
 
-  // Verificar que quien llama es admin
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
   // Caso 1: revocar asistente activo por userId
   if (userId) {
     // Verificar que el usuario pertenece al mismo tenant
-    const { data: target } = await supabase
+    const { data: target } = await adminClient
       .from('usuarios')
       .select('tenant_id, rol')
       .eq('id', userId)
@@ -57,27 +56,82 @@ export async function POST(request: NextRequest) {
       .update({ tenant_id: null, rol: null })
       .eq('id', userId)
 
+    // Archivar sus invitaciones aceptadas en este tenant
+    await adminClient
+      .from('invitaciones')
+      .update({ estado: 'revocada' })
+      .eq('tenant_id', admin.tenant_id)
+      .in('estado', ['aceptada', 'pendiente'])
+      .eq('invitado_por', user.id) // seguridad: solo las de este admin (se reemplaza abajo)
+
+    // Buscar el email del usuario revocado para limpiar sus invitaciones
+    const { data: authUsers } = await adminClient.auth.admin.listUsers()
+    const revokedUser = authUsers?.users?.find((u: { id: string }) => u.id === userId)
+    if (revokedUser?.email) {
+      await adminClient
+        .from('invitaciones')
+        .update({ estado: 'revocada' })
+        .eq('email', revokedUser.email)
+        .eq('tenant_id', admin.tenant_id)
+        .in('estado', ['aceptada'])
+    }
+
     return NextResponse.json({ ok: true })
   }
 
-  // Caso 2: cancelar invitación pendiente por invitacionId + email
-  if (invitacionId && email) {
+  // Caso 2: cancelar invitación pendiente por invitacionId
+  if (invitacionId) {
     // Marcar invitación como cancelada
     await adminClient
       .from('invitaciones')
       .update({ estado: 'cancelada' })
       .eq('id', invitacionId)
+      .eq('tenant_id', admin.tenant_id)
 
-    // Si el usuario ya existe en Auth, quitarle el tenant también
+    // Si hay email y el usuario existe en Auth, quitarle el tenant también
+    if (email) {
+      const { data: authUsers } = await adminClient.auth.admin.listUsers()
+      const authUser = authUsers?.users?.find((u: { email?: string }) => u.email === email)
+      if (authUser) {
+        await adminClient
+          .from('usuarios')
+          .update({ tenant_id: null, rol: null })
+          .eq('id', authUser.id)
+      }
+    }
+
+    return NextResponse.json({ ok: true })
+  }
+
+  // Caso 3: revocar acceso por email (para invitaciones aceptadas)
+  // Útil cuando el admin quiere revocar desde la vista de historial
+  if (email) {
     const { data: authUsers } = await adminClient.auth.admin.listUsers()
     const authUser = authUsers?.users?.find((u: { email?: string }) => u.email === email)
 
     if (authUser) {
-      await adminClient
+      // Verificar que pertenece a este tenant antes de revocar
+      const { data: targetUser } = await adminClient
         .from('usuarios')
-        .update({ tenant_id: null, rol: null })
+        .select('tenant_id')
         .eq('id', authUser.id)
+        .single()
+
+      if (targetUser?.tenant_id === admin.tenant_id) {
+        await adminClient
+          .from('usuarios')
+          .update({ tenant_id: null, rol: null })
+          .eq('id', authUser.id)
+      }
     }
+
+    // Archivar todas las invitaciones de este email en este tenant
+    await adminClient
+      .from('invitaciones')
+      .update({ estado: 'revocada' })
+      .eq('email', email)
+      .eq('tenant_id', admin.tenant_id)
+      .in('estado', ['aceptada', 'pendiente'])
 
     return NextResponse.json({ ok: true })
   }
