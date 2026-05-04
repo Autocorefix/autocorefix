@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(errorParam)}`, request.url))
   }
 
-  const response = NextResponse.redirect(new URL('/dashboard', request.url))
+  // Destino por defecto
+  let redirectTo = '/dashboard'
+  const response = NextResponse.redirect(new URL(redirectTo, request.url))
 
   if (code) {
     const supabase = createServerClient(
@@ -29,17 +31,19 @@ export async function GET(request: NextRequest) {
     )
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-
     if (error) {
       return NextResponse.redirect(
         new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
       )
     }
 
-    // Vincular asistente invitado a su tenant
-    // Esta RPC detecta si existe una invitación pendiente para el email
-    // del usuario recién autenticado y asigna tenant_id + rol 'asistente'
-    await (supabase as any).rpc('accept_invitation')
+    // Intentar aceptar invitación pendiente
+    // La RPC retorna true si procesó una invitación → ir a /bienvenida para configurar cuenta
+    const { data: invitacionAceptada } = await (supabase as any).rpc('accept_invitation')
+
+    if (invitacionAceptada === true) {
+      return NextResponse.redirect(new URL('/bienvenida', request.url))
+    }
   }
 
   return response

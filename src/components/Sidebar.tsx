@@ -3,15 +3,8 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard,
-  ClipboardPlus,
-  ClipboardList,
-  Users,
-  BookOpen,
-  BarChart2,
-  LogOut,
-  Wrench,
-  Settings,
+  LayoutDashboard, ClipboardPlus, ClipboardList, Users,
+  BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -48,25 +41,19 @@ export default function Sidebar({ rol }: { rol: string }) {
         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#2563EB]">
           <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
         </div>
-        <span className="text-sm font-semibold text-zinc-900 tracking-tight">
-          AutoCoreFix
-        </span>
+        <span className="text-sm font-semibold text-zinc-900 tracking-tight">AutoCoreFix</span>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-0.5">
         {visibleItems.map(({ href, label, icon: Icon }) => {
-          const isActive =
-            href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
-
+          const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
           return (
             <Link
               key={href}
               href={href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-[#2563EB] text-white'
-                  : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+                isActive ? 'bg-[#2563EB] text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
@@ -76,13 +63,22 @@ export default function Sidebar({ rol }: { rol: string }) {
         })}
       </nav>
 
-      {/* Sign out */}
-      <div className="px-3 py-4 border-t border-zinc-100">
+      {/* Bottom */}
+      <div className="px-3 py-4 border-t border-zinc-100 flex flex-col gap-0.5">
+        <Link
+          href="/dashboard/perfil"
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            pathname === '/dashboard/perfil' ? 'bg-[#2563EB] text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+          }`}
+        >
+          <UserCircle className="w-4 h-4 shrink-0" />
+          Mi perfil
+        </Link>
         <button
           onClick={handleSignOut}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors w-full text-left"
         >
-          <LogOut className="w-4 h-4 shrink-0" strokeWidth={2} />
+          <LogOut className="w-4 h-4 shrink-0" />
           Cerrar sesión
         </button>
       </div>

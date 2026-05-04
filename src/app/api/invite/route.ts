@@ -58,19 +58,14 @@ export async function POST(request: NextRequest) {
   const existingAuthUser = existingUsers?.users?.find((u: { email?: string }) => u.email === email)
 
   if (existingAuthUser) {
-    // Usuario ya tiene cuenta: asignar tenant directamente sin re-invitar
-    await adminClient
-      .from('usuarios')
-      .update({ tenant_id: usuario.tenant_id, rol: 'asistente' })
-      .eq('id', existingAuthUser.id)
-
-    // Registrar invitación como aceptada directamente
+    // Usuario ya tiene cuenta en Auth: registrar invitación pendiente.
+    // El acceso se asignará automáticamente cuando inicie sesión (RPC accept_invitation).
     await (supabase as any).from('invitaciones').insert({
       email,
       tenant_id: usuario.tenant_id,
       rol: 'asistente',
       invitado_por: user.id,
-      estado: 'aceptada',
+      // estado queda 'pendiente' por defecto
     })
 
     return NextResponse.json({ ok: true, existing: true })
