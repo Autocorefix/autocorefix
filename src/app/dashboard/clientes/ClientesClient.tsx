@@ -263,4 +263,52 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                                                   <span className="text-sm text-zinc-700">{s.nombre_servicio ?? '—'}</span>
                                                   <span className="text-sm font-semibold text-zinc-800">{fmt(s.precio_cobrado ?? 0)}</span>
                                                 </div>
-                               
+                                              ))
+                                            )}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-between mt-6">
+          <p className="text-xs text-zinc-400">
+            Mostrando {desde_item}–{hasta_item} de {filtrados.length} clientes
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPagina(p => Math.max(1, p - 1))}
+              disabled={pagina === 1}
+              className="px-3 py-1.5 text-xs font-medium text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ← Anterior
+            </button>
+            <span className="text-xs text-zinc-500">{pagina} / {totalPaginas}</span>
+            <button
+              onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+              disabled={pagina === totalPaginas}
+              className="px-3 py-1.5 text-xs font-medium text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

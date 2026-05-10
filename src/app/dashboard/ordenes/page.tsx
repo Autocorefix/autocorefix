@@ -106,7 +106,6 @@ export default function OrdenesPage() {
   )
   const [hasta, setHasta] = useState(() => hoy.toISOString().split('T')[0])
 
-  // Debounce: actualiza busquedaDB 400ms después de que el usuario deja de escribir
   useEffect(() => {
     const t = setTimeout(() => setBusquedaDB(busqueda), 400)
     return () => clearTimeout(t)
@@ -161,7 +160,6 @@ export default function OrdenesPage() {
   const PAGE_SIZE = 25
   const [pagina, setPagina] = useState(1)
 
-  // Reset página al cambiar filtros o búsqueda
   useEffect(() => { setPagina(1) }, [filtroEstado, busqueda, desde, hasta])
 
   const totalFiltrado  = filtradas.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
@@ -282,4 +280,61 @@ export default function OrdenesPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 
+                      <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-1 rounded-md">
+                        #{o.id.slice(0, 8).toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
+                    <td className="px-5 py-4 text-zinc-500">
+                      {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
+                    </td>
+                    <td className="px-5 py-4 text-zinc-500">
+                      {numSvc} {numSvc === 1 ? 'servicio' : 'servicios'}
+                    </td>
+                    <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
+                      <StatusDropdown
+                        ordenId={o.id}
+                        estado={estado}
+                        updating={updating === o.id}
+                        onChange={cambiarEstado}
+                      />
+                    </td>
+                    <td className="px-5 py-4 text-zinc-500">{fecha}</td>
+                    <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
+                      ${(o.total_cobrado ?? 0).toLocaleString('es-MX')}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-between mt-6">
+          <p className="text-xs text-zinc-400">
+            Mostrando {desde_item}–{hasta_item} de {filtradas.length} órdenes
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPagina(p => Math.max(1, p - 1))}
+              disabled={pagina === 1}
+              className="px-3 py-1.5 text-xs font-medium text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ← Anterior
+            </button>
+            <span className="text-xs text-zinc-500">{pagina} / {totalPaginas}</span>
+            <button
+              onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+              disabled={pagina === totalPaginas}
+              className="px-3 py-1.5 text-xs font-medium text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
