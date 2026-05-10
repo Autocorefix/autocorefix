@@ -150,15 +150,23 @@ export default function BillingClient({
         )}
 
         {isActive && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="text-xs font-semibold text-emerald-700">Plan activo</span>
               </div>
-              <span className="text-sm text-zinc-600">
-                {subscription?.plan_type === 'annual' ? 'Anual' : 'Mensual'} · Renueva el {formatDate(subscription?.current_period_end ?? null)}
-              </span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-zinc-800">
+                  {subscription?.plan_type === 'annual' ? 'Anual' : 'Mensual'}
+                </span>
+                {subscription?.current_period_end && (
+                  <span className="text-xs text-zinc-500">
+                    Renueva el <span className="font-semibold text-zinc-700">{formatDate(subscription.current_period_end)}</span>
+                    {' · '}<span className="font-semibold text-zinc-700">{getDaysRemaining(subscription.current_period_end)} días</span> restantes
+                  </span>
+                )}
+              </div>
             </div>
             <button onClick={handlePortal} disabled={!!loading} className="text-sm font-medium text-[#2563EB] hover:underline disabled:opacity-50">
               {loading === 'portal' ? 'Cargando...' : 'Administrar'}
