@@ -334,19 +334,28 @@ Si se envían múltiples invitaciones al mismo email, la RPC `accept_invitation`
 - Settings: invitar, reenviar, cancelar, revocar por userId y por email
 - Página Perfil: cambiar nombre y contraseña
 - API seguras: `/api/invite`, `/api/assistants`, `/api/revoke`
-- Stripe configurado: producto, precios, webhook, variables de entorno en `.env.local` y Vercel
-- Tabla `subscriptions` en Supabase con RLS
+- Stripe configurado: producto Test + precios Test, webhook Test, variables en Vercel
+- Tabla `subscriptions` en Supabase con RLS (service role para leer/escribir desde server)
 - APIs Stripe: `/api/stripe/checkout`, `/api/stripe/portal`, `/api/stripe/webhook`, `/api/stripe/init-trial`
 - Página `/dashboard/billing` con BillingClient
+- Flujo de pago end-to-end probado: trial → checkout → webhook → Plan activo con fecha y días restantes
+- Middleware excluye `/api/stripe/` de verificación de auth
+
+### Errores resueltos en Stripe (referencia)
+- Tabla `subscriptions` no existía → crearla con SQL antes de cualquier operación
+- Webhook recibía 307 → `/api/stripe/` no estaba en exclusiones del middleware
+- `current_period_end` llegaba null → guard `sub.current_period_end ? ... : null`
+- Price IDs eran de Live mode con key Test → usar productos/precios del modo correcto
+- `subscriptions` no visible por RLS → usar service role client para leer y escribir
+- Fecha mostraba día incorrecto → `timeZone: 'UTC'` en `toLocaleDateString`
 
 ### Pendiente 📋
-- [ ] Prueba de pago end-to-end con tarjeta de prueba Stripe (`4242 4242 4242 4242`)
 - [ ] Fidelización (recordatorios WhatsApp/SMS a clientes)
 - [ ] Notificación al admin cuando asistente acepta invitación (requiere Resend u otro servicio email transaccional)
 - [ ] Búsqueda global en órdenes y clientes
 - [ ] Paginación en tablas con muchos registros
 - [ ] PWA / modo offline básico
-- [ ] Cambiar Stripe a modo Live cuando se lance a producción real
+- [ ] Cambiar Stripe a modo Live: crear producto/precios Live, actualizar STRIPE_SECRET_KEY + STRIPE_PRICE_IDs + STRIPE_WEBHOOK_SECRET en Vercel, crear webhook Live
 - [ ] Conectar dominio `autocorefix.com` y actualizar webhook URL en Stripe
 
 ---
