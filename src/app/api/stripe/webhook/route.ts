@@ -41,7 +41,9 @@ export async function POST(request: Request) {
         stripe_subscription_id: session.subscription as string,
         status: 'active',
         plan_type: sub.items.data[0]?.price.recurring?.interval === 'year' ? 'annual' : 'monthly',
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        current_period_end: sub.current_period_end
+          ? new Date(sub.current_period_end * 1000).toISOString()
+          : null,
       }, { onConflict: 'tenant_id' })
 
       if (upsertError) console.error('Upsert error:', upsertError)
@@ -56,7 +58,9 @@ export async function POST(request: Request) {
 
       await db.from('subscriptions').update({
         status: sub.status,
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        current_period_end: sub.current_period_end
+          ? new Date(sub.current_period_end * 1000).toISOString()
+          : null,
         plan_type: sub.items.data[0]?.price.recurring?.interval === 'year' ? 'annual' : 'monthly',
       }).eq('tenant_id', tenantId)
     }
