@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const tenantId = session.metadata?.tenant_id
     if (!tenantId || !session.customer || !session.subscription) return NextResponse.json({ ok: true })
 
-    const sub = await stripe.subscriptions.retrieve(session.subscription as string)
+    const sub = await stripe.subscriptions.retrieve(session.subscription as string) as any
     await db.from('subscriptions').upsert({
       tenant_id: tenantId,
       stripe_customer_id: session.customer as string,
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   }
 
   if (event.type === 'customer.subscription.updated') {
-    const sub = event.data.object as Stripe.Subscription
+    const sub = event.data.object as any
     const tenantId = sub.metadata?.tenant_id
     if (!tenantId) return NextResponse.json({ ok: true })
 
