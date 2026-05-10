@@ -15,10 +15,10 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/nueva-orden', label: 'Nueva Orden', icon: ClipboardPlus },
   { href: '/dashboard/ordenes',     label: 'Órdenes',     icon: ClipboardList },
   { href: '/dashboard/clientes',    label: 'Clientes',    icon: Users },
-  { href: '/dashboard/catalogo',    label: 'Catálogo',    icon: BookOpen,  adminOnly: true },
-  { href: '/dashboard/reportes',    label: 'Reportes',    icon: BarChart2, adminOnly: true },
-  { href: '/dashboard/settings',    label: 'Ajustes',     icon: Settings,  adminOnly: true },
-  { href: '/dashboard/billing',    label: 'Facturación', icon: CreditCard, adminOnly: true },
+  { href: '/dashboard/catalogo',    label: 'Catálogo',    icon: BookOpen,   adminOnly: true },
+  { href: '/dashboard/reportes',    label: 'Reportes',    icon: BarChart2,  adminOnly: true },
+  { href: '/dashboard/billing',     label: 'Facturación', icon: CreditCard, adminOnly: true },
+  { href: '/dashboard/settings',    label: 'Ajustes',     icon: Settings,   adminOnly: true },
 ]
 
 export default function Sidebar({ rol }: { rol: string }) {

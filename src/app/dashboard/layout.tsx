@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import Sidebar from '@/components/Sidebar'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -37,13 +38,28 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .eq('tenant_id', usuario.tenant_id)
       .maybeSingle()
 
-    const now = new Date()
-    const isActive = sub && (
-      (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
-      (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now) ||
-      sub.status === 'past_due'
-    )
-    if (!isActive) redirect('/dashboard/billing')
+    if (!sub && usuario.rol === 'admin') {
+      // Primera vez: crear trial automáticamente
+      const adminClient = createServiceClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      const trialEnd = new Date()
+      trialEnd.setDate(trialEnd.getDate() + 14)
+      await adminClient.from('subscriptions').insert({
+        tenant_id: usuario.tenant_id,
+        status: 'trialing',
+        trial_end: trialEnd.toISOString(),
+      })
+    } else {
+      const now = new Date()
+      const isActive = sub && (
+        (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
+        (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now) ||
+        sub.status === 'past_due'
+      )
+      if (!isActive) redirect('/dashboard/billing')
+    }
   }
 
   return (
