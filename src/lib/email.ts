@@ -2,6 +2,74 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+export async function sendInvitationEmail({
+  to,
+  magicLink,
+  tallerName,
+}: {
+  to: string
+  magicLink: string
+  tallerName: string
+}) {
+  try {
+    await resend.emails.send({
+      from: 'AutoCoreFix <onboarding@resend.dev>',
+      to,
+      subject: `Acceso a AutoCoreFix — ${tallerName}`,
+      html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+            <tr><td align="center">
+              <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e4e7;">
+                <tr>
+                  <td style="background:#2563EB;padding:32px 40px;">
+                    <p style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">AutoCoreFix</p>
+                    <p style="margin:4px 0 0;color:#bfdbfe;font-size:13px;">Sistema de gestión para talleres</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:36px 40px 32px;">
+                    <p style="margin:0 0 8px;color:#18181b;font-size:22px;font-weight:700;">Te invitaron a unirte</p>
+                    <p style="margin:0 0 24px;color:#71717a;font-size:15px;line-height:1.6;">
+                      El taller <strong>${tallerName}</strong> te ha dado acceso a AutoCoreFix. Haz clic en el botón para ingresar y configurar tu cuenta.
+                    </p>
+                    <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                      <tr>
+                        <td style="background:#2563EB;border-radius:10px;padding:14px 28px;">
+                          <a href="${magicLink}" style="color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">
+                            Acceder a AutoCoreFix →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin:0 0 8px;color:#a1a1aa;font-size:12px;">
+                      Si el botón no funciona, copia este enlace en tu navegador:
+                    </p>
+                    <p style="margin:0;color:#2563EB;font-size:12px;word-break:break-all;">${magicLink}</p>
+                    <p style="margin:20px 0 0;color:#a1a1aa;font-size:12px;">Este enlace expira en 24 horas.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top:1px solid #f4f4f5;padding:20px 40px;background:#fafafa;">
+                    <p style="margin:0;color:#a1a1aa;font-size:12px;">AutoCoreFix · Sistema de gestión para talleres mecánicos</p>
+                  </td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+        </body>
+        </html>
+      `,
+    })
+  } catch (err) {
+    console.error('Error enviando email de invitación:', err)
+    throw err
+  }
+}
+
 export async function notifyAdminInvitationAccepted({
   adminEmail,
   assistantName,

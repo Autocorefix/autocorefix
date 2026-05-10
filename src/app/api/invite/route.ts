@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
+import { sendInvitationEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json()
@@ -57,21 +58,43 @@ export async function POST(request: NextRequest) {
   const { data: existingUsers } = await adminClient.auth.admin.listUsers()
   const existingAuthUser = existingUsers?.users?.find((u: { email?: string }) => u.email === email)
 
+  // Obtener nombre del taller para el email
+  const { data: taller } = await adminClient
+    .from('tenants')
+    .select('nombre')
+    .eq('id', usuario.tenant_id)
+    .maybeSingle()
+  const tallerName = taller?.nombre ?? 'el taller'
+
   if (existingAuthUser) {
-    // Usuario ya tiene cuenta en Auth: registrar invitación pendiente.
-    // El acceso se asignará automáticamente cuando inicie sesión (RPC accept_invitation).
-    await (supabase as any).from('invitaciones').insert({
+    // Usuario ya existe en Auth: generar magic link fresco y enviarlo vía Resend
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: { redirectTo: 'https://autocorefix.vercel.app/auth/callback' },
+    })
+
+    if (linkError || !linkData?.properties?.action_link) {
+      return NextResponse.json({ error: 'No se pudo generar el enlace de acceso' }, { status: 500 })
+    }
+
+    try {
+      await sendInvitationEmail({ to: email, magicLink: linkData.properties.action_link, tallerName })
+    } catch {
+      return NextResponse.json({ error: 'Error al enviar el correo de invitación' }, { status: 500 })
+    }
+
+    await adminClient.from('invitaciones').insert({
       email,
       tenant_id: usuario.tenant_id,
       rol: 'asistente',
       invitado_por: user.id,
-      // estado queda 'pendiente' por defecto
     })
 
-    return NextResponse.json({ ok: true, existing: true })
+    return NextResponse.json({ ok: true })
   }
 
-  // Usuario nuevo: enviar invitación por email
+  // Usuario nuevo: enviar invitación por email (Supabase crea la cuenta)
   const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: 'https://autocorefix.vercel.app/auth/callback',
   })
@@ -80,7 +103,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: inviteError.message }, { status: 500 })
   }
 
-  await (supabase as any).from('invitaciones').insert({
+  // Generar magic link para enviar por Resend con template propio
+  const { data: linkData } = await adminClient.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: 'https://autocorefix.vercel.app/auth/callback' },
+  })
+
+  if (linkData?.properties?.action_link) {
+    try {
+      await sendInvitationEmail({ to: email, magicLink: linkData.properties.action_link, tallerName })
+    } catch {
+      // Si falla Resend, Supabase ya envió su email por defecto — no bloqueamos
+      console.error('Resend falló, se usó email de Supabase')
+    }
+  }
+
+  await adminClient.from('invitaciones').insert({
     email,
     tenant_id: usuario.tenant_id,
     rol: 'asistente',
