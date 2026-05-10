@@ -228,18 +228,18 @@ export default function CatalogoClient({
               </thead>
               <tbody className="divide-y divide-zinc-50">
                 {serviciosOrdenados.map(s => (
-                  <tr key={s.id} className={`hover:bg-zinc-50 transition-colors ${!s.activo ? 'opacity-60' : ''}`}>
+                  <tr key={s.id} className={`transition-colors ${!s.activo ? 'bg-zinc-50/60 hover:bg-zinc-100/60' : 'hover:bg-zinc-50'}`}>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
                         s.activo
                           ? 'bg-blue-50 text-[#2563EB] ring-blue-100'
-                          : 'bg-zinc-100 text-zinc-400 ring-zinc-200'
+                          : 'bg-zinc-200 text-zinc-500 ring-zinc-300'
                       }`}>
                         {s.categorias.nombre}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-medium text-zinc-800">{s.nombre}</td>
-                    <td className="px-6 py-4 text-right font-semibold text-zinc-800">
+                    <td className={`px-6 py-4 font-medium ${s.activo ? 'text-zinc-800' : 'text-zinc-400 line-through decoration-zinc-300'}`}>{s.nombre}</td>
+                    <td className={`px-6 py-4 text-right font-semibold ${s.activo ? 'text-zinc-800' : 'text-zinc-400'}`}>
                       ${s.precio_base.toLocaleString('es-MX')}
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -247,7 +247,7 @@ export default function CatalogoClient({
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset cursor-pointer ${
                           s.activo
                             ? 'bg-emerald-50 text-emerald-600 ring-emerald-100'
-                            : 'bg-zinc-100 text-zinc-400 ring-zinc-200'
+                            : 'bg-amber-50 text-amber-600 ring-amber-200'
                         }`}>
                           {s.activo ? 'Activo' : 'Inactivo'}
                         </span>
