@@ -328,7 +328,6 @@ Si se envían múltiples invitaciones al mismo email, la RPC `accept_invitation`
 - RLS activo en todas las tablas
 - Tipos TypeScript sincronizados con Supabase
 - Deploy en Vercel funcionando
-- Sistema de diseño consistente (acordeones, chevrons, avatares, headers)
 - Flujo de invitación completo para asistentes (magic link → bienvenida → setup)
 - Página Bienvenida para configurar nombre y contraseña al aceptar invitación
 - Settings: invitar, reenviar, cancelar, revocar por userId y por email
@@ -340,6 +339,18 @@ Si se envían múltiples invitaciones al mismo email, la RPC `accept_invitation`
 - Página `/dashboard/billing` con BillingClient
 - Flujo de pago end-to-end probado: trial → checkout → webhook → Plan activo con fecha y días restantes
 - Middleware excluye `/api/stripe/` de verificación de auth
+- Resend integrado con lazy init (`getResend()`) — resuelve crash de build en Vercel
+- `lib/email.ts`: sendInvitationEmail + notifyAdminInvitationAccepted (activas cuando dominio verificado)
+
+### Sistema de diseño — actualizado 2026-05-10 ✅
+- Sidebar: botones "Mi perfil" (azul `#eff6ff`) y "Cerrar sesión" (rojo `#fef2f2`) con colores fuertes visibles
+- Cards dashboard y tablas: `shadow-sm` + `border border-zinc-200` en todos los contenedores
+- Cards dashboard: acento `border-t-2 border-t-[#2563EB]`
+- Catálogo — filas inactivas: fondo `bg-zinc-50/60`, nombre tachado, badge categoría `bg-zinc-200 text-zinc-500`
+- Catálogo — badge "Inactivo": `bg-amber-50 text-amber-600 ring-amber-200` (ámbar, no gris)
+- `cursor: pointer` global en `globals.css` para todos los botones habilitados
+- `cursor: not-allowed` para botones disabled
+- Colores botones primarios: `#1649C8` (reposo) / `#1340B0` (hover)
 
 ### Errores resueltos en Stripe (referencia)
 - Tabla `subscriptions` no existía → crearla con SQL antes de cualquier operación
@@ -349,14 +360,25 @@ Si se envían múltiples invitaciones al mismo email, la RPC `accept_invitation`
 - `subscriptions` no visible por RLS → usar service role client para leer y escribir
 - Fecha mostraba día incorrecto → `timeZone: 'UTC'` en `toLocaleDateString`
 
-### Pendiente 📋
-- [ ] Fidelización (recordatorios WhatsApp/SMS a clientes)
-- [ ] Notificación al admin cuando asistente acepta invitación (requiere Resend u otro servicio email transaccional)
-- [ ] Búsqueda global en órdenes y clientes
-- [ ] Paginación en tablas con muchos registros
+### Errores resueltos en build/deploy (referencia)
+- `new Resend(undefined)` a nivel de módulo → crash en build. Fix: lazy init con función `getResend()`
+- `bash sed -i` en sandbox no modifica archivos Windows reales → usar siempre Write tool o Python via bash
+- Write tool trunca archivos >~210 líneas → usar `python3` vía bash para archivos grandes
+- `ClientesClient.tsx` y `ordenes/page.tsx` truncados por sed → restaurados con Python (2026-05-10)
+
+### Pendiente para el piloto real 📋
+- [ ] **Comprar dominio `autocorefix.com`** — desbloquea todo lo demás
+- [ ] Conectar dominio a Vercel + actualizar Supabase URL Configuration + Google OAuth redirect URIs
+- [ ] Verificar dominio en Resend → emails de invitación funcionan para cualquier destinatario
+- [ ] Activar Stripe Live: crear producto/precios Live, actualizar STRIPE_SECRET_KEY + STRIPE_PRICE_IDs + STRIPE_WEBHOOK_SECRET + webhook URL en Vercel
+- [ ] Prueba end-to-end completa antes del piloto (registro → orden → reporte)
+- [ ] Revisar experiencia mobile (tabla órdenes + formulario nueva orden en celular)
+- [ ] Página 404 personalizada
+
+### Pendiente futuro 📋
+- [ ] Fidelización (recordatorios WhatsApp/SMS a clientes — Twilio)
+- [ ] Notificación al admin cuando asistente acepta invitación
 - [ ] PWA / modo offline básico
-- [ ] Cambiar Stripe a modo Live: crear producto/precios Live, actualizar STRIPE_SECRET_KEY + STRIPE_PRICE_IDs + STRIPE_WEBHOOK_SECRET en Vercel, crear webhook Live
-- [ ] Conectar dominio `autocorefix.com` y actualizar webhook URL en Stripe
 
 ---
 
