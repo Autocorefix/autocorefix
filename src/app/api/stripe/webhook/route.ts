@@ -55,7 +55,7 @@ export async function POST(request: Request) {
   }
 
   if (event.type === 'invoice.payment_failed') {
-    const invoice = event.data.object as Stripe.Invoice
+    const invoice = event.data.object as any
     if (!invoice.subscription) return NextResponse.json({ ok: true })
     const sub = await stripe.subscriptions.retrieve(invoice.subscription as string)
     const tenantId = sub.metadata?.tenant_id
