@@ -188,7 +188,7 @@ export default function BillingClient({
           <div className="bg-white rounded-2xl border border-zinc-200 p-6 flex flex-col gap-4">
             <div>
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Mensual</p>
-              <p className="text-2xl font-bold text-zinc-900">$299 <span className="text-sm font-normal text-zinc-500">MXN/mes</span></p>
+              <p className="text-2xl font-bold text-zinc-900">$399 <span className="text-sm font-normal text-zinc-500">MXN/mes</span></p>
             </div>
             <ul className="flex flex-col gap-2 flex-1">
               {FEATURES.map(f => (
@@ -213,8 +213,8 @@ export default function BillingClient({
             </div>
             <div>
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Anual</p>
-              <p className="text-2xl font-bold text-zinc-900">$2,999 <span className="text-sm font-normal text-zinc-500">MXN/año</span></p>
-              <p className="text-xs text-zinc-400 mt-0.5">Equivale a $249/mes</p>
+              <p className="text-2xl font-bold text-zinc-900">$3,499 <span className="text-sm font-normal text-zinc-500">MXN/año</span></p>
+              <p className="text-xs text-zinc-400 mt-0.5">Equivale a $291/mes</p>
             </div>
             <ul className="flex flex-col gap-2 flex-1">
               {FEATURES.map(f => (
