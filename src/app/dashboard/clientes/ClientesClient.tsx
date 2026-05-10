@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Search, ChevronDown, ChevronUp, ChevronRight, Car, ClipboardList } from 'lucide-react'
 
 type OrdenServicio = {
@@ -56,12 +56,22 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
   const [expandido,     setExpandido]     = useState<string | null>(null)
   const [expandedOrden, setExpandedOrden] = useState<string | null>(null)
 
-  const filtrados = clientes.filter(c =>
+  const PAGE_SIZE = 20
+  const [pagina, setPagina] = useState(1)
+
+  const filtrados = useMemo(() => clientes.filter(c =>
     c.nombre.toLowerCase().includes(query.toLowerCase()) ||
     c.telefono?.includes(query) ||
     c.email?.toLowerCase().includes(query.toLowerCase()) ||
     c.cliente_id?.toLowerCase().includes(query.toLowerCase())
-  )
+  ), [clientes, query])
+
+  useEffect(() => { setPagina(1) }, [query])
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / PAGE_SIZE))
+  const paginados    = filtrados.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE)
+  const desde_item   = filtrados.length === 0 ? 0 : (pagina - 1) * PAGE_SIZE + 1
+  const hasta_item   = Math.min(pagina * PAGE_SIZE, filtrados.length)
 
   const fmt = (n: number) => '$' + n.toLocaleString('es-MX')
 
@@ -74,7 +84,10 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Clientes</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">{clientes.length} clientes registrados</p>
+          <p className="text-sm text-zinc-400 mt-0.5">
+            {filtrados.length} {filtrados.length === 1 ? 'cliente' : 'clientes'}
+            {filtrados.length > 0 && <span className="ml-2 text-zinc-300">· Mostrando {desde_item}–{hasta_item}</span>}
+          </p>
         </div>
       </div>
 
@@ -96,7 +109,7 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
           </div>
         )}
 
-        {filtrados.map(c => {
+        {paginados.map(c => {
           const abierto      = expandido === c.id
           const totalGastado = c.ordenes.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
           const ultimaVisita = c.ordenes[0]?.created_at
@@ -271,6 +284,38 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
           )
         })}
       </div>
+
+      {/* Paginación */}
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-between mt-6 px-1">
+          <p className="text-xs text-zinc-400">
+            Página <span className="font-semibold text-zinc-600">{pagina}</span> de <span className="font-semibold text-zinc-600">{totalPaginas}</span>
+          </p>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setPagina(1)} disabled={pagina === 1}
+              className="px-2 py-1.5 text-xs font-medium text-zinc-500 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">«</button>
+            <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1}
+              className="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Anterior</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPaginas || Math.abs(p - pagina) <= 1)
+              .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...')
+                acc.push(p)
+                return acc
+              }, [])
+              .map((p, i) => p === '...'
+                ? <span key={`e${i}`} className="px-2 text-xs text-zinc-400">…</span>
+                : <button key={p} onClick={() => setPagina(p as number)}
+                    className={`w-8 h-8 text-xs font-medium rounded-lg border transition-colors ${pagina === p ? 'bg-[#2563EB] text-white border-[#2563EB]' : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'}`}
+                  >{p}</button>
+              )}
+            <button onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}
+              className="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Siguiente</button>
+            <button onClick={() => setPagina(totalPaginas)} disabled={pagina === totalPaginas}
+              className="px-2 py-1.5 text-xs font-medium text-zinc-500 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">»</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
