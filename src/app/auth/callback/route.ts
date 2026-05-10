@@ -12,92 +12,97 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(errorParam)}`, request.url))
   }
 
-  let redirectTo = '/dashboard'
-  const response = NextResponse.redirect(new URL(redirectTo, request.url))
+  const response = NextResponse.redirect(new URL('/dashboard', request.url))
 
-  if (code) {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll() },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
+  if (!code) return response
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (error) {
-      return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
-      )
-    }
-
-    // Intentar aceptar invitación pendiente
-    const { data: invitacionAceptada } = await (supabase as any).rpc('accept_invitation')
-
-    if (invitacionAceptada === true) {
-      // Enviar notificación al admin en background (sin bloquear el redirect)
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-
-        if (user) {
-          const adminClient = createServiceClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
           )
-
-          // Obtener tenant_id y nombre de la asistente recién vinculada
-          const { data: asistente } = await adminClient
-            .from('usuarios')
-            .select('tenant_id, nombre')
-            .eq('id', user.id)
-            .maybeSingle()
-
-          if (asistente?.tenant_id) {
-            // Obtener datos del taller y del admin
-            const [{ data: taller }, { data: adminUsuario }] = await Promise.all([
-              adminClient
-                .from('tenants')
-                .select('nombre')
-                .eq('id', asistente.tenant_id)
-                .maybeSingle(),
-              adminClient
-                .from('usuarios')
-                .select('id')
-                .eq('tenant_id', asistente.tenant_id)
-                .eq('rol', 'admin')
-                .maybeSingle(),
-            ])
-
-            if (adminUsuario?.id) {
-              // Obtener email del admin desde auth.users (requiere service role)
-              const { data: adminAuthUser } = await adminClient.auth.admin.getUserById(adminUsuario.id)
-
-              if (adminAuthUser?.user?.email) {
-                await notifyAdminInvitationAccepted({
-                  adminEmail: adminAuthUser.user.email,
-                  assistantName: asistente.nombre ?? '',
-                  assistantEmail: user.email ?? '',
-                  tallerName: taller?.nombre ?? 'tu taller',
-                })
-              }
-            }
-          }
-        }
-      } catch (emailErr) {
-        // No interrumpir el flujo si la notificación falla
-        console.error('Error en notificación de invitación:', emailErr)
-      }
-
-      return NextResponse.redirect(new URL('/bienvenida', request.url))
+        },
+      },
     }
+  )
+
+  const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code)
+  if (error) {
+    return NextResponse.redirect(
+      new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
+    )
   }
 
-  return response
+  const sessionUser = exchangeData?.session?.user
+  if (!sessionUser?.email) return response
+
+  // Buscar invitación pendiente para este usuario usando service role
+  const adminClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: invitation } = await adminClient
+    .from('invitaciones')
+    .select('id, tenant_id, rol, email')
+    .eq('email', sessionUser.email)
+    .eq('estado', 'pendiente')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!invitation) return response
+
+  // Aceptar invitación
+  await adminClient
+    .from('invitaciones')
+    .update({ estado: 'aceptada' })
+    .eq('id', invitation.id)
+
+  // Cancelar otras invitaciones pendientes del mismo email
+  await adminClient
+    .from('invitaciones')
+    .update({ estado: 'cancelada' })
+    .eq('email', sessionUser.email)
+    .eq('estado', 'pendiente')
+    .neq('id', invitation.id)
+
+  // Crear o actualizar fila en usuarios
+  await adminClient
+    .from('usuarios')
+    .upsert({
+      id: sessionUser.id,
+      email: sessionUser.email,
+      tenant_id: invitation.tenant_id,
+      rol: invitation.rol ?? 'asistente',
+    }, { onConflict: 'id' })
+
+  // Enviar notificación al admin
+  try {
+    const [{ data: taller }, { data: adminUsuario }] = await Promise.all([
+      adminClient.from('tenants').select('nombre').eq('id', invitation.tenant_id).maybeSingle(),
+      adminClient.from('usuarios').select('id').eq('tenant_id', invitation.tenant_id).eq('rol', 'admin').maybeSingle(),
+    ])
+
+    if (adminUsuario?.id) {
+      const { data: adminAuthUser } = await adminClient.auth.admin.getUserById(adminUsuario.id)
+      if (adminAuthUser?.user?.email) {
+        await notifyAdminInvitationAccepted({
+          adminEmail: adminAuthUser.user.email,
+          assistantName: sessionUser.user_metadata?.full_name ?? '',
+          assistantEmail: sessionUser.email,
+          tallerName: taller?.nombre ?? 'tu taller',
+        })
+      }
+    }
+  } catch (emailErr) {
+    console.error('Error en notificación de invitación:', emailErr)
+  }
+
+  return NextResponse.redirect(new URL('/bienvenida', request.url))
 }
