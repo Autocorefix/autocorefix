@@ -19,7 +19,7 @@ function getDaysRemaining(dateStr: string | null): number {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
 const FEATURES = ['Acceso completo', 'Asistentes ilimitadas', 'Reportes y estadísticas', 'Soporte por email']
