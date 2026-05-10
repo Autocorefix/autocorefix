@@ -36,10 +36,12 @@ export default function Sidebar({ rol }: { rol: string }) {
   const visibleItems = NAV_ITEMS.filter(item => !item.adminOnly || isAdmin)
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-60 flex flex-col bg-white border-r border-zinc-200 shadow-md z-20">
+    <aside className="fixed inset-y-0 left-0 w-60 flex flex-col bg-white z-20"
+      style={{ borderRight: '1px solid #e4e4e7', boxShadow: '2px 0 8px rgba(0,0,0,0.06)' }}>
+
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-zinc-100">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#2563EB]">
+      <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: '1px solid #f4f4f5' }}>
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ background: '#2563EB' }}>
           <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
         </div>
         <span className="text-sm font-semibold text-zinc-900 tracking-tight">AutoCoreFix</span>
@@ -53,9 +55,12 @@ export default function Sidebar({ rol }: { rol: string }) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive ? 'bg-[#2563EB] text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
-              }`}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={
+                isActive
+                  ? { background: '#2563EB', color: '#fff' }
+                  : { color: '#52525b' }
+              }
             >
               <Icon className="w-4 h-4 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
               {label}
@@ -64,7 +69,7 @@ export default function Sidebar({ rol }: { rol: string }) {
         })}
       </nav>
 
-      {/* Bottom */}
+      {/* Bottom — botones visibles */}
       <div className="px-3 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid #e4e4e7' }}>
         <Link
           href="/dashboard/perfil"
@@ -72,7 +77,7 @@ export default function Sidebar({ rol }: { rol: string }) {
           style={
             pathname === '/dashboard/perfil'
               ? { background: '#2563EB', color: '#fff', border: '1px solid #2563EB' }
-              : { background: '#f0f4ff', color: '#1e40af', border: '1px solid #bfdbfe' }
+              : { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }
           }
         >
           <UserCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
@@ -80,10 +85,10 @@ export default function Sidebar({ rol }: { rol: string }) {
         </Link>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all w-full text-left"
-          style={{ background: '#fff1f2', color: '#dc2626', border: '1px solid #fecaca' }}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full text-left transition-all"
+          style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
           onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2' }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#fff1f2' }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2' }}
         >
           <LogOut className="w-4 h-4 shrink-0" strokeWidth={2} />
           Cerrar sesión
