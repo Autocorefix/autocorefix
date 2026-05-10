@@ -459,7 +459,7 @@ export default function ReportesClient({
         {kpis.map(kpi => {
           const Icon = kpi.icon
           return (
-            <div key={kpi.label} className="bg-white rounded-2xl border border-zinc-100 p-5 flex flex-col gap-4">
+            <div key={kpi.label} className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${kpi.color}`}>
                   <Icon className="w-5 h-5" strokeWidth={2} />
@@ -475,7 +475,7 @@ export default function ReportesClient({
         })}
 
         {/* KPI Descuentos */}
-        <div className="bg-white rounded-2xl border border-zinc-100 p-5 flex flex-col gap-4">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 text-amber-600">
               <Percent className="w-5 h-5" strokeWidth={2} />
@@ -492,7 +492,7 @@ export default function ReportesClient({
 
       {/* ── Tendencia + Estado órdenes ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Tendencia de ingresos</h2>
             <p className="text-xs text-zinc-400 mt-0.5">Últimos 90 días</p>
@@ -516,7 +516,7 @@ export default function ReportesClient({
           ) : <EmptyChart />}
         </div>
 
-        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Estado de órdenes</h2>
             <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado</p>
@@ -549,7 +549,7 @@ export default function ReportesClient({
 
       {/* ── Top servicios + Categorías ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Servicios más solicitados</h2>
             <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado · coloreados por categoría</p>
@@ -591,7 +591,7 @@ export default function ReportesClient({
           ) : <EmptyChart />}
         </div>
 
-        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Ingresos por categoría</h2>
             <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado</p>
@@ -628,7 +628,7 @@ export default function ReportesClient({
 
       {/* ── Top 5 clientes + Ingresos diarios ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Top 5 clientes</h2>
             <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado · por ingresos generados</p>
@@ -660,7 +660,7 @@ export default function ReportesClient({
           ) : <EmptyChart />}
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-100 p-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Ingresos diarios</h2>
             <p className="text-xs text-zinc-400 mt-0.5">{mesLabel}</p>

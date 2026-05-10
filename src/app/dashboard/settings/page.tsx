@@ -223,7 +223,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Asistentes con acceso activo */}
-      <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Asistentes con acceso</h2>
           {!loading && (
@@ -267,7 +267,7 @@ export default function SettingsPage() {
 
       {/* Invitaciones pendientes */}
       {!loading && invPendientes.length > 0 && (
-        <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-zinc-100 flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400" />
             <h2 className="text-sm font-semibold text-zinc-900">Invitaciones pendientes</h2>
@@ -308,7 +308,7 @@ export default function SettingsPage() {
 
       {/* Invitaciones aceptadas sin acceso activo (edge case o acceso pendiente de sesión) */}
       {!loading && invAceptadas.length > 0 && (
-        <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-zinc-100 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <h2 className="text-sm font-semibold text-zinc-900">Invitaciones aceptadas</h2>

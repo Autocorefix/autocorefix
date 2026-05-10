@@ -36,7 +36,7 @@ export default function Sidebar({ rol }: { rol: string }) {
   const visibleItems = NAV_ITEMS.filter(item => !item.adminOnly || isAdmin)
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-60 flex flex-col bg-white border-r border-zinc-100 z-20">
+    <aside className="fixed inset-y-0 left-0 w-60 flex flex-col bg-white border-r border-zinc-200 shadow-md z-20">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5 border-b border-zinc-100">
         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#2563EB]">
@@ -65,21 +65,23 @@ export default function Sidebar({ rol }: { rol: string }) {
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 py-4 border-t border-zinc-100 flex flex-col gap-0.5">
+      <div className="px-3 py-4 border-t border-zinc-200 flex flex-col gap-2">
         <Link
           href="/dashboard/perfil"
-          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-            pathname === '/dashboard/perfil' ? 'bg-[#2563EB] text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+            pathname === '/dashboard/perfil'
+              ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-sm'
+              : 'text-zinc-700 border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300'
           }`}
         >
-          <UserCircle className="w-4 h-4 shrink-0" />
+          <UserCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
           Mi perfil
         </Link>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors w-full text-left"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300 transition-all w-full text-left"
         >
-          <LogOut className="w-4 h-4 shrink-0" />
+          <LogOut className="w-4 h-4 shrink-0" strokeWidth={2} />
           Cerrar sesión
         </button>
       </div>

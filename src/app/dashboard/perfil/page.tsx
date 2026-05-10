@@ -105,7 +105,7 @@ export default function PerfilPage() {
       </div>
 
       {/* Nombre */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
             <User className="w-4 h-4 text-[#2563EB]" />
@@ -162,7 +162,7 @@ export default function PerfilPage() {
       </div>
 
       {/* Contraseña */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
             <KeyRound className="w-4 h-4 text-[#2563EB]" />

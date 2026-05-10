@@ -214,7 +214,7 @@ export default function CatalogoClient({
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -308,8 +308,8 @@ export default function CatalogoClient({
           {categoriasOrdenadas.map(cat => (
             <div
               key={cat.id}
-              className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
-                cat.is_system_default ? 'border-zinc-100 bg-zinc-50' : 'border-zinc-200 bg-white'
+              className={`flex items-center justify-between rounded-xl border px-4 py-3 shadow-sm ${
+                cat.is_system_default ? 'border-zinc-200 bg-zinc-50' : 'border-zinc-200 bg-white hover:border-zinc-300'
               }`}
             >
               <div className="flex items-center gap-2 min-w-0">

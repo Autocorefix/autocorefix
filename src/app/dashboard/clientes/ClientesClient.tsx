@@ -119,7 +119,7 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
           return (
             <div
               key={c.id}
-              className={`bg-white rounded-2xl border border-zinc-100 overflow-hidden border-l-4 transition-colors ${
+              className={`bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden border-l-4 transition-colors ${
                 abierto ? 'border-l-[#2563EB]' : 'border-l-transparent hover:border-l-[#2563EB]'
               }`}
             >
@@ -263,59 +263,4 @@ export default function ClientesClient({ clientes }: { clientes: Cliente[] }) {
                                                   <span className="text-sm text-zinc-700">{s.nombre_servicio ?? '—'}</span>
                                                   <span className="text-sm font-semibold text-zinc-800">{fmt(s.precio_cobrado ?? 0)}</span>
                                                 </div>
-                                              ))
-                                            )}
-                                          </div>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  )}
-                                </React.Fragment>
-                              )
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Paginación */}
-      {totalPaginas > 1 && (
-        <div className="flex items-center justify-between mt-6 px-1">
-          <p className="text-xs text-zinc-400">
-            Página <span className="font-semibold text-zinc-600">{pagina}</span> de <span className="font-semibold text-zinc-600">{totalPaginas}</span>
-          </p>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setPagina(1)} disabled={pagina === 1}
-              className="px-2 py-1.5 text-xs font-medium text-zinc-500 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">«</button>
-            <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1}
-              className="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Anterior</button>
-            {Array.from({ length: totalPaginas }, (_, i) => i + 1)
-              .filter(p => p === 1 || p === totalPaginas || Math.abs(p - pagina) <= 1)
-              .reduce<(number | '...')[]>((acc, p, i, arr) => {
-                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...')
-                acc.push(p)
-                return acc
-              }, [])
-              .map((p, i) => p === '...'
-                ? <span key={`e${i}`} className="px-2 text-xs text-zinc-400">…</span>
-                : <button key={p} onClick={() => setPagina(p as number)}
-                    className={`w-8 h-8 text-xs font-medium rounded-lg border transition-colors ${pagina === p ? 'bg-[#2563EB] text-white border-[#2563EB]' : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'}`}
-                  >{p}</button>
-              )}
-            <button onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}
-              className="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Siguiente</button>
-            <button onClick={() => setPagina(totalPaginas)} disabled={pagina === totalPaginas}
-              className="px-2 py-1.5 text-xs font-medium text-zinc-500 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">»</button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+                               

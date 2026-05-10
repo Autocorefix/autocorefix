@@ -162,7 +162,7 @@ export default function OrdenDetallePage() {
 
       {/* Cliente + Vehículo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-zinc-100 p-5">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
               <User className="w-4 h-4 text-[#2563EB]" />
@@ -175,7 +175,7 @@ export default function OrdenDetallePage() {
           {cliente?.email      && <p className="text-sm text-zinc-500 mt-0.5">{cliente.email}</p>}
         </div>
 
-        <div className="bg-white rounded-2xl border border-zinc-100 p-5">
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50">
               <Car className="w-4 h-4 text-emerald-600" />
@@ -196,7 +196,7 @@ export default function OrdenDetallePage() {
       </div>
 
       {/* Servicios */}
-      <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-zinc-100">
           <h2 className="text-sm font-semibold text-zinc-900">Servicios</h2>
         </div>

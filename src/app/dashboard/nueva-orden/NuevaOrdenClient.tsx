@@ -207,7 +207,7 @@ export default function NuevaOrdenClient({
         {/* LEFT */}
         <div className="lg:col-span-2 flex flex-col gap-5">
 
-          <div className="bg-white rounded-2xl border border-zinc-100 p-5">
+          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Cliente</h2>
 
             {cliente ? (
@@ -265,7 +265,7 @@ export default function NuevaOrdenClient({
           </div>
 
           {hayCliente && (
-            <div className="bg-white rounded-2xl border border-zinc-100 p-5">
+            <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
               <h2 className="text-sm font-semibold text-zinc-900 mb-4">Vehículo</h2>
 
               {vehiculosCliente.length > 0 && !modoNuevoVehiculo && (
@@ -310,7 +310,7 @@ export default function NuevaOrdenClient({
         {/* RIGHT */}
         <div className="lg:col-span-3 flex flex-col gap-5">
 
-          <div className="bg-white rounded-2xl border border-zinc-100 p-5">
+          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Servicios</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {categorias.map(cat => {
@@ -355,7 +355,7 @@ export default function NuevaOrdenClient({
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-zinc-100 p-5">
+          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Resumen de orden</h2>
 
             {items.length === 0 ? (

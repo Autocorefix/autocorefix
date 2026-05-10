@@ -181,7 +181,7 @@ export default function OrdenesPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-4 mb-4 flex flex-wrap gap-3 items-center">
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-4 mb-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
@@ -236,7 +236,7 @@ export default function OrdenesPage() {
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -282,92 +282,4 @@ export default function OrdenesPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-1 rounded-md">
-                        #{o.id.slice(0, 8).toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
-                    <td className="px-5 py-4 text-zinc-500">
-                      {vehiculo
-                        ? `${vehiculo.marca ?? ''} ${vehiculo.modelo ?? ''} ${vehiculo.anio ?? ''}`.trim()
-                        : '—'}
-                    </td>
-                    <td className="px-5 py-4 text-zinc-500">
-                      {numSvc} {numSvc === 1 ? 'servicio' : 'servicios'}
-                    </td>
-                    <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
-                      <StatusDropdown
-                        ordenId={o.id}
-                        estado={estado}
-                        updating={updating === o.id}
-                        onChange={cambiarEstado}
-                      />
-                    </td>
-                    <td className="px-5 py-4 text-zinc-500">{fecha}</td>
-                    <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
-                      {'$' + (o.total_cobrado ?? 0).toLocaleString('es-MX')}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Paginación */}
-      {!loading && totalPaginas > 1 && (
-        <div className="flex items-center justify-between mt-4 px-1">
-          <p className="text-xs text-zinc-400">
-            Página <span className="font-semibold text-zinc-600">{pagina}</span> de <span className="font-semibold text-zinc-600">{totalPaginas}</span>
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPagina(1)}
-              disabled={pagina === 1}
-              className="px-2 py-1.5 text-xs font-medium text-zinc-500 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >«</button>
-            <button
-              onClick={() => setPagina(p => Math.max(1, p - 1))}
-              disabled={pagina === 1}
-              className="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >Anterior</button>
-
-            {/* Páginas cercanas */}
-            {Array.from({ length: totalPaginas }, (_, i) => i + 1)
-              .filter(p => p === 1 || p === totalPaginas || Math.abs(p - pagina) <= 1)
-              .reduce<(number | '...')[]>((acc, p, i, arr) => {
-                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...')
-                acc.push(p)
-                return acc
-              }, [])
-              .map((p, i) => p === '...'
-                ? <span key={`e${i}`} className="px-2 text-xs text-zinc-400">…</span>
-                : <button
-                    key={p}
-                    onClick={() => setPagina(p as number)}
-                    className={`w-8 h-8 text-xs font-medium rounded-lg border transition-colors ${
-                      pagina === p
-                        ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                        : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
-                    }`}
-                  >{p}</button>
-              )
-            }
-
-            <button
-              onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
-              disabled={pagina === totalPaginas}
-              className="px-3 py-1.5 text-xs font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >Siguiente</button>
-            <button
-              onClick={() => setPagina(totalPaginas)}
-              disabled={pagina === totalPaginas}
-              className="px-2 py-1.5 text-xs font-medium text-zinc-500 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >»</button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+                      <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 
