@@ -8,6 +8,7 @@ export function middleware(request: NextRequest) {
   // Rutas que siempre pasan sin verificacion
   if (
     pathname.startsWith('/auth/') ||
+    pathname.startsWith('/api/stripe/') ||
     pathname.startsWith('/onboarding') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon')
