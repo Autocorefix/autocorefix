@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import { ChevronDown, ChevronRight, Search } from 'lucide-react'
@@ -98,6 +98,7 @@ export default function OrdenesPage() {
   const [updating,     setUpdating]     = useState<string | null>(null)
   const [filtroEstado, setFiltroEstado] = useState<Estado | 'todos'>('todos')
   const [busqueda,     setBusqueda]     = useState('')
+  const [busquedaDB,   setBusquedaDB]   = useState('')
 
   const hoy = new Date()
   const [desde, setDesde] = useState(() =>
@@ -105,11 +106,15 @@ export default function OrdenesPage() {
   )
   const [hasta, setHasta] = useState(() => hoy.toISOString().split('T')[0])
 
+  // Debounce: actualiza busquedaDB 400ms después de que el usuario deja de escribir
+  useEffect(() => {
+    const t = setTimeout(() => setBusquedaDB(busqueda), 400)
+    return () => clearTimeout(t)
+  }, [busqueda])
+
   const fetchOrdenes = useCallback(async () => {
     setLoading(true)
-    const desdeISO = new Date(desde + 'T00:00:00').toISOString()
-    const hastaISO = new Date(hasta + 'T23:59:59').toISOString()
-    const { data } = await supabase
+    const q = supabase
       .from('ordenes')
       .select(`
         id, estado, total_cobrado, created_at,
@@ -117,14 +122,19 @@ export default function OrdenesPage() {
         vehiculos(marca, modelo, anio),
         orden_servicios(id)
       `)
-      .gte('created_at', desdeISO)
-      .lte('created_at', hastaISO)
       .order('created_at', { ascending: false })
-      .limit(200)
+
+    const { data } = busquedaDB
+      ? await q.limit(500)
+      : await q
+          .gte('created_at', new Date(desde + 'T00:00:00').toISOString())
+          .lte('created_at', new Date(hasta + 'T23:59:59').toISOString())
+          .limit(200)
+
     setOrdenes(data ?? [])
     setLoading(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [desde, hasta])
+  }, [desde, hasta, busquedaDB])
 
   useEffect(() => { fetchOrdenes() }, [fetchOrdenes])
 
@@ -135,14 +145,18 @@ export default function OrdenesPage() {
     setUpdating(null)
   }
 
-  const filtradas = ordenes.filter(o => {
-    const cliente = Array.isArray(o.clientes) ? o.clientes[0] : o.clientes
+  const filtradas = useMemo(() => ordenes.filter(o => {
+    const cliente  = Array.isArray(o.clientes)  ? o.clientes[0]  : o.clientes
+    const vehiculo = Array.isArray(o.vehiculos) ? o.vehiculos[0] : o.vehiculos
+    const q = busqueda.toLowerCase()
     const matchEstado   = filtroEstado === 'todos' || o.estado === filtroEstado
     const matchBusqueda = !busqueda ||
-      cliente?.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      o.id.toLowerCase().includes(busqueda.toLowerCase())
+      cliente?.nombre?.toLowerCase().includes(q) ||
+      o.id.toLowerCase().includes(q) ||
+      vehiculo?.marca?.toLowerCase().includes(q) ||
+      vehiculo?.modelo?.toLowerCase().includes(q)
     return matchEstado && matchBusqueda
-  })
+  }), [ordenes, filtroEstado, busqueda])
 
   const totalFiltrado = filtradas.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
 
@@ -161,11 +175,16 @@ export default function OrdenesPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             type="text"
-            placeholder="Buscar cliente o ID..."
+            placeholder="Buscar cliente, vehículo o ID..."
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
           />
+          {busqueda && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-[#2563EB] bg-blue-50 px-1.5 py-0.5 rounded">
+              Global
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <input
