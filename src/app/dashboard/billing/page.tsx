@@ -20,7 +20,7 @@ export default async function BillingPage({
 
   if (!usuario?.tenant_id) redirect('/onboarding')
 
-  const { data: sub } = await supabase
+  const { data: sub } = await (supabase as any)
     .from('subscriptions')
     .select('status, trial_end, current_period_end, plan_type, stripe_customer_id')
     .eq('tenant_id', usuario.tenant_id)

@@ -31,7 +31,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
   if (!pathname.startsWith('/dashboard/billing')) {
-    const { data: sub } = await supabase
+    const { data: sub } = await (supabase as any)
       .from('subscriptions')
       .select('status, trial_end, current_period_end')
       .eq('tenant_id', usuario.tenant_id)
