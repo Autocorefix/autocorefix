@@ -65,21 +65,25 @@ export default function Sidebar({ rol }: { rol: string }) {
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 py-4 border-t border-zinc-200 flex flex-col gap-2">
+      <div className="px-3 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid #e4e4e7' }}>
         <Link
           href="/dashboard/perfil"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+          style={
             pathname === '/dashboard/perfil'
-              ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-sm'
-              : 'text-zinc-700 border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300'
-          }`}
+              ? { background: '#2563EB', color: '#fff', border: '1px solid #2563EB' }
+              : { background: '#f0f4ff', color: '#1e40af', border: '1px solid #bfdbfe' }
+          }
         >
           <UserCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
           Mi perfil
         </Link>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300 transition-all w-full text-left"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all w-full text-left"
+          style={{ background: '#fff1f2', color: '#dc2626', border: '1px solid #fecaca' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2' }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#fff1f2' }}
         >
           <LogOut className="w-4 h-4 shrink-0" strokeWidth={2} />
           Cerrar sesión
