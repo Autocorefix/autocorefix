@@ -50,10 +50,10 @@ export async function POST(request: Request) {
       else console.log('Subscription upserted successfully for tenant:', tenantId)
     }
 
-    if (event.type === 'customer.subscription.updated') {
+    if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
       const sub = event.data.object as any
       const tenantId = sub.metadata?.tenant_id
-      console.log('subscription.updated — tenantId:', tenantId, 'status:', sub.status)
+      console.log(`${event.type} — tenantId:`, tenantId, 'status:', sub.status)
       if (!tenantId) return NextResponse.json({ ok: true })
 
       await db.from('subscriptions').update({
