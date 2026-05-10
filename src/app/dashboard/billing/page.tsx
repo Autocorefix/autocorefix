@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import BillingClient from './BillingClient'
 
 export default async function BillingPage({
@@ -20,7 +21,13 @@ export default async function BillingPage({
 
   if (!usuario?.tenant_id) redirect('/onboarding')
 
-  const { data: sub } = await (supabase as any)
+  // Usar service role para bypassear RLS en subscriptions
+  const adminClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: sub } = await adminClient
     .from('subscriptions')
     .select('status, trial_end, current_period_end, plan_type, stripe_customer_id')
     .eq('tenant_id', usuario.tenant_id)

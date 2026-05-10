@@ -28,11 +28,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/bienvenida')
   }
 
+  // Service role client para bypassear RLS en subscriptions
+  const adminClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   // Verificar suscripción activa (skip en /dashboard/billing para evitar loop)
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
   if (!pathname.startsWith('/dashboard/billing')) {
-    const { data: sub } = await (supabase as any)
+    const { data: sub } = await adminClient
       .from('subscriptions')
       .select('status, trial_end, current_period_end')
       .eq('tenant_id', usuario.tenant_id)
@@ -40,10 +46,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     if (!sub && usuario.rol === 'admin') {
       // Primera vez: crear trial automáticamente
-      const adminClient = createServiceClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
       const trialEnd = new Date()
       trialEnd.setDate(trialEnd.getDate() + 14)
       await adminClient.from('subscriptions').insert({
