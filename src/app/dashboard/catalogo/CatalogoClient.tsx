@@ -12,6 +12,8 @@ export type Servicio = Tables<'catalogo_servicios'> & {
 
 const EMPTY_SVC = { categoria_id: '', nombre: '', precio: '' }
 const EMPTY_CAT = { nombre: '' }
+const PRIMARY = '#1649C8'
+const PRIMARY_HOVER = '#1340B0'
 
 export default function CatalogoClient({
   servicios: inicial,
@@ -32,6 +34,9 @@ export default function CatalogoClient({
   const [loading, setLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deletingCatId, setDeletingCatId] = useState<string | null>(null)
+  const [newCatInline, setNewCatInline] = useState(false)
+  const [newCatNombre, setNewCatNombre] = useState('')
+  const [savingCatInline, setSavingCatInline] = useState(false)
 
   const categoriasOrdenadas = [...categorias].sort((a, b) => a.orden - b.orden)
   const serviciosOrdenados = [...servicios].sort((a, b) => {
@@ -59,7 +64,26 @@ export default function CatalogoClient({
     setModal('cat-create')
   }
 
-  function closeModal() { setModal('none'); setError('') }
+  function closeModal() { setModal('none'); setError(''); setNewCatInline(false); setNewCatNombre('') }
+
+  async function handleNewCatInline() {
+    if (!newCatNombre.trim()) return
+    setSavingCatInline(true)
+    const { data: usuario } = await supabase.from('usuarios').select('tenant_id').single()
+    const maxOrden = Math.max(0, ...categorias.map(c => c.orden))
+    const { data, error: err } = await supabase
+      .from('categorias')
+      .insert({ nombre: newCatNombre.trim(), tenant_id: usuario?.tenant_id, is_system_default: false, orden: maxOrden + 1, activo: true })
+      .select()
+      .single()
+    if (!err && data) {
+      setCategorias(prev => [...prev, data])
+      setFormSvc(f => ({ ...f, categoria_id: data.id }))
+    }
+    setNewCatInline(false)
+    setNewCatNombre('')
+    setSavingCatInline(false)
+  }
 
   async function handleSvcSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -180,7 +204,10 @@ export default function CatalogoClient({
           </div>
           <button
             onClick={openCreateSvc}
-            className="flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors"
+            style={{ background: PRIMARY }}
+            onMouseEnter={e => (e.currentTarget.style.background = PRIMARY_HOVER)}
+            onMouseLeave={e => (e.currentTarget.style.background = PRIMARY)}
           >
             <Plus className="w-4 h-4" strokeWidth={2.5} />
             Agregar servicio
@@ -201,9 +228,13 @@ export default function CatalogoClient({
               </thead>
               <tbody className="divide-y divide-zinc-50">
                 {serviciosOrdenados.map(s => (
-                  <tr key={s.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={s.id} className={`hover:bg-zinc-50 transition-colors ${!s.activo ? 'opacity-60' : ''}`}>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-[#2563EB] ring-1 ring-inset ring-blue-100">
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                        s.activo
+                          ? 'bg-blue-50 text-[#2563EB] ring-blue-100'
+                          : 'bg-zinc-100 text-zinc-400 ring-zinc-200'
+                      }`}>
                         {s.categorias.nombre}
                       </span>
                     </td>
@@ -338,7 +369,7 @@ export default function CatalogoClient({
                 {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
                 <div className="flex gap-3 mt-2">
                   <button type="button" onClick={closeModal} className="flex-1 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">Cancelar</button>
-                  <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50">
+                  <button type="submit" disabled={loading} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-50" style={{ background: loading ? '#93c5fd' : PRIMARY }}>
                     {loading ? 'Guardando...' : 'Guardar'}
                   </button>
                 </div>
@@ -346,7 +377,18 @@ export default function CatalogoClient({
             ) : (
               <form onSubmit={handleSvcSubmit} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-zinc-700">Categoría</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-zinc-700">Categoría</label>
+                    {!newCatInline && (
+                      <button
+                        type="button"
+                        onClick={() => { setNewCatInline(true); setNewCatNombre('') }}
+                        className="text-xs text-[#2563EB] hover:text-[#1340B0] font-medium transition-colors"
+                      >
+                        + Nueva categoría
+                      </button>
+                    )}
+                  </div>
                   <select
                     value={formSvc.categoria_id}
                     onChange={e => setFormSvc(f => ({ ...f, categoria_id: e.target.value }))}
@@ -356,6 +398,35 @@ export default function CatalogoClient({
                       <option key={c.id} value={c.id}>{c.nombre}</option>
                     ))}
                   </select>
+                  {newCatInline && (
+                    <div className="flex items-center gap-2 mt-1 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                      <input
+                        type="text"
+                        value={newCatNombre}
+                        onChange={e => setNewCatNombre(e.target.value)}
+                        placeholder="Nombre de la nueva categoría"
+                        autoFocus
+                        className="flex-1 text-sm text-zinc-900 placeholder-zinc-400 bg-white border border-zinc-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleNewCatInline() } if (e.key === 'Escape') { setNewCatInline(false) } }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleNewCatInline}
+                        disabled={savingCatInline || !newCatNombre.trim()}
+                        className="text-xs font-semibold text-white px-2.5 py-1.5 rounded-md transition-colors disabled:opacity-50"
+                        style={{ background: PRIMARY }}
+                      >
+                        {savingCatInline ? '...' : 'Crear'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewCatInline(false)}
+                        className="text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-zinc-700">Nombre del servicio</label>
@@ -385,7 +456,7 @@ export default function CatalogoClient({
                 {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
                 <div className="flex gap-3 mt-2">
                   <button type="button" onClick={closeModal} className="flex-1 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">Cancelar</button>
-                  <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50">
+                  <button type="submit" disabled={loading} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-50" style={{ background: loading ? '#93c5fd' : PRIMARY }}>
                     {loading ? 'Guardando...' : 'Guardar'}
                   </button>
                 </div>

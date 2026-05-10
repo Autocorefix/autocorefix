@@ -1,6 +1,8 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export async function sendInvitationEmail({
   to,
@@ -12,7 +14,7 @@ export async function sendInvitationEmail({
   tallerName: string
 }) {
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'AutoCoreFix <onboarding@resend.dev>',
       to,
       subject: `Acceso a AutoCoreFix — ${tallerName}`,
@@ -82,7 +84,7 @@ export async function notifyAdminInvitationAccepted({
   tallerName: string
 }) {
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'AutoCoreFix <onboarding@resend.dev>',
       to: adminEmail,
       subject: `${assistantName || assistantEmail} ya tiene acceso a tu taller`,

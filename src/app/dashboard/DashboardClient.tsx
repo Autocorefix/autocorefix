@@ -147,7 +147,7 @@ export default function DashboardClient({
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4 mb-8">
         {METRICS.map(({ label, value, Icon, iconBg, iconColor }) => (
-          <div key={label} className="bg-white rounded-2xl border border-zinc-100 p-5 flex items-center gap-4">
+          <div key={label} className="bg-white rounded-2xl border border-zinc-200 border-t-2 border-t-[#2563EB] shadow-sm p-5 flex items-center gap-4">
             <div className={`flex items-center justify-center w-11 h-11 rounded-xl shrink-0 ${iconBg}`}>
               <Icon className={`w-5 h-5 ${iconColor}`} strokeWidth={2} />
             </div>
@@ -159,7 +159,7 @@ export default function DashboardClient({
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-zinc-100">
           <h2 className="text-sm font-semibold text-zinc-900">Ordenes de hoy</h2>
         </div>

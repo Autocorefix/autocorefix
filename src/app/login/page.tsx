@@ -130,7 +130,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogle}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors disabled:opacity-60 mb-5"
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300 hover:shadow-sm transition-all disabled:opacity-60 mb-5"
           >
             {googleLoading ? (
               <svg className="animate-spin w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24">
@@ -215,8 +215,10 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{ background: loading ? '#93c5fd' : '#2563EB' }}
+              className="mt-1 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ background: loading ? '#93c5fd' : '#1649C8' }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#1340B0' }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#1649C8' }}
             >
               {loading ? (
                 <>

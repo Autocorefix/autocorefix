@@ -77,7 +77,7 @@ export default function Sidebar({ rol }: { rol: string }) {
         </Link>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors w-full text-left"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors w-full text-left"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           Cerrar sesión
