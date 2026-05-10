@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import Sidebar from '@/components/Sidebar'
 
@@ -24,6 +25,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Asistente que aceptó invitación pero aún no configuró su cuenta
   if (usuario.rol === 'asistente' && !usuario.nombre) {
     redirect('/bienvenida')
+  }
+
+  // Verificar suscripción activa (skip en /dashboard/billing para evitar loop)
+  const headersList = await headers()
+  const pathname = headersList.get('x-pathname') ?? ''
+  if (!pathname.startsWith('/dashboard/billing')) {
+    const { data: sub } = await supabase
+      .from('subscriptions')
+      .select('status, trial_end, current_period_end')
+      .eq('tenant_id', usuario.tenant_id)
+      .maybeSingle()
+
+    const now = new Date()
+    const isActive = sub && (
+      (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
+      (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now) ||
+      sub.status === 'past_due'
+    )
+    if (!isActive) redirect('/dashboard/billing')
   }
 
   return (

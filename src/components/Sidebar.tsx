@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, ClipboardPlus, ClipboardList, Users,
-  BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle,
+  BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle, CreditCard,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/catalogo',    label: 'Catálogo',    icon: BookOpen,  adminOnly: true },
   { href: '/dashboard/reportes',    label: 'Reportes',    icon: BarChart2, adminOnly: true },
   { href: '/dashboard/settings',    label: 'Ajustes',     icon: Settings,  adminOnly: true },
+  { href: '/dashboard/billing',    label: 'Facturación', icon: CreditCard, adminOnly: true },
 ]
 
 export default function Sidebar({ rol }: { rol: string }) {

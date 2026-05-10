@@ -46,6 +46,8 @@ export default function OnboardingPage() {
       return
     }
 
+    await fetch('/api/stripe/init-trial', { method: 'POST' })
+
     router.push('/dashboard')
     router.refresh()
   }

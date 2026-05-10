@@ -10,6 +10,7 @@
 - GitHub: https://github.com/Autocorefix/autocorefix
 - Supabase: https://syrksjucfnioapduqvwl.supabase.co
 - Vercel: https://autocorefix.vercel.app — deploy automático en push a `main`
+- Stripe: cuenta LubyMex en stripe.com (modo Test activo)
 
 ## Producto
 SaaS multi-tenant para talleres mecánicos. Cada taller tiene su propia cuenta aislada.
@@ -71,6 +72,49 @@ Modelo de negocio: ingresos recurrentes por suscripción, cada taller = un tenan
 
 ---
 
+## Stripe — Configuración
+
+### Producto y precios (modo Test)
+- Producto: **AutoCoreFix Pro** (`prod_USqrLrDdTstO5v`)
+- Precio mensual: **$399 MXN/mes** (`price_1TTvA1BoqUSKLe0qdZYRMGpB`) — `STRIPE_PRICE_ID_MONTHLY`
+- Precio anual: **$3,499 MXN/año** (`price_1TTvO3BoqUSKLe0qg1Dwy66C`) — `STRIPE_PRICE_ID_ANNUAL`
+
+### Webhook configurado
+- Nombre: AutoCoreFix producción
+- URL: `https://autocorefix.vercel.app/api/stripe/webhook`
+- Eventos: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
+- Al cambiar dominio a `autocorefix.com`: editar el webhook en Stripe → Developers → Webhooks
+
+### Variables de entorno (en `.env.local` y Vercel)
+```
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_ID_MONTHLY=price_1TTvA1BoqUSKLe0qdZYRMGpB
+STRIPE_PRICE_ID_ANNUAL=price_1TTvO3BoqUSKLe0qg1Dwy66C
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+### Flujo de suscripción (código ya implementado)
+1. Registro → trial 14 días automático (tabla `subscriptions`, status `trialing`)
+2. Trial expirado → dashboard bloqueado → página `/dashboard/billing`
+3. Usuario elige plan → Stripe Checkout → pago → webhook actualiza `subscriptions`
+4. Acceso restaurado automáticamente
+5. Admin gestiona suscripción desde `/dashboard/billing` (portal de Stripe)
+
+### Archivos Stripe ya creados
+- `src/app/api/stripe/checkout/route.ts` — crea sesión de pago
+- `src/app/api/stripe/portal/route.ts` — abre portal de cliente
+- `src/app/api/stripe/webhook/route.ts` — recibe eventos
+- `src/app/api/stripe/init-trial/route.ts` — crea trial al registrarse
+- `src/app/dashboard/billing/page.tsx` + `BillingClient.tsx` — página de facturación
+
+### Pendiente en Stripe
+- [ ] Prueba de pago con tarjeta `4242 4242 4242 4242` (fecha `12/34`, CVC `123`)
+- [ ] Cambiar a modo Live cuando se lance a producción real
+- [ ] Actualizar webhook URL cuando se conecte dominio `autocorefix.com`
+
+---
+
 ## Tablas en Supabase (todas con tenant_id para multi-tenancy)
 - `tenants` — cada taller (id, nombre, prefijo, created_at)
 - `usuarios` — roles: `admin` (dueño) | `asistente` (recepcionista). Campos: id, tenant_id, rol, nombre, email
@@ -81,6 +125,7 @@ Modelo de negocio: ingresos recurrentes por suscripción, cada taller = un tenan
 - `ordenes` — estado: recibido | en_proceso | listo | entregado. Campos: descuento, pct_descuento
 - `orden_servicios` — servicios por orden con precio_base y precio_cobrado
 - `invitaciones` — email, tenant_id, rol, invitado_por, estado (pendiente | aceptada | cancelada | revocada), created_at
+- `subscriptions` — tenant_id, stripe_customer_id, stripe_subscription_id, status (trialing|active|past_due|canceled), plan_type, trial_end, current_period_end
 
 ## Funciones en Supabase (SECURITY DEFINER)
 - `get_my_tenant_id()` — devuelve el tenant_id del usuario autenticado
@@ -179,10 +224,16 @@ src/
         ReportesClient.tsx           → gráficas con Recharts + filtro fechas + exportar
       settings/page.tsx              → gestión de acceso (invitar, revocar, reenviar)
       perfil/page.tsx                → cambiar nombre y contraseña (admin y asistente)
+      billing/page.tsx + BillingClient.tsx → planes, suscripción activa, portal Stripe
   api/
     invite/route.ts                  → enviar invitación por email
     assistants/route.ts              → listar asistentes del tenant (service role)
     revoke/route.ts                  → revocar acceso (3 casos: userId, invitacionId, email)
+    stripe/
+      checkout/route.ts              → crea sesión de pago en Stripe
+      portal/route.ts                → abre portal de cliente Stripe
+      webhook/route.ts               → recibe y procesa eventos de Stripe
+      init-trial/route.ts            → crea trial de 14 días al registrarse
   components/
     Sidebar.tsx                      → navegación fija. Admin ve todo. Asistente no ve Reportes ni Catálogo.
   lib/
@@ -283,14 +334,20 @@ Si se envían múltiples invitaciones al mismo email, la RPC `accept_invitation`
 - Settings: invitar, reenviar, cancelar, revocar por userId y por email
 - Página Perfil: cambiar nombre y contraseña
 - API seguras: `/api/invite`, `/api/assistants`, `/api/revoke`
+- Stripe configurado: producto, precios, webhook, variables de entorno en `.env.local` y Vercel
+- Tabla `subscriptions` en Supabase con RLS
+- APIs Stripe: `/api/stripe/checkout`, `/api/stripe/portal`, `/api/stripe/webhook`, `/api/stripe/init-trial`
+- Página `/dashboard/billing` con BillingClient
 
 ### Pendiente 📋
+- [ ] Prueba de pago end-to-end con tarjeta de prueba Stripe (`4242 4242 4242 4242`)
 - [ ] Fidelización (recordatorios WhatsApp/SMS a clientes)
-- [ ] Panel de administración de planes/suscripciones (Stripe)
 - [ ] Notificación al admin cuando asistente acepta invitación (requiere Resend u otro servicio email transaccional)
 - [ ] Búsqueda global en órdenes y clientes
 - [ ] Paginación en tablas con muchos registros
 - [ ] PWA / modo offline básico
+- [ ] Cambiar Stripe a modo Live cuando se lance a producción real
+- [ ] Conectar dominio `autocorefix.com` y actualizar webhook URL en Stripe
 
 ---
 
