@@ -295,7 +295,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => cancelarInvitacion(inv)}
                     disabled={cancelling === inv.id}
-                    className="px-2.5 py-1.5 text-xs font-medium text-zinc-400 border border-zinc-100 rounded-lg hover:bg-red-50 hover:text-red-500 disabled:opacity-50 transition-colors"
+                    className="px-2.5 py-1.5 text-xs font-medium text-red-400 border border-red-100 rounded-lg hover:bg-red-50 hover:text-red-600 disabled:opacity-50 transition-colors"
                   >
                     {cancelling === inv.id ? 'Cancelando…' : 'Cancelar'}
                   </button>

@@ -370,7 +370,7 @@ export default function NuevaOrdenClient({
                     <div key={item.servicioId} className="grid grid-cols-[1fr_80px_24px] gap-3 items-center">
                       <span className="text-sm text-zinc-800 font-medium leading-tight">{item.nombre}</span>
                       <span className="text-sm text-zinc-400 text-right">{fmt(item.precioBase)}</span>
-                      <button onClick={() => quitarServicio(item.servicioId)} className="flex justify-center text-zinc-300 hover:text-red-500 transition-colors">
+                      <button onClick={() => quitarServicio(item.servicioId)} className="flex justify-center text-red-400 hover:text-red-600 transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

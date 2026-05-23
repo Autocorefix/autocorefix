@@ -265,7 +265,7 @@ export default function CatalogoClient({
                           <button onClick={() => openEditSvc(s)} className="text-zinc-400 hover:text-[#2563EB] transition-colors">
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button onClick={() => { setDeletingId(s.id); setError('') }} className="text-zinc-400 hover:text-red-500 transition-colors">
+                          <button onClick={() => { setDeletingId(s.id); setError('') }} className="text-red-400 hover:text-red-600 transition-colors">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </span>
@@ -326,7 +326,7 @@ export default function CatalogoClient({
                 ) : (
                   <button
                     onClick={() => { setDeletingCatId(cat.id); setError('') }}
-                    className="ml-2 shrink-0 text-zinc-300 hover:text-red-400 transition-colors"
+                    className="ml-2 shrink-0 text-red-400 hover:text-red-600 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
