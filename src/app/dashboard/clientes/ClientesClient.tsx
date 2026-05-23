@@ -140,7 +140,7 @@ export default function ClientesClient({
   const [expandedOrden,      setExpandedOrden]      = useState<string | null>(null)
   const [mostrarArchivados,  setMostrarArchivados]  = useState(false)
   const [modalNuevo,         setModalNuevo]         = useState(false)
-  const [form,               setForm]               = useState({ nombre: '', telefono: '', email: '' })
+  const [form,               setForm]               = useState({ nombre: '', telefono: '', email: '', vMarca: '', vModelo: '', vAnio: '' })
   const [saving,             setSaving]             = useState(false)
   const [formError,          setFormError]          = useState('')
   const [deletingId,         setDeletingId]         = useState<string | null>(null)
@@ -186,9 +186,21 @@ export default function ClientesClient({
       activo:     true,
     }).select('id, cliente_id, nombre, telefono, email, created_at, activo').single()
     if (error || !data) { setFormError('Error al crear cliente.'); setSaving(false); return }
-    const nuevo: Cliente = { ...(data as any), vehiculos: [], ordenes: [] }
+    let vehiculos: Vehiculo[] = []
+    if (form.vMarca.trim() && form.vModelo.trim()) {
+      const anioNum = parseInt(form.vAnio.trim()) || null
+      const { data: vData } = await supabase.from('vehiculos').insert({
+        marca:      form.vMarca.trim(),
+        modelo:     form.vModelo.trim(),
+        anio:       anioNum,
+        cliente_id: (data as any).id,
+        tenant_id:  tenantId,
+      }).select('id, marca, modelo, anio').single()
+      if (vData) vehiculos = [vData as Vehiculo]
+    }
+    const nuevo: Cliente = { ...(data as any), vehiculos, ordenes: [] }
     setLista(p => [nuevo, ...p])
-    setForm({ nombre: '', telefono: '', email: '' })
+    setForm({ nombre: '', telefono: '', email: '', vMarca: '', vModelo: '', vAnio: '' })
     setModalNuevo(false)
     setSaving(false)
   }
@@ -535,7 +547,7 @@ export default function ClientesClient({
                   onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-zinc-700">Teléfono</label>
+                <label className="text-sm font-medium text-zinc-700">Teléfono <span className="text-zinc-400 font-normal">(opcional)</span></label>
                 <input className={INPUT} placeholder="Ej. 9981234567" value={form.telefono}
                   onChange={e => setForm(p => ({ ...p, telefono: e.target.value }))} />
               </div>
@@ -543,6 +555,33 @@ export default function ClientesClient({
                 <label className="text-sm font-medium text-zinc-700">Email <span className="text-zinc-400 font-normal">(opcional)</span></label>
                 <input className={INPUT} type="email" placeholder="correo@ejemplo.com" value={form.email}
                   onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+              </div>
+
+              {/* Sección vehículo */}
+              <div className="border-t border-zinc-100 pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Car className="w-4 h-4 text-zinc-400" />
+                  <p className="text-sm font-medium text-zinc-700">Vehículo <span className="text-zinc-400 font-normal">(opcional)</span></p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-zinc-500">Marca</label>
+                      <input className={INPUT} placeholder="Ej. Toyota" value={form.vMarca}
+                        onChange={e => setForm(p => ({ ...p, vMarca: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-zinc-500">Modelo</label>
+                      <input className={INPUT} placeholder="Ej. Corolla" value={form.vModelo}
+                        onChange={e => setForm(p => ({ ...p, vModelo: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-zinc-500">Año / descripción</label>
+                    <input className={INPUT} placeholder="Ej. 2019, aprox 2018, 2020-2021…" value={form.vAnio}
+                      onChange={e => setForm(p => ({ ...p, vAnio: e.target.value }))} />
+                  </div>
+                </div>
               </div>
               {formError && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{formError}</p>}
               <div className="flex gap-3 mt-2">
