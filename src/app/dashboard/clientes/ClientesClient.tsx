@@ -9,7 +9,7 @@ import {
 import { createClient } from '@/lib/supabase-browser'
 
 type OrdenServicio = { id: string; nombre_servicio: string | null; precio_cobrado: number | null }
-type Vehiculo      = { id: string; marca: string | null; modelo: string | null; anio: number | null }
+type Vehiculo      = { id: string; marca: string | null; modelo: string | null; anio: number | null; descripcion: string | null }
 type Orden         = {
   id: string; estado: string | null; total_cobrado: number | null;
   created_at: string | null; orden_servicios: OrdenServicio[]
@@ -140,7 +140,7 @@ export default function ClientesClient({
   const [expandedOrden,      setExpandedOrden]      = useState<string | null>(null)
   const [mostrarArchivados,  setMostrarArchivados]  = useState(false)
   const [modalNuevo,         setModalNuevo]         = useState(false)
-  const [form,               setForm]               = useState({ nombre: '', telefono: '', email: '', vMarca: '', vModelo: '', vAnio: '' })
+  const [form,               setForm]               = useState({ nombre: '', telefono: '', email: '', vMarca: '', vModelo: '', vAnio: '', vDescripcion: '' })
   const [saving,             setSaving]             = useState(false)
   const [formError,          setFormError]          = useState('')
   const [deletingId,         setDeletingId]         = useState<string | null>(null)
@@ -188,19 +188,20 @@ export default function ClientesClient({
     if (error || !data) { setFormError('Error al crear cliente.'); setSaving(false); return }
     let vehiculos: Vehiculo[] = []
     if (form.vMarca.trim() && form.vModelo.trim()) {
-      const anioNum = parseInt(form.vAnio.trim()) || null
+      const anioNum = form.vAnio.trim() ? parseInt(form.vAnio.trim()) || null : null
       const { data: vData } = await supabase.from('vehiculos').insert({
-        marca:      form.vMarca.trim(),
-        modelo:     form.vModelo.trim(),
-        anio:       anioNum,
-        cliente_id: (data as any).id,
-        tenant_id:  tenantId,
-      }).select('id, marca, modelo, anio').single()
-      if (vData) vehiculos = [vData as Vehiculo]
+        marca:       form.vMarca.trim(),
+        modelo:      form.vModelo.trim(),
+        anio:        anioNum,
+        descripcion: form.vDescripcion.trim() || null,
+        cliente_id:  (data as any).id,
+        tenant_id:   tenantId,
+      } as any).select('id, marca, modelo, anio, descripcion').single()
+      if (vData) vehiculos = [vData as unknown as Vehiculo]
     }
     const nuevo: Cliente = { ...(data as any), vehiculos, ordenes: [] }
     setLista(p => [nuevo, ...p])
-    setForm({ nombre: '', telefono: '', email: '', vMarca: '', vModelo: '', vAnio: '' })
+    setForm({ nombre: '', telefono: '', email: '', vMarca: '', vModelo: '', vAnio: '', vDescripcion: '' })
     setModalNuevo(false)
     setSaving(false)
   }
@@ -418,7 +419,7 @@ export default function ClientesClient({
                       <div className="flex flex-wrap gap-2">
                         {c.vehiculos.map(v => (
                           <span key={v.id} className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700">
-                            {v.marca} {v.modelo} {v.anio}
+                            {v.marca} {v.modelo}{v.anio ? ` ${v.anio}` : ''}{v.descripcion ? ` · ${v.descripcion}` : ''}
                           </span>
                         ))}
                       </div>
@@ -577,9 +578,14 @@ export default function ClientesClient({
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-zinc-500">Año / descripción</label>
-                    <input className={INPUT} placeholder="Ej. 2019, aprox 2018, 2020-2021…" value={form.vAnio}
+                    <label className="text-xs font-medium text-zinc-500">Año <span className="text-zinc-400">(opcional)</span></label>
+                    <input className={INPUT} type="number" min="1950" max="2030" placeholder="Ej. 2019" value={form.vAnio}
                       onChange={e => setForm(p => ({ ...p, vAnio: e.target.value }))} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-zinc-500">Descripción <span className="text-zinc-400">(opcional)</span></label>
+                    <input className={INPUT} placeholder="Color, motor, transmisión…" value={form.vDescripcion}
+                      onChange={e => setForm(p => ({ ...p, vDescripcion: e.target.value }))} />
                   </div>
                 </div>
               </div>
