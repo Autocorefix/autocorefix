@@ -25,7 +25,7 @@ const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   recibido:   { label: 'Recibido',   className: 'bg-blue-50 text-[#2563EB] ring-blue-100' },
   en_proceso: { label: 'En proceso', className: 'bg-amber-50 text-amber-600 ring-amber-100' },
   listo:      { label: 'Listo',      className: 'bg-emerald-50 text-emerald-600 ring-emerald-100' },
-  entregado:  { label: 'Entregado',  className: 'bg-zinc-100 text-zinc-500 ring-zinc-200' },
+  entregado:  { label: 'Entregado',  className: 'bg-violet-600 text-white ring-violet-700' },
 }
 
 function StatusBadge({ estado }: { estado: string }) {
