@@ -19,13 +19,15 @@ export default async function ClientesPage() {
           id,
           marca,
           modelo,
-          anio
+          anio,
+          descripcion
         ),
         ordenes (
           id,
           estado,
           total_cobrado,
           created_at,
+          vehiculo_id,
           orden_servicios (
             id,
             nombre_servicio,
@@ -36,19 +38,23 @@ export default async function ClientesPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('usuarios')
-      .select('tenant_id, tenants(prefijo)')
+      .select('tenant_id, rol, tenants(id, nombre, logo_url)')
       .single(),
   ])
 
-  const tenants  = usuario?.tenants as { prefijo: string } | null
-  const prefijo  = tenants?.prefijo ?? 'ACF'
-  const tenantId = usuario?.tenant_id ?? ''
+  const tenants      = usuario?.tenants as { id: string; nombre: string; logo_url: string | null } | null
+  const prefijo      = 'ACF'
+  const tenantId     = usuario?.tenant_id ?? ''
+  const nombreTaller = tenants?.nombre ?? 'Mi Taller'
+  const logoUrl      = (tenants as any)?.logo_url ?? null
 
   return (
     <ClientesClient
       clientes={(clientes ?? []) as any}
       prefijo={prefijo}
       tenantId={tenantId}
+      nombreTaller={nombreTaller}
+      logoUrl={logoUrl}
     />
   )
 }
