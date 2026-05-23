@@ -154,31 +154,17 @@ export default function PerfilPage() {
       return
     }
 
-    const storagePath = `${tenantId}/logo.png`
+    // Subir via API server-side (evita errores RLS en storage)
+    const fd = new FormData()
+    fd.append('file', pngBlob, 'logo.png')
 
-    const { error: storageErr } = await supabase.storage
-      .from('logos')
-      .upload(storagePath, pngBlob, { upsert: true, contentType: 'image/png' })
-
-    if (storageErr) {
-      setMsgLogo({ type: 'err', text: `Error al subir: ${storageErr.message}` })
-      setUploadingLogo(false)
-      return
-    }
-
-    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(storagePath)
-    const publicUrl = urlData.publicUrl + `?t=${Date.now()}`
-
-    const res = await fetch('/api/tenant/logo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ logoUrl: urlData.publicUrl }),
-    })
+    const res = await fetch('/api/tenant/logo-upload', { method: 'POST', body: fd })
+    const json = await res.json()
 
     if (!res.ok) {
-      setMsgLogo({ type: 'err', text: 'Error al guardar el logo en la base de datos' })
+      setMsgLogo({ type: 'err', text: json.error ?? 'Error al subir el logo' })
     } else {
-      setLogoUrl(publicUrl)
+      setLogoUrl(json.publicUrl + `?t=${Date.now()}`)
       setMsgLogo({ type: 'ok', text: 'Logo actualizado correctamente' })
     }
     setUploadingLogo(false)
