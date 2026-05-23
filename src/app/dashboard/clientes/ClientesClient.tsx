@@ -146,17 +146,20 @@ async function generarPDF(
       doc.text('Registro de Historial de Servicios', PW / 2, BAND_H / 2 + 6, { align: 'center' })
     }
 
-    // Fecha — esquina superior derecha, clara
-    doc.setFontSize(7.5)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(210, 228, 255)
-    doc.text(`Emitido: ${fechaDoc}`, PW - MG, 8, { align: 'right' })
+    // Bloque derecho: Sistema AutoCoreFix + fecha — alineados a la derecha
+    const rightX = PW - MG
 
-    // AutoCoreFix — watermark discreto esquina inferior derecha de la banda
-    doc.setFontSize(6)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(100, 140, 210)
-    doc.text('Sistema AutoCoreFix', PW - MG, BAND_H - 3, { align: 'right' })
+    // "Sistema AutoCoreFix" — visible, bold, bien contrastado
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(255, 255, 255)
+    doc.text('Sistema AutoCoreFix', rightX, BAND_H / 2 - 1, { align: 'right' })
+
+    // Fecha — debajo del branding, bold, legible
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(220, 235, 255)
+    doc.text(`Emitido: ${fechaDoc}`, rightX, BAND_H / 2 + 6, { align: 'right' })
   }
 
   /* ── Footer ────────────────────────────────────────────────── */
