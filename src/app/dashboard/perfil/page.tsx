@@ -110,32 +110,63 @@ export default function PerfilPage() {
     setSavingPass(false)
   }
 
+  /* ── Convertir cualquier imagen a PNG (resuelve WebP, HEIC, etc.) ── */
+  function convertirAPNG(file: File): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width  = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('canvas')); return }
+        ctx.drawImage(img, 0, 0)
+        canvas.toBlob(blob => {
+          URL.revokeObjectURL(objectUrl)
+          blob ? resolve(blob) : reject(new Error('toBlob'))
+        }, 'image/png')
+      }
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('load')) }
+      img.src = objectUrl
+    })
+  }
+
   /* ── Subir logo ────────────────────────────────────────── */
   async function subirLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !tenantId) return
-    if (file.size > 2 * 1024 * 1024) {
-      setMsgLogo({ type: 'err', text: 'El archivo no puede superar 2 MB' })
+    if (file.size > 5 * 1024 * 1024) {
+      setMsgLogo({ type: 'err', text: 'El archivo no puede superar 5 MB' })
       return
     }
 
     setUploadingLogo(true)
     setMsgLogo(null)
 
-    const ext  = file.name.split('.').pop() ?? 'png'
-    const path = `${tenantId}/logo.${ext}`
-
-    const { error: storageErr } = await supabase.storage
-      .from('logos')
-      .upload(path, file, { upsert: true, contentType: file.type })
-
-    if (storageErr) {
-      setMsgLogo({ type: 'err', text: 'Error al subir la imagen' })
+    // Convertir siempre a PNG para evitar problemas de compatibilidad
+    let pngBlob: Blob
+    try {
+      pngBlob = await convertirAPNG(file)
+    } catch {
+      setMsgLogo({ type: 'err', text: 'No se pudo procesar la imagen. Intenta con otro archivo.' })
       setUploadingLogo(false)
       return
     }
 
-    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(path)
+    const storagePath = `${tenantId}/logo.png`
+
+    const { error: storageErr } = await supabase.storage
+      .from('logos')
+      .upload(storagePath, pngBlob, { upsert: true, contentType: 'image/png' })
+
+    if (storageErr) {
+      setMsgLogo({ type: 'err', text: `Error al subir: ${storageErr.message}` })
+      setUploadingLogo(false)
+      return
+    }
+
+    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(storagePath)
     const publicUrl = urlData.publicUrl + `?t=${Date.now()}`
 
     const res = await fetch('/api/tenant/logo', {

@@ -49,14 +49,19 @@ async function generarPDF(
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
-  const PW = 210, PH = 297, MG = 15, CW = PW - MG * 2
-  const BLUE: [number,number,number]    = [37, 99, 235]
-  const ZINC9: [number,number,number]   = [24, 24, 27]
-  const ZINC5: [number,number,number]   = [113, 113, 122]
-  const ZINC1: [number,number,number]   = [244, 244, 245]
-  const BLUEBG: [number,number,number]  = [239, 246, 255]
+  const PW = 210, PH = 297, MG = 14, CW = PW - MG * 2
+  const BLUE:    [number,number,number] = [37,  99,  235]
+  const BLUEDARK:[number,number,number] = [22,  73,  200]
+  const BLUELIGHT:[number,number,number]= [239, 246, 255]
+  const WHITE:   [number,number,number] = [255, 255, 255]
+  const ZINC9:   [number,number,number] = [24,  24,  27]
+  const ZINC6:   [number,number,number] = [82,  82,  91]
+  const ZINC4:   [number,number,number] = [161, 161, 170]
+  const ZINC1:   [number,number,number] = [244, 244, 245]
   const DIVIDER: [number,number,number] = [228, 228, 231]
-  const fmt = (n: number) => '$' + n.toLocaleString('es-MX')
+
+  const fmt = (n: number) => '$' + n.toLocaleString('es-MX', { minimumFractionDigits: 0 })
+  const fechaDoc = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
 
   // Load logo
   let logoB64: string | null = null
@@ -73,194 +78,265 @@ async function generarPDF(
     } catch { logoB64 = null }
   }
 
+  /* ── Header band ─────────────────────────────────────── */
   function drawHeader() {
-    // Logo
+    const BAND_H = 34
+
+    // Blue background band
+    doc.setFillColor(...BLUE)
+    doc.rect(0, 0, PW, BAND_H, 'F')
+
+    // Darker bottom accent strip
+    doc.setFillColor(...BLUEDARK)
+    doc.rect(0, BAND_H - 1, PW, 1, 'F')
+
     if (logoB64) {
-      try { doc.addImage(logoB64, 'auto' as any, MG, 8, 24, 18) } catch {}
+      // White card behind logo
+      doc.setFillColor(...WHITE)
+      doc.roundedRect(MG, 5, 24, 24, 2, 2, 'F')
+      try { doc.addImage(logoB64, 'auto' as any, MG + 1, 6, 22, 22) } catch {}
+
+      // Taller name right of logo
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...WHITE)
+      doc.text(nombreTaller, MG + 28, 16)
+
+      doc.setFontSize(6.5)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(180, 210, 255)
+      doc.text('Historial de Servicios Vehiculares', MG + 28, 22)
+    } else {
+      // Centered when no logo
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...WHITE)
+      doc.text(nombreTaller, PW / 2, 15, { align: 'center' })
+
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(180, 210, 255)
+      doc.text('Historial de Servicios Vehiculares', PW / 2, 22, { align: 'center' })
     }
-    const tx    = logoB64 ? MG + 28 : PW / 2
-    const align = logoB64 ? 'left' as const : 'center' as const
 
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...BLUE)
-    doc.text(nombreTaller, tx, logoB64 ? 16 : 17, { align })
-
+    // Date top-right
     doc.setFontSize(6)
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...ZINC5)
-    doc.text('Historial de Servicios Vehiculares', tx, logoB64 ? 21 : 22, { align })
+    doc.setTextColor(180, 210, 255)
+    doc.text(fechaDoc, PW - MG, 9, { align: 'right' })
 
-    // Divider
-    doc.setDrawColor(...BLUE)
-    doc.setLineWidth(0.4)
-    doc.line(MG, 28, PW - MG, 28)
-
-    // AutoCoreFix watermark
+    // Powered by bottom-right
     doc.setFontSize(5.5)
-    doc.setTextColor(180, 180, 190)
-    doc.text('powered by AutoCoreFix', PW - MG, 27, { align: 'right' })
+    doc.setTextColor(150, 185, 245)
+    doc.text('powered by AutoCoreFix', PW - MG, BAND_H - 4, { align: 'right' })
   }
 
+  /* ── Footer ──────────────────────────────────────────── */
   function drawFooter(page: number, total: number) {
-    doc.setDrawColor(...DIVIDER)
-    doc.setLineWidth(0.3)
-    doc.line(MG, PH - 13, PW - MG, PH - 13)
+    doc.setFillColor(...ZINC1)
+    doc.rect(0, PH - 11, PW, 11, 'F')
     doc.setFontSize(6)
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...ZINC5)
-    doc.text(`Página ${page} de ${total}`, MG, PH - 8)
+    doc.setTextColor(...ZINC4)
+    doc.text(`Página ${page} de ${total}  ·  ${nombreTaller}`, MG, PH - 4)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...BLUE)
-    doc.text('AutoCoreFix', PW - MG, PH - 8, { align: 'right' })
+    doc.text('AutoCoreFix', PW - MG, PH - 4, { align: 'right' })
   }
 
+  /* ── Pagination helper ───────────────────────────────── */
   function checkPage(y: number, needed: number): number {
-    if (y + needed > PH - 20) {
+    if (y + needed > PH - 18) {
       doc.addPage()
       drawHeader()
-      return 34
+      return 40
     }
     return y
   }
 
-  // ── Page 1 ──
+  // ── Draw page 1 ──
   drawHeader()
-  let y = 34
+  let y = 38
 
-  // Client box
+  /* ── Client info card ───────────────────────────────── */
+  // Background
   doc.setFillColor(...ZINC1)
-  doc.roundedRect(MG, y, CW, 16, 2, 2, 'F')
-  doc.setFontSize(8.5)
+  doc.roundedRect(MG, y, CW, 18, 2, 2, 'F')
+
+  // Blue left accent bar
+  doc.setFillColor(...BLUE)
+  doc.roundedRect(MG, y, 2.5, 18, 1, 1, 'F')
+
+  // Name
+  doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...ZINC9)
-  doc.text(c.nombre, MG + 4, y + 7)
+  doc.text(c.nombre, MG + 6, y + 7)
+
+  // ID badge area
   doc.setFontSize(6.5)
   doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...ZINC5)
-  doc.text(`ID Cliente: ${c.cliente_id ?? '—'}`, MG + 4, y + 12.5)
+  doc.setTextColor(...ZINC6)
+  doc.text(`ID: ${c.cliente_id ?? '—'}`, MG + 6, y + 13)
 
-  // Emission date (top-right of client box)
-  const fechaDoc = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+  // Emitted date - right aligned
   doc.setFontSize(6)
-  doc.setTextColor(...ZINC5)
-  doc.text(`Emitido el ${fechaDoc}`, PW - MG - 3, y + 7, { align: 'right' })
+  doc.setTextColor(...ZINC4)
+  doc.text(`Emitido: ${fechaDoc}`, PW - MG - 3, y + 7, { align: 'right' })
 
-  y += 20
+  y += 22
 
-  // Vehicle info
+  /* ── Vehicle info ────────────────────────────────────── */
   if (vehiculo) {
     const parts = [vehiculo.marca, vehiculo.modelo, vehiculo.anio?.toString(), vehiculo.descripcion ? `· ${vehiculo.descripcion}` : ''].filter(Boolean)
-    doc.setFontSize(7.5)
+    doc.setFillColor(...BLUELIGHT)
+    doc.roundedRect(MG, y, CW, 8, 1.5, 1.5, 'F')
+    doc.setFontSize(7)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...BLUE)
-    doc.text(`Vehículo: ${parts.join(' ')}`, MG, y)
-    y += 8
+    doc.text(`🚗  Vehículo: ${parts.join(' ')}`, MG + 4, y + 5.5)
+    y += 12
   }
 
-  // Section divider
+  /* ── Section label ───────────────────────────────────── */
+  doc.setFontSize(6)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...ZINC4)
+  doc.text('ÓRDENES DE SERVICIO', MG, y + 4)
   doc.setDrawColor(...DIVIDER)
   doc.setLineWidth(0.3)
-  doc.line(MG, y, PW - MG, y)
-  y += 5
+  doc.line(MG + 40, y + 3, PW - MG, y + 3)
+  y += 8
 
-  // Filter orders
+  /* ── Filter orders by vehicle ────────────────────────── */
   const ordenesFiltradas = vehiculo
     ? c.ordenes.filter(o => o.vehiculo_id === vehiculo.id)
     : c.ordenes
 
   if (ordenesFiltradas.length === 0) {
-    doc.setFontSize(7.5)
+    doc.setFontSize(8)
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...ZINC5)
-    doc.text('Sin órdenes de servicio para este vehículo.', PW / 2, y + 10, { align: 'center' })
-    y += 20
+    doc.setTextColor(...ZINC4)
+    doc.text('Sin órdenes de servicio registradas.', PW / 2, y + 8, { align: 'center' })
+    y += 18
   }
 
-  for (const orden of ordenesFiltradas) {
+  /* ── Order cards ─────────────────────────────────────── */
+  for (let oi = 0; oi < ordenesFiltradas.length; oi++) {
+    const orden    = ordenesFiltradas[oi]
     const servicios = orden.orden_servicios
-    const ordenH   = 12 + Math.max(servicios.length, 1) * 7 + 8
+    const cardH    = 10 + servicios.length * 6.5 + 6
 
-    y = checkPage(y, ordenH)
+    y = checkPage(y, cardH + 4)
 
-    // Order header bar
     const fechaOrden = orden.created_at
       ? new Date(orden.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
       : '—'
 
-    doc.setFillColor(...BLUEBG)
-    doc.roundedRect(MG, y, CW, 9, 1.5, 1.5, 'F')
+    // Card border
+    doc.setDrawColor(...DIVIDER)
+    doc.setLineWidth(0.3)
+    doc.roundedRect(MG, y, CW, cardH, 2, 2, 'S')
+
+    // Card header bg
+    doc.setFillColor(...BLUELIGHT)
+    doc.roundedRect(MG, y, CW, 9, 2, 2, 'F')
+    // Cover bottom rounded corners of header
+    doc.setFillColor(...BLUELIGHT)
+    doc.rect(MG, y + 5, CW, 4, 'F')
+
+    // Order number
     doc.setFontSize(6.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...BLUE)
-    doc.text(`#${orden.id.slice(0, 8).toUpperCase()}`, MG + 3, y + 6)
+    doc.text(`#${orden.id.slice(0, 8).toUpperCase()}`, MG + 4, y + 6)
+
+    // Date
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...ZINC5)
-    doc.text(fechaOrden, MG + 32, y + 6)
+    doc.setTextColor(...ZINC6)
+    doc.text(fechaOrden, MG + 38, y + 6)
+
+    // Total right-aligned
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...ZINC9)
-    doc.text(fmt(orden.total_cobrado ?? 0), PW - MG - 3, y + 6, { align: 'right' })
-    y += 11
+    doc.text(fmt(orden.total_cobrado ?? 0), PW - MG - 4, y + 6, { align: 'right' })
 
-    // Table header
-    doc.setFillColor(249, 250, 251)
-    doc.rect(MG, y, CW, 6, 'F')
+    // Column headers
+    let ry = y + 9
+    doc.setFillColor(250, 250, 252)
+    doc.rect(MG, ry, CW, 5.5, 'F')
     doc.setFontSize(5.5)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...ZINC5)
-    doc.text('SERVICIO', MG + 3, y + 4.2)
-    doc.text('PRECIO', PW - MG - 3, y + 4.2, { align: 'right' })
-    y += 6
+    doc.setTextColor(...ZINC4)
+    doc.text('SERVICIO', MG + 4, ry + 3.8)
+    doc.text('PRECIO', PW - MG - 4, ry + 3.8, { align: 'right' })
+    ry += 5.5
 
     // Service rows
     for (let si = 0; si < servicios.length; si++) {
-      y = checkPage(y, 7)
       const s = servicios[si]
-      if (si % 2 === 1) {
-        doc.setFillColor(250, 250, 250)
-        doc.rect(MG, y, CW, 7, 'F')
+      if (si % 2 === 0) {
+        doc.setFillColor(255, 255, 255)
+      } else {
+        doc.setFillColor(249, 250, 251)
       }
+      doc.rect(MG, ry, CW, 6.5, 'F')
+
       doc.setFontSize(6.5)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...ZINC9)
-      // Wrap long service names
-      const lines = doc.splitTextToSize(s.nombre_servicio ?? '—', CW - 35)
-      doc.text(lines[0], MG + 3, y + 5)
-      doc.text(fmt(s.precio_cobrado ?? 0), PW - MG - 3, y + 5, { align: 'right' })
+      const svcName = doc.splitTextToSize(s.nombre_servicio ?? '—', CW - 30)
+      doc.text(svcName[0], MG + 4, ry + 4.5)
+      doc.setTextColor(...ZINC6)
+      doc.text(fmt(s.precio_cobrado ?? 0), PW - MG - 4, ry + 4.5, { align: 'right' })
+
+      // Row separator
       doc.setDrawColor(...DIVIDER)
-      doc.setLineWidth(0.2)
-      doc.line(MG, y + 7, PW - MG, y + 7)
-      y += 7
+      doc.setLineWidth(0.1)
+      doc.line(MG, ry + 6.5, PW - MG, ry + 6.5)
+      ry += 6.5
     }
-    y += 5
+
+    y = y + cardH + 4
   }
 
-  // Total box
+  /* ── Total histórico ─────────────────────────────────── */
   if (ordenesFiltradas.length > 0) {
     const total = ordenesFiltradas.reduce((s, o) => s + (o.total_cobrado ?? 0), 0)
-    y = checkPage(y, 18)
+    y = checkPage(y, 20)
+
+    // Total card
     doc.setFillColor(...BLUE)
-    doc.roundedRect(PW - MG - 58, y, 58, 16, 3, 3, 'F')
-    doc.setFontSize(6)
+    doc.roundedRect(PW - MG - 62, y, 62, 18, 3, 3, 'F')
+
+    doc.setFontSize(5.5)
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(255, 255, 255)
-    doc.text('TOTAL HISTÓRICO', PW - MG - 29, y + 6, { align: 'center' })
-    doc.setFontSize(10)
+    doc.setTextColor(180, 210, 255)
+    doc.text('TOTAL HISTÓRICO', PW - MG - 31, y + 6, { align: 'center' })
+
+    doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
-    doc.text(fmt(total), PW - MG - 29, y + 13, { align: 'center' })
+    doc.setTextColor(...WHITE)
+    doc.text(fmt(total), PW - MG - 31, y + 14, { align: 'center' })
+
+    // Count
+    doc.setFontSize(5.5)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...ZINC4)
+    doc.text(`${ordenesFiltradas.length} orden${ordenesFiltradas.length !== 1 ? 'es' : ''} · ${c.nombre}`, MG, y + 10)
   }
 
-  // Footers on all pages
+  /* ── Footers all pages ───────────────────────────────── */
   const totalPages = doc.getNumberOfPages()
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p)
     drawFooter(p, totalPages)
   }
 
+  /* ── Open in new tab ─────────────────────────────────── */
   const blob = doc.output('blob')
   const url  = URL.createObjectURL(blob)
   window.open(url, '_blank')
-  // Revoke after delay to allow the tab to load
   setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 /* ─────────────────────────────────────────────────────────────── */
