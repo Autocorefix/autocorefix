@@ -81,12 +81,12 @@ async function generarPDF(
     const tx    = logoB64 ? MG + 28 : PW / 2
     const align = logoB64 ? 'left' as const : 'center' as const
 
-    doc.setFontSize(15)
+    doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...BLUE)
     doc.text(nombreTaller, tx, logoB64 ? 16 : 17, { align })
 
-    doc.setFontSize(7)
+    doc.setFontSize(6)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...ZINC5)
     doc.text('Historial de Servicios Vehiculares', tx, logoB64 ? 21 : 22, { align })
@@ -97,7 +97,7 @@ async function generarPDF(
     doc.line(MG, 28, PW - MG, 28)
 
     // AutoCoreFix watermark
-    doc.setFontSize(6)
+    doc.setFontSize(5.5)
     doc.setTextColor(180, 180, 190)
     doc.text('powered by AutoCoreFix', PW - MG, 27, { align: 'right' })
   }
@@ -106,7 +106,7 @@ async function generarPDF(
     doc.setDrawColor(...DIVIDER)
     doc.setLineWidth(0.3)
     doc.line(MG, PH - 13, PW - MG, PH - 13)
-    doc.setFontSize(7)
+    doc.setFontSize(6)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...ZINC5)
     doc.text(`Página ${page} de ${total}`, MG, PH - 8)
@@ -131,18 +131,18 @@ async function generarPDF(
   // Client box
   doc.setFillColor(...ZINC1)
   doc.roundedRect(MG, y, CW, 16, 2, 2, 'F')
-  doc.setFontSize(11)
+  doc.setFontSize(8.5)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...ZINC9)
   doc.text(c.nombre, MG + 4, y + 7)
-  doc.setFontSize(7.5)
+  doc.setFontSize(6.5)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...ZINC5)
   doc.text(`ID Cliente: ${c.cliente_id ?? '—'}`, MG + 4, y + 12.5)
 
   // Emission date (top-right of client box)
   const fechaDoc = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
-  doc.setFontSize(7)
+  doc.setFontSize(6)
   doc.setTextColor(...ZINC5)
   doc.text(`Emitido el ${fechaDoc}`, PW - MG - 3, y + 7, { align: 'right' })
 
@@ -151,7 +151,7 @@ async function generarPDF(
   // Vehicle info
   if (vehiculo) {
     const parts = [vehiculo.marca, vehiculo.modelo, vehiculo.anio?.toString(), vehiculo.descripcion ? `· ${vehiculo.descripcion}` : ''].filter(Boolean)
-    doc.setFontSize(9)
+    doc.setFontSize(7.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...BLUE)
     doc.text(`Vehículo: ${parts.join(' ')}`, MG, y)
@@ -170,7 +170,7 @@ async function generarPDF(
     : c.ordenes
 
   if (ordenesFiltradas.length === 0) {
-    doc.setFontSize(9)
+    doc.setFontSize(7.5)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...ZINC5)
     doc.text('Sin órdenes de servicio para este vehículo.', PW / 2, y + 10, { align: 'center' })
@@ -190,7 +190,7 @@ async function generarPDF(
 
     doc.setFillColor(...BLUEBG)
     doc.roundedRect(MG, y, CW, 9, 1.5, 1.5, 'F')
-    doc.setFontSize(7.5)
+    doc.setFontSize(6.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...BLUE)
     doc.text(`#${orden.id.slice(0, 8).toUpperCase()}`, MG + 3, y + 6)
@@ -205,7 +205,7 @@ async function generarPDF(
     // Table header
     doc.setFillColor(249, 250, 251)
     doc.rect(MG, y, CW, 6, 'F')
-    doc.setFontSize(6.5)
+    doc.setFontSize(5.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...ZINC5)
     doc.text('SERVICIO', MG + 3, y + 4.2)
@@ -220,7 +220,7 @@ async function generarPDF(
         doc.setFillColor(250, 250, 250)
         doc.rect(MG, y, CW, 7, 'F')
       }
-      doc.setFontSize(8)
+      doc.setFontSize(6.5)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...ZINC9)
       // Wrap long service names
@@ -241,11 +241,11 @@ async function generarPDF(
     y = checkPage(y, 18)
     doc.setFillColor(...BLUE)
     doc.roundedRect(PW - MG - 58, y, 58, 16, 3, 3, 'F')
-    doc.setFontSize(7)
+    doc.setFontSize(6)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(255, 255, 255)
     doc.text('TOTAL HISTÓRICO', PW - MG - 29, y + 6, { align: 'center' })
-    doc.setFontSize(12)
+    doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.text(fmt(total), PW - MG - 29, y + 13, { align: 'center' })
   }
@@ -257,17 +257,11 @@ async function generarPDF(
     drawFooter(p, totalPages)
   }
 
-  const safeName = c.nombre.toLowerCase().replace(/[^a-z0-9]/g, '-')
-  const filename = `historial-${safeName}-${new Date().toISOString().split('T')[0]}.pdf`
   const blob = doc.output('blob')
   const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href     = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  window.open(url, '_blank')
+  // Revoke after delay to allow the tab to load
+  setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 /* ─────────────────────────────────────────────────────────────── */
 
@@ -375,14 +369,11 @@ export default function ClientesClient({
 
   async function handlePDF(c: Cliente) {
     if (c.ordenes.length === 0) return
-    // Unique vehicles that have orders
-    const vIds = [...new Set(c.ordenes.map(o => o.vehiculo_id).filter(Boolean))]
-    const vehiculosConOrdenes = c.vehiculos.filter(v => vIds.includes(v.id))
-
-    if (vehiculosConOrdenes.length > 1) {
+    // Show selector when client has 2+ vehicles
+    if (c.vehiculos.length > 1) {
       setVehiculoModal({ cliente: c })
     } else {
-      const veh = vehiculosConOrdenes[0] ?? null
+      const veh = c.vehiculos[0] ?? null
       setGenerandoPDF(c.id)
       await generarPDF(c, veh, nombreTaller, logoUrl)
       setGenerandoPDF(null)
@@ -680,21 +671,28 @@ export default function ClientesClient({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-sm text-zinc-500 mb-4">Selecciona el vehículo para el historial PDF.</p>
+            <p className="text-sm text-zinc-500 mb-4">Selecciona de qué vehículo quieres el historial.</p>
             <div className="flex flex-col gap-2">
-              {vehiculoModal.cliente.vehiculos
-                .filter(v => vehiculoModal.cliente.ordenes.some(o => o.vehiculo_id === v.id))
-                .map(v => (
-                  <button key={v.id}
-                    onClick={() => handlePDFConVehiculo(vehiculoModal.cliente, v)}
-                    className="flex items-center gap-3 rounded-xl border border-zinc-200 px-4 py-3 text-left hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                  >
-                    <Car className="w-4 h-4 text-[#2563EB] shrink-0" />
-                    <span className="text-sm font-medium text-zinc-800">
-                      {v.marca} {v.modelo}{v.anio ? ` ${v.anio}` : ''}{v.descripcion ? ` · ${v.descripcion}` : ''}
-                    </span>
-                  </button>
-                ))}
+              {/* Opción: todo el historial */}
+              <button
+                onClick={async () => { setVehiculoModal(null); setGenerandoPDF(vehiculoModal.cliente.id); await generarPDF(vehiculoModal.cliente, null, nombreTaller, logoUrl); setGenerandoPDF(null) }}
+                className="flex items-center gap-3 rounded-xl border-2 border-[#2563EB] bg-blue-50 px-4 py-3 text-left hover:bg-blue-100 transition-colors"
+              >
+                <ClipboardList className="w-4 h-4 text-[#2563EB] shrink-0" />
+                <span className="text-sm font-semibold text-[#2563EB]">Todo el historial</span>
+              </button>
+              {/* Un botón por vehículo */}
+              {vehiculoModal.cliente.vehiculos.map(v => (
+                <button key={v.id}
+                  onClick={() => handlePDFConVehiculo(vehiculoModal.cliente, v)}
+                  className="flex items-center gap-3 rounded-xl border border-zinc-200 px-4 py-3 text-left hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                >
+                  <Car className="w-4 h-4 text-[#2563EB] shrink-0" />
+                  <span className="text-sm font-medium text-zinc-800">
+                    {v.marca} {v.modelo}{v.anio ? ` ${v.anio}` : ''}{v.descripcion ? ` · ${v.descripcion}` : ''}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
