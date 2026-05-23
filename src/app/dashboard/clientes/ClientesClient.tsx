@@ -49,11 +49,11 @@ async function generarPDF(
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
-  /* ── Constantes ──────────────────────────────────────────────── */
+  /* ── Constantes ───────────────────────────────────────────── */
   const PW = 210, PH = 297, MG = 14, CW = PW - MG * 2
   const BLUE:    [number,number,number] = [37,  99,  235]
-  const BLUEBG:  [number,number,number] = [219, 234, 254]   // blue-200
-  const BLUEMID: [number,number,number] = [147, 197, 253]   // blue-300
+  const BLUEDARK:[number,number,number] = [22,  73,  200]
+  const BLUEBG:  [number,number,number] = [219, 234, 254]
   const WHITE:   [number,number,number] = [255, 255, 255]
   const ZINC9:   [number,number,number] = [24,  24,  27]
   const ZINC7:   [number,number,number] = [63,  63,  70]
@@ -64,8 +64,10 @@ async function generarPDF(
   const fmt = (n: number) => '$' + n.toLocaleString('es-MX', { minimumFractionDigits: 0 })
   const fechaDoc = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
-  /* ── Cargar logo ─────────────────────────────────────────────── */
+  /* ── Cargar logo y calcular dimensiones proporcionales ─────── */
   let logoB64: string | null = null
+  let logoW = 22, logoH = 22  // default cuadrado
+
   if (logoUrl) {
     try {
       const resp = await fetch(logoUrl)
@@ -76,81 +78,116 @@ async function generarPDF(
         reader.onerror = reject
         reader.readAsDataURL(blob)
       })
+      // Detectar aspect ratio cargando la imagen
+      await new Promise<void>(resolve => {
+        const img = new Image()
+        img.onload = () => {
+          const MAX_W = 38, MAX_H = 22
+          const ratio = img.naturalWidth / img.naturalHeight
+          if (ratio > MAX_W / MAX_H) {
+            logoW = MAX_W
+            logoH = MAX_W / ratio
+          } else {
+            logoH = MAX_H
+            logoW = MAX_H * ratio
+          }
+          resolve()
+        }
+        img.onerror = () => resolve()
+        img.src = logoB64!
+      })
     } catch { logoB64 = null }
   }
 
-  /* ── Header ──────────────────────────────────────────────────── */
+  /* ── Header ────────────────────────────────────────────────── */
   function drawHeader() {
-    // Banda azul principal
+    const BAND_H = 32
+
+    // Banda azul
     doc.setFillColor(...BLUE)
-    doc.rect(0, 0, PW, 30, 'F')
+    doc.rect(0, 0, PW, BAND_H, 'F')
+    // Franja inferior más oscura
+    doc.setFillColor(...BLUEDARK)
+    doc.rect(0, BAND_H - 1.2, PW, 1.2, 'F')
+
+    const LOGO_TOP = (BAND_H - logoH) / 2
 
     if (logoB64) {
-      // Recuadro blanco para el logo
+      // Recuadro blanco auto-proporcional
+      const PAD = 2
       doc.setFillColor(...WHITE)
-      doc.roundedRect(MG, 4, 22, 22, 2, 2, 'F')
-      try { doc.addImage(logoB64, 'auto' as any, MG + 1, 5, 20, 20) } catch {}
-      // Nombre del taller a la derecha del logo
+      doc.roundedRect(MG, LOGO_TOP - PAD, logoW + PAD * 2, logoH + PAD * 2, 1.5, 1.5, 'F')
+      try { doc.addImage(logoB64, 'auto' as any, MG + PAD, LOGO_TOP, logoW, logoH) } catch {}
+
+      const textX = MG + logoW + 8
+
+      // Nombre del taller — PRIMARIO, grande y claro
       doc.setFontSize(13)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...WHITE)
-      doc.text(nombreTaller, MG + 26, 14)
+      doc.text(nombreTaller, textX, BAND_H / 2 - 1)
+
+      // Subtítulo — blanco, legible
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...BLUEMID)
-      doc.text('Registro de Historial de Servicios', MG + 26, 21)
+      doc.setTextColor(220, 235, 255)
+      doc.text('Registro de Historial de Servicios', textX, BAND_H / 2 + 6)
+
     } else {
+      // Sin logo — centrado
       doc.setFontSize(14)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...WHITE)
-      doc.text(nombreTaller, PW / 2, 14, { align: 'center' })
-      doc.setFontSize(8)
+      doc.text(nombreTaller, PW / 2, BAND_H / 2 - 1, { align: 'center' })
+
+      doc.setFontSize(8.5)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...BLUEMID)
-      doc.text('Registro de Historial de Servicios', PW / 2, 22, { align: 'center' })
+      doc.setTextColor(220, 235, 255)
+      doc.text('Registro de Historial de Servicios', PW / 2, BAND_H / 2 + 6, { align: 'center' })
     }
 
-    // Fecha — esquina derecha, legible
+    // Fecha — esquina superior derecha, clara
     doc.setFontSize(7.5)
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...WHITE)
-    doc.text(`Emitido: ${fechaDoc}`, PW - MG, 9, { align: 'right' })
+    doc.setTextColor(210, 228, 255)
+    doc.text(`Emitido: ${fechaDoc}`, PW - MG, 8, { align: 'right' })
 
-    // Franja inferior de la banda (acento)
-    doc.setFillColor(22, 73, 200)
-    doc.rect(0, 30, PW, 1.5, 'F')
+    // AutoCoreFix — watermark discreto esquina inferior derecha de la banda
+    doc.setFontSize(6)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 140, 210)
+    doc.text('Sistema AutoCoreFix', PW - MG, BAND_H - 3, { align: 'right' })
   }
 
-  /* ── Footer ──────────────────────────────────────────────────── */
+  /* ── Footer ────────────────────────────────────────────────── */
   function drawFooter(page: number, total: number) {
     doc.setFillColor(...ZINC1)
     doc.rect(0, PH - 10, PW, 10, 'F')
     doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...ZINC4)
-    doc.text(`Pagina ${page} de ${total}`, MG, PH - 3.5)
+    doc.text(`Pagina ${page} de ${total}  ·  ${nombreTaller}`, MG, PH - 3.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...BLUE)
     doc.text('AutoCoreFix', PW - MG, PH - 3.5, { align: 'right' })
   }
 
-  /* ── Paginacion ──────────────────────────────────────────────── */
+  /* ── Paginacion ─────────────────────────────────────────────── */
   function checkPage(y: number, needed: number): number {
     if (y + needed > PH - 16) {
       doc.addPage()
       drawHeader()
-      return 36
+      return 38
     }
     return y
   }
 
-  /* ── Page 1 ──────────────────────────────────────────────────── */
+  /* ── Page 1 ─────────────────────────────────────────────────── */
   drawHeader()
-  let y = 36
+  let y = 38
 
-  /* ── Bloque info cliente ─────────────────────────────────────── */
-  // Fila: nombre del cliente
-  doc.setFontSize(11)
+  /* ── Info cliente ───────────────────────────────────────────── */
+  doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...ZINC9)
   doc.text(c.nombre, MG, y + 6)
@@ -158,80 +195,75 @@ async function generarPDF(
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...ZINC7)
-  doc.text(`ID: ${c.cliente_id ?? '—'}`, MG, y + 12)
+  doc.text(`ID Cliente: ${c.cliente_id ?? '—'}`, MG, y + 12)
 
-  // Linea divisoria bajo el nombre
   doc.setDrawColor(...BLUEBG)
   doc.setLineWidth(0.6)
-  doc.line(MG, y + 15, PW - MG, y + 15)
-  y += 18
+  doc.line(MG, y + 15.5, PW - MG, y + 15.5)
+  y += 19
 
-  /* ── Bloque info vehiculo ─────────────────────────────────────── */
+  /* ── Info vehiculo ──────────────────────────────────────────── */
   if (vehiculo) {
-    // Fila de etiquetas
+    const col1 = MG, col2 = MG + 36, col3 = MG + 76, col4 = MG + 116, col5 = MG + 150
+
     doc.setFontSize(6.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...ZINC4)
-    const col1 = MG, col2 = MG + 48, col3 = MG + 96, col4 = MG + 140
-    doc.text('VEHICULO', col1, y)
-    doc.text('MARCA', col2, y)
-    doc.text('MODELO', col3, y)
-    doc.text('AÑO', col4, y)
+    doc.text('MARCA',    col1, y)
+    doc.text('MODELO',   col2, y)
+    doc.text('AÑO',      col3, y)
+    doc.text('COLOR / DESCRIPCION', col4, y)
 
-    // Fila de valores
     doc.setFontSize(8.5)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...ZINC9)
-    const vLabel = vehiculo.descripcion ? vehiculo.descripcion : '—'
-    doc.text(vLabel, col1, y + 6)
-    doc.text(vehiculo.marca ?? '—', col2, y + 6)
-    doc.text(vehiculo.modelo ?? '—', col3, y + 6)
-    doc.text(vehiculo.anio ? String(vehiculo.anio) : '—', col4, y + 6)
+    doc.text(vehiculo.marca  ?? '—', col1, y + 6)
+    doc.text(vehiculo.modelo ?? '—', col2, y + 6)
+    doc.text(vehiculo.anio ? String(vehiculo.anio) : '—', col3, y + 6)
+    doc.text(vehiculo.descripcion ?? '—', col4, y + 6)
 
-    // Linea bajo vehiculo
     doc.setDrawColor(...BLUEBG)
     doc.setLineWidth(0.4)
-    doc.line(MG, y + 10, PW - MG, y + 10)
-    y += 14
+    doc.line(MG, y + 10.5, PW - MG, y + 10.5)
+    y += 15
   }
 
-  /* ── Filtrar ordenes ─────────────────────────────────────────── */
-  const ordenesFiltradas = vehiculo
-    ? c.ordenes.filter(o => o.vehiculo_id === vehiculo.id)
-    : c.ordenes
-
-  /* ── Seccion titulo ──────────────────────────────────────────── */
+  /* ── Titulo sección ─────────────────────────────────────────── */
   doc.setFontSize(7)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...ZINC4)
   doc.text('HISTORIAL DE SERVICIOS', MG, y + 4)
   y += 7
 
-  /* ── Header de tabla ─────────────────────────────────────────── */
-  const COL = { fecha: MG, orden: MG + 24, servicio: MG + 52, precio: PW - MG }
-  const ROW_H = 7
+  /* ── Tabla header ───────────────────────────────────────────── */
+  const COL = { fecha: MG, orden: MG + 26, servicio: MG + 54, precio: PW - MG }
+  const ROW_H = 7.5
 
   function drawTableHeader(yh: number) {
     doc.setFillColor(...BLUE)
-    doc.rect(MG, yh, CW, 8, 'F')
-    doc.setFontSize(7)
+    doc.rect(MG, yh, CW, 8.5, 'F')
+    doc.setFontSize(7.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...WHITE)
-    doc.text('FECHA',    COL.fecha   + 2, yh + 5.5)
-    doc.text('# ORDEN',  COL.orden   + 2, yh + 5.5)
-    doc.text('SERVICIO', COL.servicio + 2, yh + 5.5)
-    doc.text('PRECIO',   COL.precio  - 2, yh + 5.5, { align: 'right' })
-    return yh + 8
+    doc.text('FECHA',    COL.fecha    + 2, yh + 6)
+    doc.text('# ORDEN',  COL.orden    + 2, yh + 6)
+    doc.text('SERVICIO', COL.servicio + 2, yh + 6)
+    doc.text('PRECIO',   COL.precio   - 2, yh + 6, { align: 'right' })
+    return yh + 8.5
   }
 
   y = drawTableHeader(y)
 
-  /* ── Filas de servicios ───────────────────────────────────────── */
+  /* ── Filas ──────────────────────────────────────────────────── */
+  const ordenesFiltradas = vehiculo
+    ? c.ordenes.filter(o => o.vehiculo_id === vehiculo.id)
+    : c.ordenes
+
   if (ordenesFiltradas.length === 0) {
-    doc.setFontSize(8)
+    doc.setFontSize(8.5)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...ZINC4)
-    doc.text('Sin servicios registrados para este vehiculo.', PW / 2, y + 10, { align: 'center' })
+    doc.text('Sin servicios registrados.', PW / 2, y + 10, { align: 'center' })
     y += 18
   }
 
@@ -245,31 +277,27 @@ async function generarPDF(
     for (const s of orden.orden_servicios) {
       y = checkPage(y, ROW_H + 1)
 
-      // Alternating row bg
-      if (rowIndex % 2 === 0) {
-        doc.setFillColor(...WHITE)
-      } else {
-        doc.setFillColor(...ROW_ALT)
-      }
+      doc.setFillColor(...(rowIndex % 2 === 0 ? WHITE : ROW_ALT))
       doc.rect(MG, y, CW, ROW_H, 'F')
 
       doc.setFontSize(7.5)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(...ZINC7)
-      doc.text(fechaOrden, COL.fecha + 2, y + 4.8)
+      doc.text(fechaOrden, COL.fecha + 2, y + 5)
 
-      doc.setTextColor(...ZINC4)
-      doc.text(ordenNum, COL.orden + 2, y + 4.8)
+      doc.setTextColor(100, 140, 210)
+      doc.text(ordenNum, COL.orden + 2, y + 5)
 
       doc.setTextColor(...ZINC9)
-      const svcLines = doc.splitTextToSize(s.nombre_servicio ?? '—', COL.precio - COL.servicio - 20)
-      doc.text(svcLines[0], COL.servicio + 2, y + 4.8)
+      doc.text(
+        doc.splitTextToSize(s.nombre_servicio ?? '—', COL.precio - COL.servicio - 18)[0],
+        COL.servicio + 2, y + 5
+      )
 
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...ZINC7)
-      doc.text(fmt(s.precio_cobrado ?? 0), COL.precio - 2, y + 4.8, { align: 'right' })
+      doc.text(fmt(s.precio_cobrado ?? 0), COL.precio - 2, y + 5, { align: 'right' })
 
-      // Row bottom border
       doc.setDrawColor(...BLUEBG)
       doc.setLineWidth(0.2)
       doc.line(MG, y + ROW_H, PW - MG, y + ROW_H)
@@ -279,17 +307,14 @@ async function generarPDF(
     }
   }
 
-  /* ── Borde exterior de la tabla ──────────────────────────────── */
-  // (ya cubierto por las filas)
-
-  /* ── Footers ─────────────────────────────────────────────────── */
+  /* ── Footers ────────────────────────────────────────────────── */
   const totalPages = doc.getNumberOfPages()
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p)
     drawFooter(p, totalPages)
   }
 
-  /* ── Abrir en nueva pestana ──────────────────────────────────── */
+  /* ── Abrir en nueva pestaña ─────────────────────────────────── */
   const blob = doc.output('blob')
   const url  = URL.createObjectURL(blob)
   window.open(url, '_blank')
