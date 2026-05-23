@@ -4,34 +4,51 @@ import ClientesClient from './ClientesClient'
 export default async function ClientesPage() {
   const supabase = await createClient()
 
-  const { data: clientes } = await supabase
-    .from('clientes')
-    .select(`
-      id,
-      cliente_id,
-      nombre,
-      telefono,
-      email,
-      created_at,
-      vehiculos (
+  const [{ data: clientes }, { data: usuario }] = await Promise.all([
+    supabase
+      .from('clientes')
+      .select(`
         id,
-        marca,
-        modelo,
-        anio
-      ),
-      ordenes (
-        id,
-        estado,
-        total_cobrado,
+        cliente_id,
+        nombre,
+        telefono,
+        email,
         created_at,
-        orden_servicios (
+        activo,
+        vehiculos (
           id,
-          nombre_servicio,
-          precio_cobrado
+          marca,
+          modelo,
+          anio
+        ),
+        ordenes (
+          id,
+          estado,
+          total_cobrado,
+          created_at,
+          orden_servicios (
+            id,
+            nombre_servicio,
+            precio_cobrado
+          )
         )
-      )
-    `)
-    .order('created_at', { ascending: false })
+      `)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('usuarios')
+      .select('tenant_id, tenants(prefijo)')
+      .single(),
+  ])
 
-  return <ClientesClient clientes={clientes ?? []} />
+  const tenants  = usuario?.tenants as { prefijo: string } | null
+  const prefijo  = tenants?.prefijo ?? 'ACF'
+  const tenantId = usuario?.tenant_id ?? ''
+
+  return (
+    <ClientesClient
+      clientes={(clientes ?? []) as any}
+      prefijo={prefijo}
+      tenantId={tenantId}
+    />
+  )
 }
