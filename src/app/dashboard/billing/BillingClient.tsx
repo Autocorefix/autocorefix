@@ -57,7 +57,7 @@ export default function BillingClient({
     })
     const { url } = await res.json()
     if (url) window.open(url, '_blank')
-    else setLoading(null)
+    setLoading(null)
   }
 
   async function handlePortal() {
@@ -65,7 +65,7 @@ export default function BillingClient({
     const res = await fetch('/api/stripe/portal', { method: 'POST' })
     const { url } = await res.json()
     if (url) window.open(url, '_blank')
-    else setLoading(null)
+    setLoading(null)
   }
 
   if (!isAdmin) {
