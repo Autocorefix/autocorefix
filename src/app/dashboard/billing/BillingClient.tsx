@@ -56,7 +56,7 @@ export default function BillingClient({
       body: JSON.stringify({ planType }),
     })
     const { url } = await res.json()
-    if (url) window.location.href = url
+    if (url) window.open(url, '_blank')
     else setLoading(null)
   }
 
@@ -64,7 +64,7 @@ export default function BillingClient({
     setLoading('portal')
     const res = await fetch('/api/stripe/portal', { method: 'POST' })
     const { url } = await res.json()
-    if (url) window.location.href = url
+    if (url) window.open(url, '_blank')
     else setLoading(null)
   }
 
