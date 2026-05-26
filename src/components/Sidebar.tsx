@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, ClipboardPlus, ClipboardList, Users,
-  BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle, CreditCard,
+  BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle, CreditCard, Lock,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
+import { useSubscription } from '@/components/SubscriptionContext'
 
 type NavItem = { href: string; label: string; icon: React.ElementType; adminOnly?: boolean }
 
@@ -25,6 +26,7 @@ export default function Sidebar({ rol }: { rol: string }) {
   const pathname = usePathname()
   const router   = useRouter()
   const isAdmin  = rol === 'admin'
+  const { isBlocked } = useSubscription()
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -51,6 +53,23 @@ export default function Sidebar({ rol }: { rol: string }) {
       <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-0.5">
         {visibleItems.map(({ href, label, icon: Icon }) => {
           const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
+          const isBilling = href === '/dashboard/billing'
+          const locked = isBlocked && !isBilling
+
+          if (locked) {
+            return (
+              <div
+                key={href}
+                title="Activa tu suscripción para acceder"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium select-none"
+                style={{ color: '#d4d4d8', cursor: 'not-allowed' }}
+              >
+                <Lock className="w-4 h-4 shrink-0" strokeWidth={2} />
+                {label}
+              </div>
+            )
+          }
+
           return (
             <Link
               key={href}
@@ -69,20 +88,31 @@ export default function Sidebar({ rol }: { rol: string }) {
         })}
       </nav>
 
-      {/* Bottom — botones visibles */}
+      {/* Bottom */}
       <div className="px-3 py-4 flex flex-col gap-2" style={{ borderTop: '1px solid #e4e4e7' }}>
-        <Link
-          href="/dashboard/perfil"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
-          style={
-            pathname === '/dashboard/perfil'
-              ? { background: '#2563EB', color: '#fff', border: '1px solid #2563EB' }
-              : { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }
-          }
-        >
-          <UserCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
-          Mi perfil
-        </Link>
+        {isBlocked ? (
+          <div
+            title="Activa tu suscripción para acceder"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold select-none"
+            style={{ background: '#f4f4f5', color: '#d4d4d8', border: '1px solid #e4e4e7', cursor: 'not-allowed' }}
+          >
+            <Lock className="w-4 h-4 shrink-0" strokeWidth={2} />
+            Mi perfil
+          </div>
+        ) : (
+          <Link
+            href="/dashboard/perfil"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+            style={
+              pathname === '/dashboard/perfil'
+                ? { background: '#2563EB', color: '#fff', border: '1px solid #2563EB' }
+                : { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }
+            }
+          >
+            <UserCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
+            Mi perfil
+          </Link>
+        )}
         <button
           onClick={handleSignOut}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full text-left transition-all"

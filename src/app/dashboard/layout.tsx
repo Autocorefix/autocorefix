@@ -3,7 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import Sidebar from '@/components/Sidebar'
-import SubscriptionGuard from '@/components/SubscriptionGuard'
+import { SubscriptionProvider } from '@/components/SubscriptionContext'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -24,29 +24,28 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/onboarding')
   }
 
-  // Asistente que aceptó invitación pero aún no configuró su cuenta
   if (usuario.rol === 'asistente' && !usuario.nombre) {
     redirect('/bienvenida')
   }
 
-  // Service role client para bypassear RLS en subscriptions
   const adminClient = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Verificar suscripción activa (skip en /dashboard/billing para evitar loop)
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
-  if (!pathname.startsWith('/dashboard/billing')) {
-    const { data: sub } = await adminClient
-      .from('subscriptions')
-      .select('status, trial_end, current_period_end')
-      .eq('tenant_id', usuario.tenant_id)
-      .maybeSingle()
 
-    if (!sub && usuario.rol === 'admin') {
-      // Primera vez: crear trial automáticamente
+  const { data: sub } = await adminClient
+    .from('subscriptions')
+    .select('status, trial_end, current_period_end')
+    .eq('tenant_id', usuario.tenant_id)
+    .maybeSingle()
+
+  let isBlocked = false
+
+  if (!sub) {
+    if (usuario.rol === 'admin') {
       const trialEnd = new Date()
       trialEnd.setDate(trialEnd.getDate() + 14)
       await adminClient.from('subscriptions').insert({
@@ -54,23 +53,27 @@ export default async function DashboardLayout({ children }: { children: React.Re
         status: 'trialing',
         trial_end: trialEnd.toISOString(),
       })
-    } else {
-      const now = new Date()
-      const isActive = sub && (
-        (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
-        (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now)
-      )
-      if (!isActive) redirect('/dashboard/billing')
     }
+  } else {
+    const now = new Date()
+    const isActive =
+      (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
+      (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now)
+    isBlocked = !isActive
+  }
+
+  if (isBlocked && !pathname.startsWith('/dashboard/billing')) {
+    redirect('/dashboard/billing')
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <SubscriptionGuard />
-      <Sidebar rol={usuario.rol ?? 'asistente'} />
-      <main className="ml-60 min-h-screen p-8">
-        {children}
-      </main>
-    </div>
+    <SubscriptionProvider initialBlocked={isBlocked}>
+      <div className="min-h-screen bg-zinc-50">
+        <Sidebar rol={usuario.rol ?? 'asistente'} />
+        <main className="ml-60 min-h-screen p-8">
+          {children}
+        </main>
+      </div>
+    </SubscriptionProvider>
   )
 }
