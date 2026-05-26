@@ -2,14 +2,19 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 
+function isSuperadminEmail(email: string | undefined | null): boolean {
+  if (!email) return false
+  const superadmin = process.env.SUPERADMIN_EMAIL ?? ''
+  return email.toLowerCase().trim() === superadmin.toLowerCase().trim()
+}
+
 export async function GET() {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ blocked: true })
 
-    // Superadmin nunca bloqueado
-    if (user.email === process.env.SUPERADMIN_EMAIL) {
+    if (isSuperadminEmail(user.email)) {
       return NextResponse.json({ blocked: false })
     }
 

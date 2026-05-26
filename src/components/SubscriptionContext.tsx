@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 interface SubscriptionContextType {
   isBlocked: boolean
@@ -18,19 +18,13 @@ export function SubscriptionProvider({
 }) {
   const [isBlocked, setIsBlocked] = useState(initialBlocked)
   const pathname = usePathname()
-  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/subscription-status')
       .then((r) => r.json())
-      .then(({ blocked }) => {
-        setIsBlocked(blocked)
-        if (blocked && !pathname.startsWith('/dashboard/billing')) {
-          router.replace('/dashboard/billing')
-        }
-      })
+      .then(({ blocked }) => setIsBlocked(blocked))
       .catch(() => {})
-  }, [pathname, router])
+  }, [pathname])
 
   return (
     <SubscriptionContext.Provider value={{ isBlocked }}>

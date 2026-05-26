@@ -5,6 +5,12 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import Sidebar from '@/components/Sidebar'
 import { SubscriptionProvider } from '@/components/SubscriptionContext'
 
+function isSuperadminEmail(email: string | undefined | null): boolean {
+  if (!email) return false
+  const superadmin = process.env.SUPERADMIN_EMAIL ?? ''
+  return email.toLowerCase().trim() === superadmin.toLowerCase().trim()
+}
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -28,8 +34,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/bienvenida')
   }
 
-  // Superadmin siempre tiene acceso completo
-  const isSuperadmin = user.email === process.env.SUPERADMIN_EMAIL
+  const superadmin = isSuperadminEmail(user.email)
 
   const adminClient = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,7 +46,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   let isBlocked = false
 
-  if (!isSuperadmin) {
+  if (!superadmin) {
     const { data: sub } = await adminClient
       .from('subscriptions')
       .select('status, trial_end, current_period_end')
