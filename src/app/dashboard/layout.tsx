@@ -28,6 +28,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/bienvenida')
   }
 
+  // Superadmin siempre tiene acceso completo
+  const isSuperadmin = user.email === process.env.SUPERADMIN_EMAIL
+
   const adminClient = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -36,34 +39,36 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
 
-  const { data: sub } = await adminClient
-    .from('subscriptions')
-    .select('status, trial_end, current_period_end')
-    .eq('tenant_id', usuario.tenant_id)
-    .maybeSingle()
-
   let isBlocked = false
 
-  if (!sub) {
-    if (usuario.rol === 'admin') {
-      const trialEnd = new Date()
-      trialEnd.setDate(trialEnd.getDate() + 14)
-      await adminClient.from('subscriptions').insert({
-        tenant_id: usuario.tenant_id,
-        status: 'trialing',
-        trial_end: trialEnd.toISOString(),
-      })
-    }
-  } else {
-    const now = new Date()
-    const isActive =
-      (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
-      (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now)
-    isBlocked = !isActive
-  }
+  if (!isSuperadmin) {
+    const { data: sub } = await adminClient
+      .from('subscriptions')
+      .select('status, trial_end, current_period_end')
+      .eq('tenant_id', usuario.tenant_id)
+      .maybeSingle()
 
-  if (isBlocked && !pathname.startsWith('/dashboard/billing')) {
-    redirect('/dashboard/billing')
+    if (!sub) {
+      if (usuario.rol === 'admin') {
+        const trialEnd = new Date()
+        trialEnd.setDate(trialEnd.getDate() + 14)
+        await adminClient.from('subscriptions').insert({
+          tenant_id: usuario.tenant_id,
+          status: 'trialing',
+          trial_end: trialEnd.toISOString(),
+        })
+      }
+    } else {
+      const now = new Date()
+      const isActive =
+        (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
+        (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now)
+      isBlocked = !isActive
+    }
+
+    if (isBlocked && !pathname.startsWith('/dashboard/billing')) {
+      redirect('/dashboard/billing')
+    }
   }
 
   return (

@@ -8,6 +8,11 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ blocked: true })
 
+    // Superadmin nunca bloqueado
+    if (user.email === process.env.SUPERADMIN_EMAIL) {
+      return NextResponse.json({ blocked: false })
+    }
+
     const { data: usuario } = await supabase
       .from('usuarios')
       .select('tenant_id')
