@@ -1,7 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { createContext, useContext } from 'react'
 
 interface SubscriptionContextType {
   isBlocked: boolean
@@ -16,18 +15,8 @@ export function SubscriptionProvider({
   children: React.ReactNode
   initialBlocked: boolean
 }) {
-  const [isBlocked, setIsBlocked] = useState(initialBlocked)
-  const pathname = usePathname()
-
-  useEffect(() => {
-    fetch('/api/subscription-status')
-      .then((r) => r.json())
-      .then(({ blocked }) => setIsBlocked(blocked))
-      .catch(() => {})
-  }, [pathname])
-
   return (
-    <SubscriptionContext.Provider value={{ isBlocked }}>
+    <SubscriptionContext.Provider value={{ isBlocked: initialBlocked }}>
       {children}
     </SubscriptionContext.Provider>
   )
