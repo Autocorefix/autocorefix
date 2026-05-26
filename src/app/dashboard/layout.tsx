@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import Sidebar from '@/components/Sidebar'
+import SubscriptionGuard from '@/components/SubscriptionGuard'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -57,8 +58,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       const now = new Date()
       const isActive = sub && (
         (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > now) ||
-        (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now) ||
-        sub.status === 'past_due'
+        (sub.status === 'active' && sub.current_period_end && new Date(sub.current_period_end) > now)
       )
       if (!isActive) redirect('/dashboard/billing')
     }
@@ -66,6 +66,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-zinc-50">
+      <SubscriptionGuard />
       <Sidebar rol={usuario.rol ?? 'asistente'} />
       <main className="ml-60 min-h-screen p-8">
         {children}
