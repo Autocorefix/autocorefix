@@ -80,7 +80,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <SubscriptionProvider initialBlocked={isBlocked}>
       <div className="min-h-screen bg-zinc-50">
         <Sidebar rol={usuario.rol ?? 'asistente'} />
-        <main className="ml-60 min-h-screen p-8">
+        <main className="lg:ml-60 min-h-screen p-4 pt-16 lg:p-8 lg:pt-8">
           {children}
         </main>
       </div>

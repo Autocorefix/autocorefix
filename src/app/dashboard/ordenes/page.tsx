@@ -195,7 +195,7 @@ export default function OrdenesPage() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="date"
             value={desde}
@@ -240,10 +240,10 @@ export default function OrdenesPage() {
             <thead>
               <tr className="bg-zinc-50 border-b border-zinc-200 text-left">
                 <th className="w-12 px-3 py-3"></th>
-                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">#Orden</th>
+                <th className="hidden sm:table-cell px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">#Orden</th>
                 <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Cliente</th>
-                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Vehículo</th>
-                <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Servicios</th>
+                <th className="hidden sm:table-cell px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Vehículo</th>
+                <th className="hidden sm:table-cell px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Servicios</th>
                 <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estado</th>
                 <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Fecha</th>
                 <th className="px-5 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Total</th>
@@ -279,16 +279,16 @@ export default function OrdenesPage() {
                         <ChevronRight className="w-3.5 h-3.5 text-[#2563EB] group-hover:text-white transition-colors" />
                       </div>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="hidden sm:table-cell px-5 py-4">
                       <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-1 rounded-md">
                         #{o.id.slice(0, 8).toUpperCase()}
                       </span>
                     </td>
                     <td className="px-5 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
-                    <td className="px-5 py-4 text-zinc-500">
+                    <td className="hidden sm:table-cell px-5 py-4 text-zinc-500">
                       {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
                     </td>
-                    <td className="px-5 py-4 text-zinc-500">
+                    <td className="hidden sm:table-cell px-5 py-4 text-zinc-500">
                       {numSvc} {numSvc === 1 ? 'servicio' : 'servicios'}
                     </td>
                     <td className="px-5 py-4" onClick={e => e.stopPropagation()}>

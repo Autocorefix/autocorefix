@@ -341,6 +341,22 @@ Si se envían múltiples invitaciones al mismo email, la RPC `accept_invitation`
 - Middleware excluye `/api/stripe/` de verificación de auth
 - Resend integrado con lazy init (`getResend()`) — resuelve crash de build en Vercel
 - `lib/email.ts`: sendInvitationEmail + notifyAdminInvitationAccepted (activas cuando dominio verificado)
+- **Sistema de bloqueo de suscripción completo** (2026-05-26)
+  - `middleware.ts`: pasa `x-pathname` como **request header** (no response) para que `layout.tsx` lo lea con `headers()`
+  - `layout.tsx`: lee `x-pathname`, verifica suscripción vía service role, redirige a `/dashboard/billing` si bloqueado
+  - `SubscriptionContext.tsx`: contexto sin `useEffect` — estado del servidor es fuente de verdad
+  - `Sidebar.tsx`: muestra ícono `Lock` y deshabilita rutas cuando `isBlocked = true`
+  - `login/page.tsx`: usa `window.location.href = '/dashboard'` (hard reload evita conflicto soft nav)
+  - `api/subscription-status/route.ts`: endpoint GET para verificar estado de suscripción
+  - **SUPERADMIN_EMAIL**: env var en Vercel → solo ese email exacto bypasea el bloqueo. Si la var no existe, nadie bypasea. Comparación case-insensitive + trim.
+- **Responsive móvil completo** (2026-05-29)
+  - `Sidebar.tsx`: drawer hamburger en móvil (`< lg`) con overlay y botón cerrar. Desktop sin cambios.
+  - `layout.tsx`: `lg:ml-60 p-4 pt-16 lg:p-8` — espacio para top bar de 56px en móvil
+  - Breakpoint principal: `lg` (1024px) para sidebar. `sm` (640px) para tablas y grids internos.
+  - **Patrón tablas**: columnas #Orden, Vehículo, Servicios con `hidden sm:table-cell` en `<th>` y `<td>` — visible en Dashboard y Órdenes solo Cliente, Estado, Total (+ Fecha en Órdenes)
+  - `ReportesClient.tsx`: date picker `flex-col sm:flex-row` + `max-w-[calc(100vw-2rem)]`; YAxis `width={155}→110`; pie "Ingresos por categoría" `flex-col sm:flex-row`
+  - `ClientesClient.tsx`: header `flex-col sm:flex-row`; mini-cards `grid-cols-2 sm:grid-cols-3`
+  - `NuevaOrdenClient.tsx`: ya era responsive (`grid-cols-1 lg:grid-cols-5`), sin cambios
 
 ### Sistema de diseño — actualizado 2026-05-10 ✅
 - Sidebar: botones "Mi perfil" (azul `#eff6ff`) y "Cerrar sesión" (rojo `#fef2f2`) con colores fuertes visibles
@@ -366,13 +382,18 @@ Si se envían múltiples invitaciones al mismo email, la RPC `accept_invitation`
 - Write tool trunca archivos >~210 líneas → usar `python3` vía bash para archivos grandes
 - `ClientesClient.tsx` y `ordenes/page.tsx` truncados por sed → restaurados con Python (2026-05-10)
 
+### Errores resueltos en suscripción y middleware (referencia)
+- **Pantalla negra al login con trial expirado**: `x-pathname` se pasaba en response header → `headers()` en layout recibía `''` → loop infinito de redirect a `/dashboard/billing`. Fix: pasar como request header en `NextResponse.next({ request: { headers: requestHeaders } })`
+- **Variable de entorno en Vercel "Shared" no triggeriza redeploy**: las variables del tab "Shared" (nivel equipo) no fuerzan redeploy al cambiarlas. Siempre agregar variables críticas al tab "Projects" del proyecto específico y hacer Redeploy manual.
+- **SUPERADMIN_EMAIL no aplicaba**: estaba en "Shared" (team level) pero no en el proyecto. Fix: agregar también en Projects → autocorefix → Environment Variables → luego Redeploy.
+- **`useEffect` en SubscriptionContext sobreescribía estado del servidor**: el fetch del cliente llegaba después y pisaba `initialBlocked=true` con `false`. Fix: eliminar el `useEffect` completamente — el servidor es la única fuente de verdad para el estado de bloqueo.
+
 ### Pendiente para el piloto real 📋
 - [ ] **Comprar dominio `autocorefix.com`** — desbloquea todo lo demás
 - [ ] Conectar dominio a Vercel + actualizar Supabase URL Configuration + Google OAuth redirect URIs
 - [ ] Verificar dominio en Resend → emails de invitación funcionan para cualquier destinatario
 - [ ] Activar Stripe Live: crear producto/precios Live, actualizar STRIPE_SECRET_KEY + STRIPE_PRICE_IDs + STRIPE_WEBHOOK_SECRET + webhook URL en Vercel
 - [ ] Prueba end-to-end completa antes del piloto (registro → orden → reporte)
-- [ ] Revisar experiencia mobile (tabla órdenes + formulario nueva orden en celular)
 - [ ] Página 404 personalizada
 
 ### Pendiente futuro 📋

@@ -246,8 +246,10 @@ export default function BillingClient({
       {(isActive || isPastDue) && (
         <div className="bg-zinc-50 rounded-2xl border border-zinc-200 p-4">
           <p className="text-sm text-zinc-500">Para cambiar tu plan, cancelar o ver historial de pagos, usa el portal de facturación.</p>
-          <button onClick={handlePortal} disabled={!!loading} className="mt-3 text-sm font-semibold text-[#2563EB] hover:underline disabled:opacity-50">
-            {loading === 'portal' ? 'Cargando...' : 'Ir al portal de facturación →'}
+          <button onClick={handlePortal} disabled={!!loading}
+            className="mt-3 text-sm font-medium text-[#2563EB] hover:underline disabled:opacity-50"
+          >
+            {loading === 'portal' ? 'Cargando...' : 'Abrir portal de facturacion'}
           </button>
         </div>
       )}

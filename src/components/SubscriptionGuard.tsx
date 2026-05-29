@@ -9,7 +9,6 @@ export default function SubscriptionGuard() {
 
   useEffect(() => {
     if (pathname.startsWith('/dashboard/billing')) return
-
     fetch('/api/subscription-status')
       .then((r) => r.json())
       .then(({ blocked }) => {

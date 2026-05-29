@@ -147,7 +147,7 @@ export default function DashboardClient({
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4 mb-8">
         {METRICS.map(({ label, value, Icon, iconBg, iconColor }) => (
-          <div key={label} className="bg-white rounded-2xl border border-zinc-200 border-t-2 border-t-[#2563EB] shadow-sm p-5 flex items-center gap-4">
+          <div key={label} className="bg-white rounded-2xl border border-zinc-200 border-t-2 border-t-[#2563EB] shadow-sm p-4 sm:p-5 flex items-center gap-4">
             <div className={`flex items-center justify-center w-11 h-11 rounded-xl shrink-0 ${iconBg}`}>
               <Icon className={`w-5 h-5 ${iconColor}`} strokeWidth={2} />
             </div>
@@ -168,10 +168,10 @@ export default function DashboardClient({
             <thead>
               <tr className="bg-zinc-50 border-b border-zinc-200 text-left">
                 <th className="w-12 px-4 py-3"></th>
-                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">#Orden</th>
+                <th className="hidden sm:table-cell px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">#Orden</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Cliente</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Vehiculo</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Servicios</th>
+                <th className="hidden sm:table-cell px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Vehiculo</th>
+                <th className="hidden sm:table-cell px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Servicios</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estado</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Total</th>
               </tr>
@@ -210,16 +210,16 @@ export default function DashboardClient({
                           }
                         </div>
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="hidden sm:table-cell px-4 py-4">
                         <span className="font-mono text-xs font-semibold text-zinc-600 bg-zinc-100 px-2 py-1 rounded-md">
                           #{order.id.slice(0, 8).toUpperCase()}
                         </span>
                       </td>
                       <td className="px-4 py-4 font-medium text-zinc-800">{cliente?.nombre ?? '—'}</td>
-                      <td className="px-4 py-4 text-zinc-500">
+                      <td className="hidden sm:table-cell px-4 py-4 text-zinc-500">
                         {vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}` : '—'}
                       </td>
-                      <td className="px-4 py-4 text-zinc-500">
+                      <td className="hidden sm:table-cell px-4 py-4 text-zinc-500">
                         <span className={isExpanded ? 'text-[#2563EB] font-medium' : ''}>
                           {numServicios} {numServicios === 1 ? 'servicio' : 'servicios'}
                         </span>

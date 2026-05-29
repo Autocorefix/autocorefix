@@ -389,9 +389,9 @@ export default function ReportesClient({
             </button>
 
             {open && (
-              <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl flex overflow-hidden min-w-[420px]">
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl flex flex-col sm:flex-row overflow-hidden max-w-[calc(100vw-2rem)] sm:min-w-[420px]">
                 {/* Presets */}
-                <div className="flex flex-col border-r border-zinc-100 py-2 min-w-[160px]">
+                <div className="flex flex-col border-b sm:border-b-0 sm:border-r border-zinc-100 py-2 sm:min-w-[160px]">
                   {PRESETS.map(p => (
                     <button
                       key={p.key}
@@ -560,7 +560,7 @@ export default function ReportesClient({
                 <BarChart data={topSvcData} layout="vertical" margin={{ top: 0, right: 58, left: 4, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <YAxis type="category" dataKey="nombre" tick={<SvcYAxisTick />} axisLine={false} tickLine={false} width={155} />
+                  <YAxis type="category" dataKey="nombre" tick={<SvcYAxisTick />} axisLine={false} tickLine={false} width={110} />
                   <Tooltip content={<CustomTooltipCount />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} isAnimationActive={false} allowEscapeViewBox={{ x: false, y: true }} />
                   <Bar dataKey="cantidad" radius={[0, 6, 6, 0]} barSize={20} isAnimationActive={false}>
                     {topSvcData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
@@ -597,8 +597,8 @@ export default function ReportesClient({
             <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado</p>
           </div>
           {catData.length > 0 ? (
-            <div className="flex items-center gap-4">
-              <div style={{ width: 190, height: 190, flexShrink: 0 }}>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="w-full sm:w-[190px] sm:shrink-0" style={{ height: 190 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart style={{ outline: 'none' }}>
                     <Pie data={catData} dataKey="valor" nameKey="nombre" cx="50%" cy="50%" innerRadius={52} outerRadius={82} paddingAngle={2} style={{ outline: 'none' }}>
@@ -608,7 +608,7 @@ export default function ReportesClient({
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex-1 overflow-y-auto" style={{ maxHeight: 190 }}>
+              <div className="w-full sm:flex-1 overflow-y-auto" style={{ maxHeight: 190 }}>
                 {catData.map((c, i) => {
                   const pct = ingresosMes > 0 ? (c.valor / ingresosMes) * 100 : 0
                   return (

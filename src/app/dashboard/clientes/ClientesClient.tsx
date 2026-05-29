@@ -451,7 +451,7 @@ export default function ClientesClient({
     <div className="max-w-6xl">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Clientes</h1>
           <p className="text-sm text-zinc-400 mt-0.5">
@@ -594,7 +594,7 @@ export default function ClientesClient({
                   </div>
 
                   {/* Mini cards */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {[
                       { label: 'Teléfono', value: c.telefono ?? '—' },
                       { label: 'Email',    value: c.email    ?? '—' },
