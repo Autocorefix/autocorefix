@@ -318,13 +318,13 @@ export default function NuevaOrdenClient({
                 const active = categoriaActiva === cat.id
                 return (
                   <button key={cat.id} onClick={() => setCategoriaActiva(prev => prev === cat.id ? null : cat.id)}
-                    className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left transition-all ${
+                    className={`group flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-3 sm:py-3.5 rounded-xl border text-left transition-all ${
                       active ? 'bg-[#2563EB] border-[#2563EB] shadow-sm' : 'bg-white border-zinc-200 hover:bg-[#2563EB] hover:border-[#2563EB] hover:shadow-sm'
                     }`}>
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-colors ${active ? 'bg-white/20' : 'bg-blue-50 group-hover:bg-white/20'}`}>
-                      <Icon className={`w-4 h-4 transition-colors ${active ? 'text-white' : 'text-[#2563EB] group-hover:text-white'}`} strokeWidth={2} />
+                    <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0 transition-colors ${active ? 'bg-white/20' : 'bg-blue-50 group-hover:bg-white/20'}`}>
+                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${active ? 'text-white' : 'text-[#2563EB] group-hover:text-white'}`} strokeWidth={2} />
                     </div>
-                    <span className={`text-sm font-medium leading-tight transition-colors ${active ? 'text-white' : 'text-zinc-700 group-hover:text-white'}`}>{cat.nombre}</span>
+                    <span className={`text-xs sm:text-sm font-medium leading-tight min-w-0 break-words transition-colors ${active ? 'text-white' : 'text-zinc-700 group-hover:text-white'}`}>{cat.nombre}</span>
                   </button>
                 )
               })}
