@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { ClipboardList, Wrench, CheckCircle2, Banknote, ChevronDown, ChevronRight } from 'lucide-react'
+import { ClipboardList, Wrench, CheckCircle2, Banknote, ChevronDown, ChevronRight, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 
 type OrdenServicio = {
@@ -113,6 +113,7 @@ export default function DashboardClient({
   const [ordenes, setOrdenes] = useState<Orden[]>(inicial)
   const [updating, setUpdating] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
   const supabase = createClient()
 
   const recibidas   = ordenes.filter(o => o.estado === 'recibido').length
@@ -126,6 +127,13 @@ export default function DashboardClient({
     { label: 'Completadas',       value: String(completadas), Icon: CheckCircle2,  iconBg: 'bg-emerald-50', iconColor: 'text-emerald-500' },
     { label: 'Ingresos del Dia',  value: '$' + ingresos.toLocaleString('es-MX'), Icon: Banknote, iconBg: 'bg-blue-50', iconColor: 'text-[#2563EB]' },
   ]
+
+  const ordenesFiltradas = search.trim()
+    ? ordenes.filter(o => {
+        const cliente = Array.isArray(o.clientes) ? o.clientes[0] : o.clientes
+        return cliente?.nombre.toLowerCase().includes(search.toLowerCase())
+      })
+    : ordenes
 
   async function cambiarEstado(id: string, estado: Estado) {
     setUpdating(id)
@@ -160,8 +168,18 @@ export default function DashboardClient({
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-zinc-100">
+        <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between gap-4 flex-wrap">
           <h2 className="text-sm font-semibold text-zinc-900">Ordenes de hoy</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Buscar cliente..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-8 pr-3 py-1.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] w-52 placeholder:text-zinc-400"
+            />
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -177,14 +195,14 @@ export default function DashboardClient({
               </tr>
             </thead>
             <tbody>
-              {ordenes.length === 0 && (
+              {ordenesFiltradas.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-10 text-center text-zinc-400 text-sm">
-                    No hay ordenes registradas hoy
+                    {search.trim() ? 'Sin resultados para esa búsqueda' : 'No hay ordenes registradas hoy'}
                   </td>
                 </tr>
               )}
-              {ordenes.map(order => {
+              {ordenesFiltradas.map(order => {
                 const cliente      = Array.isArray(order.clientes) ? order.clientes[0] : order.clientes
                 const vehiculo     = Array.isArray(order.vehiculos) ? order.vehiculos[0] : order.vehiculos
                 const servicios    = order.orden_servicios ?? []

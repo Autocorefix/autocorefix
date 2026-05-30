@@ -4,8 +4,12 @@ import DashboardClient from './DashboardClient'
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  // Midnight in Mexico City timezone (handles DST automatically)
+  const now = new Date()
+  const mexicoLocalTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }))
+  const offset = now.getTime() - mexicoLocalTime.getTime()
+  mexicoLocalTime.setHours(0, 0, 0, 0)
+  const today = new Date(mexicoLocalTime.getTime() + offset)
 
   const { data: ordenes } = await supabase
     .from('ordenes')
