@@ -18,12 +18,15 @@ export default function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-        <div className="flex items-center gap-2">
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="flex items-center gap-2 cursor-pointer"
+        >
           <div className="w-8 h-8 bg-[#2563EB] rounded-lg flex items-center justify-center">
             <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
           <span className="font-semibold text-[#0F172A] tracking-tight">AutoCoreFix</span>
-        </div>
+        </button>
 
         <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
           {NAV_LINKS.map(link => (

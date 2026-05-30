@@ -44,12 +44,12 @@ export default function Sidebar({ rol }: { rol: string }) {
     <>
       {/* Logo */}
       <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid #f4f4f5' }}>
-        <div className="flex items-center gap-2.5">
+        <Link href="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-2.5">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg" style={{ background: '#2563EB' }}>
             <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-sm font-semibold text-zinc-900 tracking-tight">AutoCoreFix</span>
-        </div>
+        </Link>
         {/* Boton cerrar — solo visible en móvil */}
         <button
           className="lg:hidden p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors"
