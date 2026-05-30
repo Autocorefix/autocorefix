@@ -7,6 +7,7 @@ export function middleware(request: NextRequest) {
 
   // Rutas que siempre pasan sin verificacion
   if (
+    pathname === '/' ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/api/stripe/') ||
     pathname.startsWith('/onboarding') ||
@@ -38,9 +39,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  const response = NextResponse.next()
-  response.headers.set('x-pathname', pathname)
-  return response
+  // Pasar pathname como request header para que layout.tsx lo lea con headers()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', pathname)
+  return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
 export const config = {
