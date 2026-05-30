@@ -72,6 +72,101 @@ export async function sendInvitationEmail({
   }
 }
 
+export async function sendFacturaSolicitudEmail({
+  solicitudId,
+  tallerName,
+  periodo,
+  monto,
+  rfc,
+  razon_social,
+  codigoPostal,
+  regimenFiscal,
+  usoCfdi,
+  emailCliente,
+}: {
+  solicitudId: string
+  tallerName: string
+  periodo: string
+  monto: number
+  rfc: string
+  razon_social: string
+  codigoPostal: string
+  regimenFiscal: string
+  usoCfdi: string
+  emailCliente: string
+}) {
+  const to = process.env.BILLING_CONTACT_EMAIL ?? 'luismgr1980@gmail.com'
+  try {
+    await getResend().emails.send({
+      from: 'AutoCoreFix <onboarding@resend.dev>',
+      to,
+      subject: `Solicitud de factura — ${tallerName} — ${periodo}`,
+      html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+        <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+            <tr><td align="center">
+              <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e4e7;">
+                <tr>
+                  <td style="background:#2563EB;padding:28px 40px;">
+                    <p style="margin:0;color:#ffffff;font-size:18px;font-weight:700;">AutoCoreFix</p>
+                    <p style="margin:4px 0 0;color:#bfdbfe;font-size:13px;">Nueva solicitud de factura CFDI</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:32px 40px;">
+                    <p style="margin:0 0 6px;color:#18181b;font-size:20px;font-weight:700;">📄 Solicitud de factura</p>
+                    <p style="margin:0 0 24px;color:#71717a;font-size:14px;">Genera el CFDI en cfdifacturas.com.mx con los siguientes datos:</p>
+
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;margin-bottom:24px;">
+                      <tr><td style="padding:20px 24px;">
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                          ${[
+                            ['Taller',          tallerName],
+                            ['RFC',             rfc],
+                            ['Razón Social',    razon_social],
+                            ['Código Postal',   codigoPostal],
+                            ['Régimen Fiscal',  regimenFiscal],
+                            ['Uso de CFDI',     usoCfdi],
+                            ['Período',         periodo],
+                            ['Monto',           `$${Number(monto).toLocaleString('es-MX')} MXN (IVA incluido)`],
+                            ['Email cliente',   emailCliente],
+                            ['ID solicitud',    solicitudId.slice(0, 8).toUpperCase()],
+                          ].map(([label, value]) => `
+                            <tr>
+                              <td style="padding:5px 0;color:#0369a1;font-size:12px;font-weight:600;width:140px;">${label}</td>
+                              <td style="padding:5px 0;color:#18181b;font-size:13px;">${value}</td>
+                            </tr>
+                          `).join('')}
+                        </table>
+                      </td></tr>
+                    </table>
+
+                    <p style="margin:0;color:#71717a;font-size:13px;line-height:1.6;">
+                      Una vez generado el CFDI, envíalo al correo del cliente y marca la solicitud como <strong>Emitida</strong> en el dashboard.
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top:1px solid #f4f4f5;padding:16px 40px;background:#fafafa;">
+                    <p style="margin:0;color:#a1a1aa;font-size:12px;">AutoCoreFix · Panel de administración</p>
+                  </td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+        </body>
+        </html>
+      `,
+    })
+  } catch (err) {
+    console.error('Error enviando email de solicitud de factura:', err)
+    throw err
+  }
+}
+
 export async function notifyAdminInvitationAccepted({
   adminEmail,
   assistantName,

@@ -442,8 +442,9 @@ export default async function LandingPage() {
           </div>
           <p className="text-xs text-slate-500">© {new Date().getFullYear()} AutoCoreFix. Todos los derechos reservados.</p>
           <div className="flex items-center gap-5 text-xs text-slate-500">
-            <Link href="/login" target="_blank" rel="noopener noreferrer"    className="hover:text-slate-300 transition-colors">Iniciar sesión</Link>
+            <Link href="/login"    target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">Iniciar sesión</Link>
             <Link href="/register" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">Registrarse</Link>
+            <Link href="/terminos" className="hover:text-slate-300 transition-colors">Términos</Link>
           </div>
         </div>
       </footer>
