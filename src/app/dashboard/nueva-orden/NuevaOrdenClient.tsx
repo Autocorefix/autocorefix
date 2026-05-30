@@ -266,7 +266,7 @@ export default function NuevaOrdenClient({
 
           {hayCliente && (
             <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-zinc-900 mb-4">Vehículo</h2>
+              <h2 className="text-sm font-semibold text-zinc-900 mb-4">Selecciona el vehículo</h2>
 
               {vehiculosCliente.length > 0 && !modoNuevoVehiculo && (
                 <div className="flex flex-col gap-2 mb-3">
