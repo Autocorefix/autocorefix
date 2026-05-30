@@ -39,12 +39,12 @@ export default async function LandingPage() {
               de ingresos en un solo sistema. Desde el celular o la computadora, sin capacitación.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
-              <Link href="/register"
+              <Link href="/register" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors shadow-sm text-sm">
                 Comenzar prueba gratis
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/login"
+              <Link href="/login" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-colors text-sm">
                 Ya tengo cuenta <ChevronRight className="w-4 h-4" />
               </Link>
@@ -274,7 +274,7 @@ export default async function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/register" className="block text-center py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">
+              <Link href="/register" target="_blank" rel="noopener noreferrer" className="block text-center py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">
                 Empezar gratis
               </Link>
             </div>
@@ -294,7 +294,7 @@ export default async function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/register" className="block text-center py-2.5 border border-[#2563EB] text-[#2563EB] text-sm font-medium rounded-xl hover:bg-blue-50 transition-colors">
+              <Link href="/register" target="_blank" rel="noopener noreferrer" className="block text-center py-2.5 border border-[#2563EB] text-[#2563EB] text-sm font-medium rounded-xl hover:bg-blue-50 transition-colors">
                 Elegir mensual
               </Link>
             </div>
@@ -317,7 +317,7 @@ export default async function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/register" className="block text-center py-2.5 bg-[#2563EB] text-white text-sm font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors">
+              <Link href="/register" target="_blank" rel="noopener noreferrer" className="block text-center py-2.5 bg-[#2563EB] text-white text-sm font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors">
                 Elegir anual
               </Link>
             </div>
@@ -381,7 +381,7 @@ export default async function LandingPage() {
           <p className="text-slate-400 mb-8 text-lg">
             Deja los papelitos atrás y lleva el control desde cualquier dispositivo.
           </p>
-          <Link href="/register"
+          <Link href="/register" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors text-sm">
             Comenzar prueba gratis
             <ArrowRight className="w-4 h-4" />
@@ -401,8 +401,8 @@ export default async function LandingPage() {
           </div>
           <p className="text-xs text-slate-500">© {new Date().getFullYear()} AutoCoreFix. Todos los derechos reservados.</p>
           <div className="flex items-center gap-5 text-xs text-slate-500">
-            <Link href="/login"    className="hover:text-slate-300 transition-colors">Iniciar sesión</Link>
-            <Link href="/register" className="hover:text-slate-300 transition-colors">Registrarse</Link>
+            <Link href="/login" target="_blank" rel="noopener noreferrer"    className="hover:text-slate-300 transition-colors">Iniciar sesión</Link>
+            <Link href="/register" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">Registrarse</Link>
           </div>
         </div>
       </footer>

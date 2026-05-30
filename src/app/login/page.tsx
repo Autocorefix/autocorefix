@@ -69,12 +69,12 @@ export default function LoginPage() {
         <div className="absolute bottom-32 right-10 w-40 h-40 rounded-full opacity-5" style={{ background: '#ffffff' }} />
 
         {/* Logo */}
-        <div className="flex items-center gap-3 relative z-10">
+        <Link href="/" className="flex items-center gap-3 relative z-10 w-fit">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
             <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-white font-semibold text-lg tracking-tight">AutoCoreFix</span>
-        </div>
+        </Link>
 
         {/* Copy central */}
         <div className="relative z-10 space-y-4">
@@ -111,12 +111,12 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
 
           {/* Logo mobile */}
-          <div className="flex items-center gap-2.5 mb-10 lg:hidden">
+          <Link href="/" className="flex items-center gap-2.5 mb-10 lg:hidden w-fit">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#2563EB]">
               <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-zinc-900 font-semibold text-base tracking-tight">AutoCoreFix</span>
-          </div>
+          </Link>
 
           {/* Header */}
           <div className="mb-8">

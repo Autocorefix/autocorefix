@@ -118,12 +118,12 @@ export default function RegisterPage() {
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-10" style={{ background: '#ffffff' }} />
         <div className="absolute bottom-0 -left-20 w-72 h-72 rounded-full opacity-10" style={{ background: '#ffffff' }} />
 
-        <div className="flex items-center gap-3 relative z-10">
+        <Link href="/" className="flex items-center gap-3 relative z-10 w-fit">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
             <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-white font-semibold text-lg tracking-tight">AutoCoreFix</span>
-        </div>
+        </Link>
 
         <div className="relative z-10 space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm">
@@ -160,12 +160,12 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm py-8">
 
           {/* Logo mobile */}
-          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+          <Link href="/" className="flex items-center gap-2.5 mb-8 lg:hidden w-fit">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#2563EB]">
               <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-zinc-900 font-semibold text-base tracking-tight">AutoCoreFix</span>
-          </div>
+          </Link>
 
           <div className="mb-7">
             <h1 className="text-2xl font-bold text-zinc-900">Crear cuenta</h1>
