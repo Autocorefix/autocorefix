@@ -745,7 +745,7 @@ export default function ClientesClient({
               {vehiculoModal.cliente.vehiculos.map(v => (
                 <button key={v.id}
                   onClick={() => handlePDFConVehiculo(vehiculoModal.cliente, v)}
-                  className="flex items-center gap-3 rounded-xl border border-zinc-200 px-4 py-3 text-left hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                  className="flex items-center gap-3 rounded-xl bg-zinc-50 border border-zinc-300 px-4 py-3 text-left hover:bg-blue-50 hover:border-blue-200 transition-colors"
                 >
                   <Car className="w-4 h-4 text-[#2563EB] shrink-0" />
                   <span className="text-sm font-medium text-zinc-800">

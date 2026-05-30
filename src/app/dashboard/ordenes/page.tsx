@@ -223,7 +223,7 @@ export default function OrdenesPage() {
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                 filtroEstado === e
                   ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                  : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400'
+                  : 'bg-zinc-50 text-zinc-600 border-zinc-300 hover:border-zinc-400'
               }`}
             >
               {e === 'todos' ? 'Todos' : STATUS_STYLES[e].label}

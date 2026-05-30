@@ -275,7 +275,7 @@ export default function NuevaOrdenClient({
                       className={`group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
                         vehiculoSeleccionado?.id === v.id
                           ? 'bg-emerald-50 border-emerald-400'
-                          : 'border-zinc-200 hover:bg-amber-50 hover:border-amber-300'
+                          : 'bg-zinc-50 border-zinc-300 hover:bg-amber-50 hover:border-amber-300'
                       }`}>
                       <Car className={`w-4 h-4 shrink-0 transition-colors ${
                         vehiculoSeleccionado?.id === v.id ? 'text-emerald-600' : 'text-zinc-400 group-hover:text-amber-500'
@@ -325,7 +325,7 @@ export default function NuevaOrdenClient({
                 return (
                   <button key={cat.id} onClick={() => setCategoriaActiva(prev => prev === cat.id ? null : cat.id)}
                     className={`group flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-3 sm:py-3.5 rounded-xl border text-left transition-all ${
-                      active ? 'bg-[#2563EB] border-[#2563EB] shadow-sm' : 'bg-white border-zinc-200 hover:bg-[#2563EB] hover:border-[#2563EB] hover:shadow-sm'
+                      active ? 'bg-[#2563EB] border-[#2563EB] shadow-sm' : 'bg-zinc-50 border-zinc-300 hover:bg-[#2563EB] hover:border-[#2563EB] hover:shadow-sm'
                     }`}>
                     <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg shrink-0 transition-colors ${active ? 'bg-white/20' : 'bg-blue-50 group-hover:bg-white/20'}`}>
                       <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${active ? 'text-white' : 'text-[#2563EB] group-hover:text-white'}`} strokeWidth={2} />
@@ -349,7 +349,7 @@ export default function NuevaOrdenClient({
                         className={`rounded-lg px-3 py-2 text-sm border transition-colors ${
                           agregado
                             ? 'bg-emerald-50 text-emerald-600 border-emerald-200 cursor-default'
-                            : 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:bg-blue-50 hover:text-[#2563EB] hover:border-blue-200'
+                            : 'bg-zinc-50 text-zinc-700 border-zinc-300 hover:bg-blue-50 hover:text-[#2563EB] hover:border-blue-200'
                         }`}>
                         {s.nombre}
                         <span className="ml-1.5 text-xs opacity-60">${s.precio_base.toLocaleString('es-MX')}</span>
