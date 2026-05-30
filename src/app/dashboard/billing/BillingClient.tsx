@@ -498,7 +498,7 @@ export default function BillingClient({
       </div>
 
       {/* ── Solicitar factura ── */}
-      {(isActive || isTrialing) && (
+      {isActive && (
         <div className="bg-white rounded-2xl border border-zinc-200 p-6">
           <div className="flex items-center gap-3 mb-1">
             <Receipt className="w-4 h-4 text-[#2563EB]" />
@@ -598,10 +598,16 @@ export default function BillingClient({
               ))}
             </div>
 
-            <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-5">
+            <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-3">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 leading-relaxed">
                 Verifica que tus datos coincidan exactamente con tu <strong>Constancia de Situación Fiscal</strong> del SAT. Un error requiere cancelación del CFDI, lo cual puede tomar hasta 72 horas. Al confirmar, aceptas la responsabilidad sobre la exactitud de los datos.
+              </p>
+            </div>
+            <div className="flex items-start gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-5">
+              <AlertCircle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Si solicitas un reembolso dentro de los 30 días de garantía, el CFDI emitido será cancelado ante el SAT y se emitirá una nota de crédito (CFDI Egreso). El reembolso se procesa de forma independiente a través de Stripe.
               </p>
             </div>
 

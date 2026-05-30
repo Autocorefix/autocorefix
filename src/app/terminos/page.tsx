@@ -113,6 +113,12 @@ export default function TerminosPage() {
               requiere cancelación conforme a los lineamientos del SAT (CFDI 4.0), proceso que puede tomar hasta 72 horas
               y podría implicar un costo adicional por reemisión.
             </p>
+            <p>
+              <strong>CFDI y reembolsos.</strong> Si se aprueba un reembolso dentro del período de garantía de 30 días,
+              el CFDI original será cancelado ante el SAT y se emitirá un CFDI de Egreso (nota de crédito) por el monto
+              devuelto. El reembolso en Stripe se procesa de forma independiente al proceso fiscal y no está condicionado
+              a la cancelación del CFDI.
+            </p>
           </Section>
 
           <Section title="7. Uso aceptable">
