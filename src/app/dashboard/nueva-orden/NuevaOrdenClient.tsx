@@ -270,13 +270,22 @@ export default function NuevaOrdenClient({
 
               {vehiculosCliente.length > 0 && !modoNuevoVehiculo && (
                 <div className="flex flex-col gap-2 mb-3">
+                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1">
+                    Selecciona el vehículo
+                  </p>
                   {vehiculosCliente.map(v => (
                     <button key={v.id} onClick={() => setVehiculoSeleccionado(v)}
-                      className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
-                        vehiculoSeleccionado?.id === v.id ? 'bg-blue-50 border-blue-200' : 'border-zinc-200 hover:bg-zinc-50'
+                      className={`group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
+                        vehiculoSeleccionado?.id === v.id
+                          ? 'bg-[#EFF6FF] border-[#2563EB]'
+                          : 'border-zinc-200 hover:bg-[#EFF6FF] hover:border-[#2563EB]'
                       }`}>
-                      <Car className="w-4 h-4 text-zinc-400 shrink-0" />
-                      <span className="text-sm font-medium text-zinc-800">{v.marca} {v.modelo} {v.anio}</span>
+                      <Car className={`w-4 h-4 shrink-0 transition-colors ${
+                        vehiculoSeleccionado?.id === v.id ? 'text-[#2563EB]' : 'text-zinc-400 group-hover:text-[#2563EB]'
+                      }`} />
+                      <span className={`text-sm font-medium transition-colors ${
+                        vehiculoSeleccionado?.id === v.id ? 'text-[#2563EB]' : 'text-zinc-800 group-hover:text-[#2563EB]'
+                      }`}>{v.marca} {v.modelo} {v.anio}</span>
                     </button>
                   ))}
                 </div>
