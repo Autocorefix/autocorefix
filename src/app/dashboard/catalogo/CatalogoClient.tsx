@@ -200,7 +200,7 @@ export default function CatalogoClient({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-zinc-900">Catálogo de Servicios</h1>
-            <p className="text-sm text-zinc-400 mt-0.5">{servicios.length} servicios registrados</p>
+            <p className="text-sm text-zinc-500 mt-0.5">{servicios.length} servicios registrados</p>
           </div>
           <button
             onClick={openCreateSvc}
@@ -219,11 +219,11 @@ export default function CatalogoClient({
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-zinc-50 text-left border-b border-zinc-100">
-                  <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Categoría</th>
-                  <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">Nombre del servicio</th>
-                  <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-right">Precio base</th>
-                  <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-center">Estado</th>
-                  <th className="px-6 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide text-center">Acciones</th>
+                  <th className="px-6 py-3 text-xs font-medium text-zinc-600 uppercase tracking-wide">Categoría</th>
+                  <th className="px-6 py-3 text-xs font-medium text-zinc-600 uppercase tracking-wide">Nombre del servicio</th>
+                  <th className="px-6 py-3 text-xs font-medium text-zinc-600 uppercase tracking-wide text-right">Precio base</th>
+                  <th className="px-6 py-3 text-xs font-medium text-zinc-600 uppercase tracking-wide text-center">Estado</th>
+                  <th className="px-6 py-3 text-xs font-medium text-zinc-600 uppercase tracking-wide text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50">
@@ -275,7 +275,7 @@ export default function CatalogoClient({
                 ))}
                 {servicios.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-zinc-400">
+                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-zinc-500">
                       No hay servicios registrados. Agrega el primero.
                     </td>
                   </tr>
@@ -369,7 +369,7 @@ export default function CatalogoClient({
                 {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
                 <div className="flex gap-3 mt-2">
                   <button type="button" onClick={closeModal} className="flex-1 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">Cancelar</button>
-                  <button type="submit" disabled={loading} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-50" style={{ background: loading ? '#93c5fd' : PRIMARY }}>
+                  <button type="submit" disabled={loading} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-colors disabled:opacity-50">
                     {loading ? 'Guardando...' : 'Guardar'}
                   </button>
                 </div>
@@ -456,7 +456,7 @@ export default function CatalogoClient({
                 {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
                 <div className="flex gap-3 mt-2">
                   <button type="button" onClick={closeModal} className="flex-1 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">Cancelar</button>
-                  <button type="submit" disabled={loading} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-50" style={{ background: loading ? '#93c5fd' : PRIMARY }}>
+                  <button type="submit" disabled={loading} className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-colors disabled:opacity-50">
                     {loading ? 'Guardando...' : 'Guardar'}
                   </button>
                 </div>

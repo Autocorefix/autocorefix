@@ -177,14 +177,14 @@ export default function SettingsPage() {
     <div className="max-w-2xl space-y-8">
       <div>
         <h1 className="text-2xl font-semibold text-zinc-900">Ajustes</h1>
-        <p className="text-sm text-zinc-400 mt-0.5">Gestión de acceso al taller</p>
+        <p className="text-sm text-zinc-500 mt-0.5">Gestión de acceso al taller</p>
       </div>
 
       {/* Invitar asistente */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
         <div className="flex items-center gap-2 mb-5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
-            <UserPlus className="w-4 h-4 text-[#2563EB]" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-50">
+            <UserPlus className="w-4 h-4 text-violet-600" />
           </div>
           <h2 className="text-sm font-semibold text-zinc-900">Invitar asistente</h2>
         </div>
@@ -201,10 +201,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={sending}
-            className="px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm disabled:opacity-50 transition-colors"
-            style={{ background: sending ? '#93c5fd' : '#1649C8' }}
-            onMouseEnter={e => { if (!sending) e.currentTarget.style.background = '#1340B0' }}
-            onMouseLeave={e => { if (!sending) e.currentTarget.style.background = '#1649C8' }}
+            className="px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
           >
             {sending ? 'Enviando…' : 'Invitar'}
           </button>
@@ -217,7 +214,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <p className="mt-3 text-xs text-zinc-400">
+        <p className="mt-3 text-xs text-zinc-500">
           Se enviará un enlace de acceso por correo. La asistente deberá configurar su nombre y contraseña al aceptar.
         </p>
       </div>
@@ -227,7 +224,7 @@ export default function SettingsPage() {
         <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Asistentes con acceso</h2>
           {!loading && (
-            <span className="text-xs text-zinc-400">
+            <span className="text-xs text-zinc-500">
               {asistentes.length} activo{asistentes.length !== 1 ? 's' : ''}
             </span>
           )}
@@ -248,7 +245,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-zinc-800">{a.nombre ?? '—'}</p>
-                    <p className="text-xs text-zinc-400 mt-0.5">{a.email}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">{a.email}</p>
                   </div>
                 </div>
                 <button
@@ -271,7 +268,7 @@ export default function SettingsPage() {
           <div className="px-6 py-4 border-b border-zinc-100 flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400" />
             <h2 className="text-sm font-semibold text-zinc-900">Invitaciones pendientes</h2>
-            <span className="ml-auto text-xs text-zinc-400">{invPendientes.length}</span>
+            <span className="ml-auto text-xs text-zinc-500">{invPendientes.length}</span>
           </div>
           <ul className="divide-y divide-zinc-50">
             {invPendientes.map(inv => (
@@ -280,7 +277,7 @@ export default function SettingsPage() {
                   <Mail className="w-4 h-4 text-zinc-300 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm text-zinc-700 truncate">{inv.email}</p>
-                    <p className="text-[10px] text-zinc-400 mt-0.5">Enviada el {formatFecha(inv.created_at)}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">Enviada el {formatFecha(inv.created_at)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -312,10 +309,10 @@ export default function SettingsPage() {
           <div className="px-6 py-4 border-b border-zinc-100 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <h2 className="text-sm font-semibold text-zinc-900">Invitaciones aceptadas</h2>
-            <span className="ml-auto text-xs text-zinc-400">{invAceptadas.length}</span>
+            <span className="ml-auto text-xs text-zinc-500">{invAceptadas.length}</span>
           </div>
           <div className="px-6 pt-3 pb-1">
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-zinc-500">
               Estos correos aceptaron la invitación. Si no aparecen en "Asistentes con acceso", deben iniciar sesión para activar su cuenta.
             </p>
           </div>
@@ -326,7 +323,7 @@ export default function SettingsPage() {
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm text-zinc-700 truncate">{inv.email}</p>
-                    <p className="text-[10px] text-zinc-400 mt-0.5">Aceptada el {formatFecha(inv.created_at)}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">Aceptada el {formatFecha(inv.created_at)}</p>
                   </div>
                 </div>
                 <button

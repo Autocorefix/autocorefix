@@ -207,15 +207,15 @@ export default function PerfilPage() {
     <div className="max-w-lg space-y-8">
       <div>
         <h1 className="text-2xl font-semibold text-zinc-900">Mi perfil</h1>
-        <p className="text-sm text-zinc-400 mt-0.5">Configura tu nombre y contraseña de acceso</p>
+        <p className="text-sm text-zinc-500 mt-0.5">Configura tu nombre y contraseña de acceso</p>
       </div>
 
       {/* ── Logo del taller (solo admin) ────────────────── */}
       {esAdmin && (
         <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-5">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
-              <Building2 className="w-4 h-4 text-[#2563EB]" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50">
+              <Building2 className="w-4 h-4 text-emerald-600" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-zinc-900">Logo del taller</h2>
@@ -299,13 +299,14 @@ export default function PerfilPage() {
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
             <User className="w-4 h-4 text-[#2563EB]" />
           </div>
+
           <h2 className="text-sm font-semibold text-zinc-900">Información personal</h2>
         </div>
 
         <div className="space-y-4">
           {/* Email readonly */}
           <div>
-            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest block mb-1.5">
+            <label className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest block mb-1.5">
               Correo electrónico
             </label>
             <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5">
@@ -319,7 +320,7 @@ export default function PerfilPage() {
           {/* Nombre */}
           <form onSubmit={guardarNombre} className="space-y-4">
             <div>
-              <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest block mb-1.5">
+              <label className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest block mb-1.5">
                 Nombre completo
               </label>
               <input
@@ -341,7 +342,7 @@ export default function PerfilPage() {
             <button
               type="submit"
               disabled={savingNombre || nombre.trim() === nombreOriginal}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
             >
               <Save className="w-4 h-4" />
               {savingNombre ? 'Guardando…' : 'Guardar nombre'}
@@ -353,15 +354,15 @@ export default function PerfilPage() {
       {/* ── Cambiar contraseña ───────────────────────────── */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
         <div className="flex items-center gap-2 mb-5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
-            <KeyRound className="w-4 h-4 text-[#2563EB]" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-50">
+            <KeyRound className="w-4 h-4 text-orange-500" />
           </div>
           <h2 className="text-sm font-semibold text-zinc-900">Cambiar contraseña</h2>
         </div>
 
         <form onSubmit={cambiarPassword} className="space-y-4">
           <div>
-            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest block mb-1.5">
+            <label className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest block mb-1.5">
               Nueva contraseña
             </label>
             <div className="relative">
@@ -385,7 +386,7 @@ export default function PerfilPage() {
           </div>
 
           <div>
-            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest block mb-1.5">
+            <label className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest block mb-1.5">
               Confirmar contraseña
             </label>
             <div className="relative">
@@ -416,7 +417,7 @@ export default function PerfilPage() {
           <button
             type="submit"
             disabled={savingPass}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
           >
             <KeyRound className="w-4 h-4" />
             {savingPass ? 'Actualizando…' : 'Cambiar contraseña'}

@@ -172,7 +172,7 @@ export default function OrdenesPage() {
     <div className="max-w-6xl">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-zinc-900">Órdenes</h1>
-        <p className="text-sm text-zinc-400 mt-0.5">
+        <p className="text-sm text-zinc-500 mt-0.5">
           {filtradas.length} {filtradas.length === 1 ? 'orden' : 'órdenes'} · ${totalFiltrado.toLocaleString('es-MX')} total
           {filtradas.length > 0 && <span className="ml-2 text-zinc-300">· Mostrando {desde_item}–{hasta_item}</span>}
         </p>
@@ -252,12 +252,12 @@ export default function OrdenesPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-zinc-400 text-sm">Cargando...</td>
+                  <td colSpan={8} className="px-5 py-10 text-center text-zinc-500 text-sm">Cargando...</td>
                 </tr>
               )}
               {!loading && filtradas.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-zinc-400 text-sm">Sin órdenes en este período</td>
+                  <td colSpan={8} className="px-5 py-10 text-center text-zinc-500 text-sm">Sin órdenes en este período</td>
                 </tr>
               )}
               {!loading && paginadas.map(o => {

@@ -199,7 +199,7 @@ export default function NuevaOrdenClient({
     <div className="max-w-6xl">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-zinc-900">Nueva Orden</h1>
-        <p className="text-sm text-zinc-400 mt-0.5">Registra cliente, vehículo y servicios</p>
+        <p className="text-sm text-zinc-500 mt-0.5">Registra cliente, vehículo y servicios</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
@@ -270,8 +270,8 @@ export default function NuevaOrdenClient({
 
               {vehiculosCliente.length > 0 && !modoNuevoVehiculo && (
                 <div className="flex flex-col gap-2 mb-3">
-                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1">
-                    Selecciona el vehículo
+                  <p className="text-sm font-semibold text-zinc-800 mb-1">
+                    Selecciona el vehículo:
                   </p>
                   {vehiculosCliente.map(v => (
                     <button key={v.id} onClick={() => setVehiculoSeleccionado(v)}
@@ -341,7 +341,7 @@ export default function NuevaOrdenClient({
 
             {categoriaActiva && (
               <div className="mt-4 pt-4 border-t border-zinc-100">
-                <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-3">
+                <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide mb-3">
                   {categorias.find(c => c.id === categoriaActiva)?.nombre}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -368,7 +368,7 @@ export default function NuevaOrdenClient({
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Resumen de orden</h2>
 
             {items.length === 0 ? (
-              <p className="text-sm text-zinc-400 py-6 text-center">Selecciona servicios del panel de arriba</p>
+              <p className="text-sm text-zinc-600 py-6 text-center">Selecciona servicios del panel de arriba</p>
             ) : (
               <>
                 <div className="grid grid-cols-[1fr_80px] gap-3 items-center text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2 px-1">
@@ -426,7 +426,7 @@ export default function NuevaOrdenClient({
           )}
 
           <button onClick={guardarOrden} disabled={loading}
-            className="w-full rounded-xl bg-[#2563EB] py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50">
+            className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors disabled:opacity-50">
             {loading ? 'Guardando...' : 'Guardar Orden'}
           </button>
         </div>

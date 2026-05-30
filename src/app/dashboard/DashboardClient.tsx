@@ -150,7 +150,7 @@ export default function DashboardClient({
     <div className="max-w-6xl">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-zinc-900">Dashboard</h1>
-        <p className="text-sm text-zinc-400 mt-0.5 capitalize">{todayLabel}</p>
+        <p className="text-sm text-zinc-500 mt-0.5 capitalize">{todayLabel}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4 mb-8">
@@ -161,7 +161,7 @@ export default function DashboardClient({
             </div>
             <div>
               <p className="text-2xl font-bold text-zinc-900 leading-none">{value}</p>
-              <p className="text-xs text-zinc-400 mt-1">{label}</p>
+              <p className="text-xs text-zinc-600 mt-1">{label}</p>
             </div>
           </div>
         ))}
@@ -197,7 +197,7 @@ export default function DashboardClient({
             <tbody>
               {ordenesFiltradas.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-400 text-sm">
+                  <td colSpan={7} className="px-6 py-10 text-center text-zinc-500 text-sm">
                     {search.trim() ? 'Sin resultados para esa búsqueda' : 'No hay ordenes registradas hoy'}
                   </td>
                 </tr>
@@ -264,7 +264,7 @@ export default function DashboardClient({
                             </div>
                             <div className="divide-y divide-zinc-50">
                               {servicios.length === 0 ? (
-                                <p className="px-4 py-3 text-xs text-zinc-400">Sin servicios registrados</p>
+                                <p className="px-4 py-3 text-xs text-zinc-500">Sin servicios registrados</p>
                               ) : (
                                 servicios.map((s, i) => (
                                   <div key={s.id ?? i} className="flex items-center justify-between px-4 py-2.5">

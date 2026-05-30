@@ -454,7 +454,7 @@ export default function ClientesClient({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Clientes</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">
+          <p className="text-sm text-zinc-500 mt-0.5">
             {activos.length} {activos.length === 1 ? 'cliente' : 'clientes'}
             {archivados.length > 0 && (
               <button
@@ -489,7 +489,7 @@ export default function ClientesClient({
       {/* List */}
       <div className="flex flex-col gap-3">
         {filtrados.length === 0 && (
-          <div className="bg-white rounded-2xl border border-zinc-100 px-6 py-12 text-center text-sm text-zinc-400">
+          <div className="bg-white rounded-2xl border border-zinc-100 px-6 py-12 text-center text-sm text-zinc-500">
             No se encontraron clientes
           </div>
         )}
@@ -521,20 +521,20 @@ export default function ClientesClient({
                         <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200">Archivado</span>
                       )}
                     </div>
-                    <p className="text-xs text-zinc-400 mt-0.5">{c.cliente_id} · {c.telefono ?? '—'}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">{c.cliente_id} · {c.telefono ?? '—'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right hidden sm:block">
-                    <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Ultima visita</p>
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Ultima visita</p>
                     <p className="text-sm font-medium text-zinc-700 mt-0.5">{ultimaVisita}</p>
                   </div>
                   <div className="text-right hidden sm:block">
-                    <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Total gastado</p>
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Total gastado</p>
                     <p className="text-sm font-semibold text-zinc-900 mt-0.5">{fmt(totalGastado)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Ordenes</p>
+                    <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Ordenes</p>
                     <p className="text-sm font-semibold text-zinc-900 mt-0.5">{c.ordenes.length}</p>
                   </div>
                   <div className={`flex items-center justify-center w-7 h-7 rounded-lg border transition-colors shrink-0 ${abierto ? 'bg-[#2563EB] border-[#2563EB]' : 'bg-white border-[#2563EB] group-hover:bg-[#2563EB]'}`}>
@@ -601,7 +601,7 @@ export default function ClientesClient({
                       { label: 'Cliente desde', value: c.created_at ? new Date(c.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' },
                     ].map(({ label, value }) => (
                       <div key={label} className="bg-zinc-50 rounded-xl p-3 border border-zinc-100">
-                        <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1">{label}</p>
+                        <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1">{label}</p>
                         <p className="text-sm font-semibold text-zinc-800 truncate">{value}</p>
                       </div>
                     ))}
@@ -610,12 +610,12 @@ export default function ClientesClient({
                   {/* Vehicles */}
                   {c.vehiculos.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                         <Car className="w-3.5 h-3.5" /> Vehículos
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {c.vehiculos.map(v => (
-                          <span key={v.id} className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700">
+                          <span key={v.id} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-100 px-3 py-1.5 text-sm font-medium text-[#2563EB]">
                             {v.marca} {v.modelo}{v.anio ? ` ${v.anio}` : ''}{v.descripcion ? ` · ${v.descripcion}` : ''}
                           </span>
                         ))}
@@ -626,7 +626,7 @@ export default function ClientesClient({
                   {/* Orders */}
                   {c.ordenes.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                         <ClipboardList className="w-3.5 h-3.5" /> Historial de órdenes
                       </p>
                       <div className="rounded-xl border border-zinc-200 overflow-hidden">
@@ -693,7 +693,7 @@ export default function ClientesClient({
                   )}
 
                   {c.ordenes.length === 0 && (
-                    <p className="text-sm text-zinc-400 text-center py-2">Este cliente aún no tiene órdenes de servicio</p>
+                    <p className="text-sm text-zinc-500 text-center py-2">Este cliente aún no tiene órdenes de servicio</p>
                   )}
                 </div>
               )}
@@ -827,7 +827,7 @@ export default function ClientesClient({
                   Cancelar
                 </button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-50 bg-[#1649C8] hover:bg-[#1340B0]">
+                  className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-50 bg-emerald-600 hover:bg-emerald-700">
                   {saving ? 'Guardando…' : 'Guardar cliente'}
                 </button>
               </div>
