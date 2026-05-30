@@ -76,8 +76,8 @@ Modelo de negocio: ingresos recurrentes por suscripción, cada taller = un tenan
 
 ### Producto y precios (modo Test)
 - Producto: **AutoCoreFix Pro** (`prod_USqrLrDdTstO5v`)
-- Precio mensual: **$399 MXN/mes** (`price_1TTvA1BoqUSKLe0qdZYRMGpB`) — `STRIPE_PRICE_ID_MONTHLY`
-- Precio anual: **$3,499 MXN/año** (`price_1TTvO3BoqUSKLe0qg1Dwy66C`) — `STRIPE_PRICE_ID_ANNUAL`
+- Precio mensual: **$499 MXN/mes** (`price_1TcoeJBoqUSKLe0qYdgTTTU3`) — `STRIPE_PRICE_ID_MONTHLY`
+- Precio anual: **$4,499 MXN/año** (`price_1TcoevBoqUSKLe0quZ6UqqlB`) — `STRIPE_PRICE_ID_ANNUAL`
 
 ### Webhook configurado
 - Nombre: AutoCoreFix producción
