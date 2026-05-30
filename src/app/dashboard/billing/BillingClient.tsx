@@ -498,7 +498,7 @@ export default function BillingClient({
       </div>
 
       {/* ── Solicitar factura ── */}
-      {isActive && (
+      {(isActive || isTrialing) && (
         <div className="bg-white rounded-2xl border border-zinc-200 p-6">
           <div className="flex items-center gap-3 mb-1">
             <Receipt className="w-4 h-4 text-[#2563EB]" />
