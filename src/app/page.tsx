@@ -114,8 +114,8 @@ export default async function LandingPage() {
                 </div>
               </div>
             </div>
-            {/* Badge flotante */}
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg border border-slate-100 px-4 py-3 flex items-center gap-3">
+            {/* Badge flotante — oculto en móvil para no tapar el contenido */}
+            <div className="hidden sm:flex absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg border border-slate-100 px-4 py-3 items-center gap-3">
               <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
               </div>
@@ -258,7 +258,7 @@ export default async function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-[#0F172A] mb-4">Planes simples. Sin sorpresas.</h2>
-            <p className="text-slate-500">Empieza gratis. Continúa con el plan que mejor se adapte a tu taller.</p>
+            <p className="text-slate-500">Empieza gratis. Elige el plan que mejor se adapte a tu taller.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
 
@@ -266,15 +266,21 @@ export default async function LandingPage() {
             <div className="rounded-2xl border border-slate-200 p-6">
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Prueba gratuita</div>
               <div className="text-3xl font-bold text-[#0F172A] mb-1">$0</div>
-              <div className="text-sm text-slate-400 mb-6">14 días · Sin tarjeta</div>
+              <div className="text-sm text-slate-400 mb-6">14 días · Sin tarjeta de crédito</div>
               <ul className="space-y-2.5 mb-6">
-                {['Acceso completo a todas las funciones', 'Órdenes ilimitadas', 'Soporte por email'].map(item => (
+                {[
+                  'Acceso completo a todas las funciones',
+                  'Órdenes ilimitadas',
+                  'Soporte por email',
+                  'Sin compromiso de pago',
+                ].map(item => (
                   <li key={item} className="flex items-center gap-2.5 text-sm text-slate-600">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
-              <Link href="/register" target="_blank" rel="noopener noreferrer" className="block text-center py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">
+              <Link href="/register" target="_blank" rel="noopener noreferrer"
+                className="block text-center py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">
                 Empezar gratis
               </Link>
             </div>
@@ -283,45 +289,76 @@ export default async function LandingPage() {
             <div className="rounded-2xl border border-slate-200 p-6">
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Mensual</div>
               <div className="flex items-end gap-1 mb-1">
-                <span className="text-3xl font-bold text-[#0F172A]">$399</span>
+                <span className="text-3xl font-bold text-[#0F172A]">$499</span>
                 <span className="text-slate-400 text-sm mb-1">MXN/mes</span>
               </div>
-              <div className="text-sm text-slate-400 mb-6">Sin permanencia</div>
+              <div className="text-sm text-slate-400 mb-1">IVA incluido · Sin permanencia</div>
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full mb-5">
+                <CheckCircle2 className="w-3 h-3" /> Garantía 30 días
+              </div>
               <ul className="space-y-2.5 mb-6">
-                {['Todo lo del plan gratuito', 'Uso ilimitado', 'Invita a tu asistente', 'Soporte prioritario'].map(item => (
+                {[
+                  'Todo lo del plan gratuito',
+                  'Uso ilimitado',
+                  'Invita a tu asistente',
+                  'Soporte prioritario',
+                  'Factura CFDI incluida',
+                  'Cancela cuando quieras',
+                ].map(item => (
                   <li key={item} className="flex items-center gap-2.5 text-sm text-slate-600">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
-              <Link href="/register" target="_blank" rel="noopener noreferrer" className="block text-center py-2.5 border border-[#2563EB] text-[#2563EB] text-sm font-medium rounded-xl hover:bg-blue-50 transition-colors">
+              <Link href="/register" target="_blank" rel="noopener noreferrer"
+                className="block text-center py-2.5 border border-[#2563EB] text-[#2563EB] text-sm font-medium rounded-xl hover:bg-blue-50 transition-colors">
                 Elegir mensual
               </Link>
             </div>
 
             {/* Anual — destacado */}
             <div className="rounded-2xl border-2 border-[#2563EB] p-6 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-[10px] font-bold px-3 py-1 rounded-full tracking-wide whitespace-nowrap">
-                Ahorra $1,289 MXN
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-950 text-[10px] font-bold px-3 py-1.5 rounded-full tracking-wide whitespace-nowrap shadow-sm">
+                25% descuento · Ahorra $1,489
               </div>
-              <div className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest mb-4">Anual</div>
+              <div className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest mb-4 mt-1">Anual</div>
               <div className="flex items-end gap-1 mb-1">
-                <span className="text-3xl font-bold text-[#0F172A]">$3,499</span>
+                <span className="text-3xl font-bold text-[#0F172A]">$4,499</span>
                 <span className="text-slate-400 text-sm mb-1">MXN/año</span>
               </div>
-              <div className="text-sm text-slate-400 mb-6">Equivale a $291/mes</div>
+              <div className="text-sm text-slate-400 mb-1">IVA incluido · Equivale a $374/mes</div>
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full mb-5">
+                <CheckCircle2 className="w-3 h-3" /> Garantía 30 días
+              </div>
               <ul className="space-y-2.5 mb-6">
-                {['Todo lo del plan mensual', 'Precio bloqueado 12 meses', 'Acceso anticipado a novedades'].map(item => (
+                {[
+                  'Todo lo del plan mensual',
+                  'Precio bloqueado 12 meses',
+                  'Factura CFDI incluida',
+                  'Soporte prioritario',
+                  'Acceso anticipado a novedades',
+                  'Cancela cuando quieras',
+                ].map(item => (
                   <li key={item} className="flex items-center gap-2.5 text-sm text-slate-600">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
                   </li>
                 ))}
               </ul>
-              <Link href="/register" target="_blank" rel="noopener noreferrer" className="block text-center py-2.5 bg-[#2563EB] text-white text-sm font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors">
+              <Link href="/register" target="_blank" rel="noopener noreferrer"
+                className="block text-center py-3 bg-[#2563EB] text-white text-sm font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors">
                 Elegir anual
               </Link>
             </div>
 
+          </div>
+
+          {/* Nota facturación */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-400 text-center">
+            <span>✓ Todos los precios incluyen IVA (16%)</span>
+            <span className="hidden sm:inline text-slate-200">|</span>
+            <span>✓ Factura CFDI disponible en todos los planes pagados</span>
+            <span className="hidden sm:inline text-slate-200">|</span>
+            <span>✓ Sin cargos ocultos ni comisiones adicionales</span>
           </div>
         </div>
       </section>
@@ -352,7 +389,11 @@ export default async function LandingPage() {
               },
               {
                 q: '¿Puedo cancelar cuando quiera?',
-                a: 'Sí. Sin contratos ni permanencia. Si cancelas, tu acceso se mantiene hasta el final del período pagado y no hay cargos adicionales.',
+                a: 'Sí. Sin contratos ni permanencia. Si cancelas, tu acceso se mantiene hasta el final del período pagado y no hay cargos adicionales. Los planes pagados incluyen garantía de devolución de 30 días desde el primer cobro.',
+              },
+              {
+                q: '¿Incluye factura CFDI?',
+                a: 'Sí. Todos los planes de pago incluyen factura CFDI. Al contratar, completa tus datos fiscales (RFC, razón social, código postal, régimen fiscal) una sola vez desde tu dashboard en la sección Facturación. Cuando necesites tu factura, haz clic en "Solicitar factura" y la recibirás en tu correo en menos de 24 horas hábiles.',
               },
             ].map((faq, i) => (
               <details key={i} className="bg-white rounded-xl border border-slate-200 group">
@@ -421,7 +462,7 @@ export default async function LandingPage() {
                 applicationCategory: 'BusinessApplication',
                 operatingSystem: 'Web',
                 inLanguage: 'es',
-                offers: { '@type': 'Offer', price: '399', priceCurrency: 'MXN' },
+                offers: { '@type': 'Offer', price: '499', priceCurrency: 'MXN', description: 'IVA incluido' },
                 featureList: [
                   'Órdenes de servicio digitales',
                   'Historial de clientes y vehículos',
