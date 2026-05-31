@@ -19,9 +19,12 @@ const SYSTEM_CATS = [
   { key: 'electricidad',   label: 'Electricidad' },
   { key: 'agua',           label: 'Agua' },
   { key: 'gas',            label: 'Gas' },
-  { key: 'telefono',       label: 'Comunicaciones' },
+  { key: 'movil',          label: 'Teléfono móvil' },
+  { key: 'tel_fijo',       label: 'Teléfono fijo' },
+  { key: 'internet',       label: 'Internet' },
+  { key: 'cable_tv',       label: 'Cable / TV' },
   { key: 'herramientas',   label: 'Herramientas' },
-  { key: 'consumibles',    label: 'Consumibles' },
+  { key: 'insumos',        label: 'Insumos de taller' },
   { key: 'imprevistos',    label: 'Imprevistos' },
 ]
 

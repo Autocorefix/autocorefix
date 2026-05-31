@@ -39,10 +39,16 @@ const CAT_LABELS: Record<string, string> = {
   electricidad:   'Electricidad',
   agua:           'Agua',
   gas:            'Gas',
-  telefono:       'Comunicaciones',
+  movil:          'Teléfono móvil',
+  tel_fijo:       'Teléfono fijo',
+  internet:       'Internet',
+  cable_tv:       'Cable / TV',
   herramientas:   'Herramientas',
-  consumibles:    'Consumibles',
+  insumos:        'Insumos de taller',
   imprevistos:    'Imprevistos',
+  // Compatibilidad con registros anteriores
+  telefono:       'Comunicaciones',
+  consumibles:    'Insumos de taller',
   otros:          'Otros',
 }
 
