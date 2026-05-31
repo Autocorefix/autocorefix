@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Plus, Trash2, ChevronDown } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, X } from 'lucide-react'
 import FinanzasNav from '../FinanzasNav'
 
 type Egreso = {
@@ -13,16 +13,16 @@ type Egreso = {
   fecha: string
 }
 
-const CATEGORIAS = [
-  { key: 'renta',        label: 'Renta' },
-  { key: 'electricidad', label: 'Electricidad' },
-  { key: 'agua',         label: 'Agua' },
-  { key: 'gas',          label: 'Gas' },
-  { key: 'telefono',     label: 'Teléfono / Internet' },
-  { key: 'herramientas', label: 'Herramientas' },
-  { key: 'consumibles',  label: 'Consumibles' },
-  { key: 'imprevistos',  label: 'Imprevistos' },
-  { key: 'otros',        label: 'Otros' },
+// Categorías del sistema — universales, no editables
+const SYSTEM_CATS = [
+  { key: 'renta',          label: 'Renta / Arrendamiento' },
+  { key: 'electricidad',   label: 'Electricidad' },
+  { key: 'agua',           label: 'Agua' },
+  { key: 'gas',            label: 'Gas' },
+  { key: 'telefono',       label: 'Comunicaciones' },
+  { key: 'herramientas',   label: 'Herramientas' },
+  { key: 'consumibles',    label: 'Consumibles' },
+  { key: 'imprevistos',    label: 'Imprevistos' },
 ]
 
 const PRESETS = [
@@ -35,32 +35,66 @@ const PRESETS = [
   { key: 'mes_ant', label: 'Mes anterior' },
 ]
 
-const INPUT = 'border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] w-full'
-const fmt   = (n: number) => `$${n.toLocaleString('es-MX', { minimumFractionDigits: 0 })}`
-const isoHoy = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}` }
+const INPUT   = 'border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] w-full'
+const fmt     = (n: number) => `$${n.toLocaleString('es-MX', { minimumFractionDigits: 0 })}`
+const isoHoy  = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}` }
+
+// Devuelve el label de una categoría (sistema o personalizada)
+function catLabel(key: string): string {
+  return SYSTEM_CATS.find(c => c.key === key)?.label ?? key
+}
 
 export default function GastosPage() {
   const supabase = createClient()
-  const [egresos,      setEgresos]      = useState<Egreso[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [showForm,     setShowForm]     = useState(false)
-  const [saving,       setSaving]       = useState(false)
-  const [deletingId,   setDeletingId]   = useState<string | null>(null)
-  const [desde,        setDesde]        = useState(isoHoy)
-  const [hasta,        setHasta]        = useState(isoHoy)
-  const [desdeLocal,   setDesdeLocal]   = useState(isoHoy)
-  const [hastaLocal,   setHastaLocal]   = useState(isoHoy)
-  const [openPicker,   setOpenPicker]   = useState(false)
+
+  // Egresos
+  const [egresos,    setEgresos]    = useState<Egreso[]>([])
+  const [loading,    setLoading]    = useState(true)
+  const [showForm,   setShowForm]   = useState(false)
+  const [saving,     setSaving]     = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Fechas
+  const [desde,      setDesde]      = useState(isoHoy)
+  const [hasta,      setHasta]      = useState(isoHoy)
+  const [desdeLocal, setDesdeLocal] = useState(isoHoy)
+  const [hastaLocal, setHastaLocal] = useState(isoHoy)
+  const [openPicker, setOpenPicker] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
 
+  // Formulario de gasto
   const [form, setForm] = useState({ categoria: 'renta', descripcion: '', monto: '', fecha: isoHoy() })
 
+  // Categorías personalizadas del tenant
+  const [tenantId,     setTenantId]     = useState<string>('')
+  const [customCats,   setCustomCats]   = useState<string[]>([])
+  const [newCatName,   setNewCatName]   = useState('')
+  const [savingCat,    setSavingCat]    = useState(false)
+  const [showCatInput, setShowCatInput] = useState(false)
+
+  // Cerrar picker al hacer click fuera
   useEffect(() => {
     function h(e: MouseEvent) {
       if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setOpenPicker(false)
     }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
+  }, [])
+
+  // Cargar tenant y sus categorías personalizadas
+  useEffect(() => {
+    async function fetchTenant() {
+      const { data } = await supabase
+        .from('usuarios')
+        .select('tenant_id, tenants(categorias_egreso)')
+        .single()
+      if (data) {
+        setTenantId(data.tenant_id ?? '')
+        const cats = (data.tenants as any)?.categorias_egreso ?? []
+        setCustomCats(cats)
+      }
+    }
+    fetchTenant()
   }, [])
 
   const fetchEgresos = useCallback(async () => {
@@ -77,6 +111,7 @@ export default function GastosPage() {
 
   useEffect(() => { fetchEgresos() }, [fetchEgresos])
 
+  // Date picker
   function aplicarFiltro(d: string, h: string) {
     setDesde(d); setDesdeLocal(d)
     setHasta(h); setHastaLocal(h)
@@ -105,6 +140,7 @@ export default function GastosPage() {
     ? new Date(desde + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
     : `${new Date(desde+'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short' })} – ${new Date(hasta+'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' })}`
 
+  // Guardar gasto
   async function guardar() {
     if (!form.monto || Number(form.monto) <= 0) return
     setSaving(true)
@@ -120,19 +156,43 @@ export default function GastosPage() {
     setSaving(false)
   }
 
+  // Eliminar gasto
   async function eliminar(id: string) {
     await (supabase as any).from('egresos').delete().eq('id', id)
     setEgresos(p => p.filter(e => e.id !== id))
     setDeletingId(null)
   }
 
-  const total = egresos.reduce((s, e) => s + (e.monto ?? 0), 0)
-  const catLabel = (k: string) => CATEGORIAS.find(c => c.key === k)?.label ?? k
+  // Agregar categoría personalizada
+  async function agregarCategoria() {
+    const nombre = newCatName.trim()
+    if (!nombre) return
+    const exists = SYSTEM_CATS.some(c => c.label.toLowerCase() === nombre.toLowerCase())
+      || customCats.some(c => c.toLowerCase() === nombre.toLowerCase())
+    if (exists) { setNewCatName(''); setShowCatInput(false); return }
+    setSavingCat(true)
+    const nuevas = [...customCats, nombre]
+    await (supabase as any).rpc('update_categorias_egreso', { cats: nuevas })
+    setCustomCats(nuevas)
+    setNewCatName('')
+    setShowCatInput(false)
+    setSavingCat(false)
+  }
 
-  // Agrupar por categoría
+  // Eliminar categoría personalizada
+  async function eliminarCategoria(cat: string) {
+    const nuevas = customCats.filter(c => c !== cat)
+    await (supabase as any).rpc('update_categorias_egreso', { cats: nuevas })
+    setCustomCats(nuevas)
+  }
+
+  // Totales y agrupación
+  const total = egresos.reduce((s, e) => s + (e.monto ?? 0), 0)
   const porCategoria: Record<string, { label: string; total: number; items: Egreso[] }> = {}
   egresos.forEach(e => {
-    if (!porCategoria[e.categoria]) porCategoria[e.categoria] = { label: catLabel(e.categoria), total: 0, items: [] }
+    if (!porCategoria[e.categoria]) {
+      porCategoria[e.categoria] = { label: catLabel(e.categoria), total: 0, items: [] }
+    }
     porCategoria[e.categoria].total += e.monto
     porCategoria[e.categoria].items.push(e)
   })
@@ -141,7 +201,8 @@ export default function GastosPage() {
     <div className="max-w-4xl">
       <FinanzasNav />
 
-      <div className="flex items-start justify-between mb-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Gastos operativos</h1>
           <p className="text-sm text-zinc-500 mt-0.5">{egresos.length} registros · {fmt(total)} total</p>
@@ -185,18 +246,92 @@ export default function GastosPage() {
         </div>
       </div>
 
-      {/* Formulario */}
+      {/* Gestión de categorías personalizadas */}
+      <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-4 mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Mis categorías</span>
+          {!showCatInput && (
+            <button onClick={() => setShowCatInput(true)}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] hover:underline">
+              <Plus className="w-3.5 h-3.5" /> Nueva
+            </button>
+          )}
+        </div>
+
+        {/* Categorías del sistema — referencia */}
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {SYSTEM_CATS.map(c => (
+            <span key={c.key}
+              className="px-2.5 py-1 text-xs font-medium bg-zinc-100 text-zinc-500 rounded-full">
+              {c.label}
+            </span>
+          ))}
+        </div>
+
+        {/* Categorías personalizadas */}
+        {customCats.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-zinc-100">
+            {customCats.map(cat => (
+              <span key={cat}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-blue-50 text-[#2563EB] rounded-full border border-blue-100">
+                {cat}
+                <button onClick={() => eliminarCategoria(cat)}
+                  className="hover:text-red-500 transition-colors ml-0.5">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Input para nueva categoría */}
+        {showCatInput && (
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-100">
+            <input
+              autoFocus
+              className="flex-1 border border-zinc-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+              placeholder="Ej: ICA, ARBA, Seguro local…"
+              value={newCatName}
+              onChange={e => setNewCatName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') agregarCategoria(); if (e.key === 'Escape') { setShowCatInput(false); setNewCatName('') } }}
+            />
+            <button onClick={agregarCategoria} disabled={!newCatName.trim() || savingCat}
+              className="px-3 py-1.5 text-xs font-semibold bg-[#2563EB] text-white rounded-lg disabled:opacity-50 hover:bg-[#1d4ed8] transition-colors">
+              {savingCat ? '…' : 'Agregar'}
+            </button>
+            <button onClick={() => { setShowCatInput(false); setNewCatName('') }}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {customCats.length === 0 && !showCatInput && (
+          <p className="text-xs text-zinc-400 mt-2 pt-2 border-t border-zinc-100">
+            Sin categorías propias aún. Las del sistema aplican para todos los países — agrega las específicas de tu negocio o región.
+          </p>
+        )}
+      </div>
+
+      {/* Formulario de gasto */}
       {showForm && (
-        <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-5 mb-6">
+        <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-5 mb-5">
           <h2 className="text-sm font-semibold text-zinc-800 mb-4">Nuevo gasto</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1 block">Categoría</label>
               <select className={INPUT} value={form.categoria} onChange={e => setForm(p => ({ ...p, categoria: e.target.value }))}>
-                {CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                <optgroup label="Categorías del sistema">
+                  {SYSTEM_CATS.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                </optgroup>
+                {customCats.length > 0 && (
+                  <optgroup label="Mis categorías">
+                    {customCats.map(c => <option key={c} value={c}>{c}</option>)}
+                  </optgroup>
+                )}
               </select>
             </div>
-            <div className="lg:col-span-1">
+            <div>
               <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1 block">Descripción</label>
               <input className={INPUT} value={form.descripcion} onChange={e => setForm(p => ({ ...p, descripcion: e.target.value }))} placeholder="Opcional" />
             </div>
@@ -214,14 +349,19 @@ export default function GastosPage() {
               className="px-4 py-2 bg-[#1649C8] hover:bg-[#1340B0] text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50">
               {saving ? 'Guardando…' : 'Guardar'}
             </button>
-            <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors">Cancelar</button>
+            <button onClick={() => setShowForm(false)}
+              className="px-4 py-2 text-sm text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors">
+              Cancelar
+            </button>
           </div>
         </div>
       )}
 
       {/* Lista agrupada por categoría */}
       {loading ? (
-        <div className="flex items-center justify-center h-40"><div className="w-7 h-7 border-2 border-zinc-200 border-t-[#2563EB] rounded-full animate-spin" /></div>
+        <div className="flex items-center justify-center h-40">
+          <div className="w-7 h-7 border-2 border-zinc-200 border-t-[#2563EB] rounded-full animate-spin" />
+        </div>
       ) : Object.keys(porCategoria).length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-zinc-200 p-10 text-center">
           <p className="text-sm text-zinc-400">Sin gastos en este período.</p>
@@ -242,17 +382,22 @@ export default function GastosPage() {
                         {e.descripcion || <span className="text-zinc-300">—</span>}
                       </td>
                       <td className="px-5 py-3 text-zinc-400 text-xs">
-                        {new Date(e.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short' })}
+                        {new Date(e.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
                       </td>
                       <td className="px-5 py-3 text-right font-semibold text-zinc-800">{fmt(e.monto)}</td>
                       <td className="px-3 py-3 text-right">
                         {deletingId === e.id ? (
                           <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => eliminar(e.id)} className="px-2 py-1 text-xs bg-red-600 text-white rounded-md hover:bg-red-700">Eliminar</button>
-                            <button onClick={() => setDeletingId(null)} className="px-2 py-1 text-xs border border-zinc-200 rounded-md hover:bg-zinc-50">No</button>
+                            <button onClick={() => eliminar(e.id)}
+                              className="px-2 py-1 text-xs bg-red-600 text-white rounded-md hover:bg-red-700">Eliminar</button>
+                            <button onClick={() => setDeletingId(null)}
+                              className="px-2 py-1 text-xs border border-zinc-200 rounded-md hover:bg-zinc-50">No</button>
                           </div>
                         ) : (
-                          <button onClick={() => setDeletingId(e.id)} className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setDeletingId(e.id)}
+                            className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-red-500 transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -262,7 +407,9 @@ export default function GastosPage() {
             </div>
           ))}
           <div className="flex justify-end px-1">
-            <span className="text-sm font-bold text-zinc-700">Total egresos: <span className="text-zinc-900">{fmt(total)}</span></span>
+            <span className="text-sm font-bold text-zinc-700">
+              Total egresos: <span className="text-zinc-900">{fmt(total)}</span>
+            </span>
           </div>
         </div>
       )}

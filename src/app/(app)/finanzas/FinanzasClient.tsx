@@ -33,11 +33,17 @@ const PRESETS = [
   { key: 'mes_ant', label: 'Mes anterior' },
 ]
 
+// Categorías del sistema — el fallback ?? cat maneja las personalizadas automáticamente
 const CAT_LABELS: Record<string, string> = {
-  renta: 'Renta', electricidad: 'Electricidad', agua: 'Agua',
-  gas: 'Gas', telefono: 'Teléfono / Internet',
-  herramientas: 'Herramientas', consumibles: 'Consumibles',
-  imprevistos: 'Imprevistos', otros: 'Otros',
+  renta:          'Renta / Arrendamiento',
+  electricidad:   'Electricidad',
+  agua:           'Agua',
+  gas:            'Gas',
+  telefono:       'Comunicaciones',
+  herramientas:   'Herramientas',
+  consumibles:    'Consumibles',
+  imprevistos:    'Imprevistos',
+  otros:          'Otros',
 }
 
 const fmt  = (n: number) => `$${Math.round(n).toLocaleString('es-MX')}`
