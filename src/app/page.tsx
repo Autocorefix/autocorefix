@@ -44,7 +44,7 @@ export default async function LandingPage() {
                 Comenzar prueba gratis
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/login" target="_blank" rel="noopener noreferrer"
+              <Link href="/login"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-colors text-sm">
                 Ya tengo cuenta <ChevronRight className="w-4 h-4" />
               </Link>
@@ -442,8 +442,8 @@ export default async function LandingPage() {
           </div>
           <p className="text-xs text-slate-500">© {new Date().getFullYear()} AutoCoreFix. Todos los derechos reservados.</p>
           <div className="flex items-center gap-5 text-xs text-slate-500">
-            <Link href="/login"    target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">Iniciar sesión</Link>
-            <Link href="/register" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">Registrarse</Link>
+            <Link href="/login" className="hover:text-slate-300 transition-colors">Iniciar sesión</Link>
+            <Link href="/register" className="hover:text-slate-300 transition-colors">Registrarse</Link>
             <Link href="/terminos" className="hover:text-slate-300 transition-colors">Términos</Link>
           </div>
         </div>
