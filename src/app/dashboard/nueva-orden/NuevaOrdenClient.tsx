@@ -77,9 +77,8 @@ export default function NuevaOrdenClient({
   const [items, setItems]                     = useState<OrderItem[]>([])
   const [precioFinalInput, setPrecioFinalInput] = useState('')
 
-  const [piezas, setPiezas]           = useState<PiezaOrden[]>([])
-  const [showFormPieza, setShowFormPieza] = useState(false)
-  const [nuevaPieza, setNuevaPieza]   = useState({ descripcion: '', cantidad: '1', precio: '' })
+  const [piezas, setPiezas]         = useState<PiezaOrden[]>([])
+  const [nuevaPieza, setNuevaPieza] = useState({ descripcion: '', cantidad: '1', precio: '' })
 
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
@@ -353,6 +352,69 @@ export default function NuevaOrdenClient({
               )}
             </div>
           )}
+          {/* PIEZAS Y MATERIALES — siempre visible */}
+          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Package className="w-4 h-4 text-amber-500" />
+              <h2 className="text-sm font-semibold text-zinc-900">Piezas y materiales</h2>
+            </div>
+
+            {/* Lista de piezas */}
+            {piezas.length > 0 && (
+              <div className="flex flex-col gap-1.5 mb-3">
+                {piezas.map(p => (
+                  <div key={p.tempId} className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-zinc-800 truncate">{p.descripcion}</p>
+                      {p.cantidad > 1 && <p className="text-xs text-amber-600">×{p.cantidad} — {fmt(p.precioUnitario)} c/u</p>}
+                    </div>
+                    <span className="text-sm font-semibold text-amber-700 shrink-0">{fmt(p.cantidad * p.precioUnitario)}</span>
+                    <button onClick={() => quitarPieza(p.tempId)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Formulario siempre visible */}
+            <div className="flex flex-col gap-2">
+              <input
+                placeholder="Descripción (ej. Aceite 5W-30)"
+                value={nuevaPieza.descripcion}
+                onChange={e => setNuevaPieza(p => ({ ...p, descripcion: e.target.value }))}
+                onKeyDown={e => e.key === 'Enter' && agregarPieza()}
+                className={INPUT}
+              />
+              <div className="flex gap-2">
+                <input
+                  type="number" min="1"
+                  placeholder="Cant."
+                  value={nuevaPieza.cantidad}
+                  onChange={e => setNuevaPieza(p => ({ ...p, cantidad: e.target.value }))}
+                  className={INPUT + ' w-20 shrink-0'}
+                />
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
+                  <input
+                    type="number" min="0"
+                    placeholder="Precio unit."
+                    value={nuevaPieza.precio}
+                    onChange={e => setNuevaPieza(p => ({ ...p, precio: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && agregarPieza()}
+                    className={INPUT + ' pl-7'}
+                  />
+                </div>
+                <button
+                  onClick={agregarPieza}
+                  className="flex items-center justify-center w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* RIGHT */}
@@ -406,121 +468,26 @@ export default function NuevaOrdenClient({
           <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Resumen de orden</h2>
 
-            {items.length === 0 && piezas.length === 0 && !showFormPieza ? (
-              <div className="py-4 text-center space-y-3">
-                <p className="text-sm text-zinc-600">Selecciona servicios del panel de arriba</p>
-                <button
-                  onClick={() => setShowFormPieza(true)}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 border border-amber-200 bg-amber-50 rounded-lg px-3 py-1.5 hover:bg-amber-100 transition-colors"
-                >
-                  <Package className="w-3.5 h-3.5" /> Registrar solo piezas
-                </button>
-              </div>
+            {items.length === 0 ? (
+              <p className="text-sm text-zinc-600 py-6 text-center">Selecciona servicios del panel de arriba</p>
             ) : (
               <>
-                {/* MANO DE OBRA */}
-                {items.length > 0 && (
-                  <>
-                    {piezas.length > 0 && (
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-2 px-1">Mano de obra</p>
-                    )}
-                    <div className="grid grid-cols-[1fr_80px] gap-3 items-center text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2 px-1">
-                      <span>Servicio</span><span className="text-right">Precio base</span>
-                    </div>
-                    <div className="flex flex-col gap-2 mb-4">
-                      {items.map(item => (
-                        <div key={item.servicioId} className="grid grid-cols-[1fr_80px_24px] gap-3 items-center">
-                          <span className="text-sm text-zinc-800 font-medium leading-tight">{item.nombre}</span>
-                          <span className="text-sm text-zinc-500 text-right">{fmt(item.precioBase)}</span>
-                          <button onClick={() => quitarServicio(item.servicioId)} className="flex justify-center text-red-400 hover:text-red-600 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* PIEZAS Y MATERIALES */}
-                <div className={items.length > 0 ? 'border-t border-zinc-100 pt-4' : ''}>
-                  <div className="flex items-center justify-between mb-2 px-1">
-                    <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
-                      <Package className="w-3 h-3" /> Piezas y materiales
-                    </p>
-                    {!showFormPieza && (
-                      <button
-                        onClick={() => setShowFormPieza(true)}
-                        className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Agregar pieza
+                <div className="grid grid-cols-[1fr_80px] gap-3 items-center text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2 px-1">
+                  <span>Servicio</span><span className="text-right">Precio base</span>
+                </div>
+                <div className="flex flex-col gap-2 mb-4">
+                  {items.map(item => (
+                    <div key={item.servicioId} className="grid grid-cols-[1fr_80px_24px] gap-3 items-center">
+                      <span className="text-sm text-zinc-800 font-medium leading-tight">{item.nombre}</span>
+                      <span className="text-sm text-zinc-500 text-right">{fmt(item.precioBase)}</span>
+                      <button onClick={() => quitarServicio(item.servicioId)} className="flex justify-center text-red-400 hover:text-red-600 transition-colors">
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                    )}
-                  </div>
-
-                  {piezas.length === 0 && !showFormPieza && (
-                    <p className="text-xs text-zinc-400 px-1 mb-3 italic">Sin piezas registradas</p>
-                  )}
-
-                  <div className="flex flex-col gap-2 mb-2">
-                    {piezas.map(p => (
-                      <div key={p.tempId} className="grid grid-cols-[1fr_80px_24px] gap-3 items-center bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-                        <span className="text-sm text-zinc-800 font-medium leading-tight">
-                          {p.descripcion}
-                          {p.cantidad > 1 && <span className="text-amber-600 ml-1.5 text-xs font-semibold">×{p.cantidad}</span>}
-                        </span>
-                        <span className="text-sm text-amber-700 font-semibold text-right">{fmt(p.cantidad * p.precioUnitario)}</span>
-                        <button onClick={() => quitarPieza(p.tempId)} className="flex justify-center text-red-400 hover:text-red-600 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {showFormPieza && (
-                    <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex flex-col gap-2 mt-1">
-                      <input
-                        autoFocus
-                        placeholder="Descripción de la pieza *"
-                        value={nuevaPieza.descripcion}
-                        onChange={e => setNuevaPieza(p => ({ ...p, descripcion: e.target.value }))}
-                        onKeyDown={e => e.key === 'Enter' && agregarPieza()}
-                        className={INPUT}
-                      />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="number" min="1"
-                          placeholder="Cantidad"
-                          value={nuevaPieza.cantidad}
-                          onChange={e => setNuevaPieza(p => ({ ...p, cantidad: e.target.value }))}
-                          className={INPUT}
-                        />
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
-                          <input
-                            type="number" min="0"
-                            placeholder="Precio unit. *"
-                            value={nuevaPieza.precio}
-                            onChange={e => setNuevaPieza(p => ({ ...p, precio: e.target.value }))}
-                            onKeyDown={e => e.key === 'Enter' && agregarPieza()}
-                            className={INPUT + ' pl-7'}
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={agregarPieza} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg py-2 font-semibold transition-colors">
-                          Agregar
-                        </button>
-                        <button onClick={() => { setShowFormPieza(false); setNuevaPieza({ descripcion: '', cantidad: '1', precio: '' }) }}
-                          className="flex-1 bg-zinc-50 border border-zinc-300 text-zinc-600 text-xs rounded-lg py-2 font-medium hover:bg-zinc-100 transition-colors">
-                          Cancelar
-                        </button>
-                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
 
-                {/* TOTALES */}
-                <div className="border-t border-zinc-100 pt-4 flex flex-col gap-3 mt-3">
+                <div className="border-t border-zinc-100 pt-4 flex flex-col gap-3">
                   {totalPiezas > 0 && (
                     <>
                       <div className="flex justify-between text-sm text-zinc-500">
@@ -528,7 +495,9 @@ export default function NuevaOrdenClient({
                         <span className="font-medium text-zinc-700">{fmt(totalLabor)}</span>
                       </div>
                       <div className="flex justify-between text-sm text-zinc-500">
-                        <span>Piezas</span>
+                        <span className="flex items-center gap-1.5">
+                          <Package className="w-3.5 h-3.5 text-amber-500" /> Piezas
+                        </span>
                         <span className="font-medium text-amber-700">{fmt(totalPiezas)}</span>
                       </div>
                     </>
