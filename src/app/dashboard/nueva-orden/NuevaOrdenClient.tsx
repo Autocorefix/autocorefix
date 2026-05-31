@@ -352,7 +352,7 @@ export default function NuevaOrdenClient({
               )}
             </div>
           )}
-          {/* PIEZAS Y MATERIALES — siempre visible */}
+          {hayCliente && (
           <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <Package className="w-4 h-4 text-amber-500" />
@@ -377,7 +377,7 @@ export default function NuevaOrdenClient({
               </div>
             )}
 
-            {/* Formulario siempre visible */}
+            {/* Formulario */}
             <div className="flex flex-col gap-2">
               <input
                 placeholder="Descripción (ej. Aceite 5W-30)"
@@ -386,13 +386,13 @@ export default function NuevaOrdenClient({
                 onKeyDown={e => e.key === 'Enter' && agregarPieza()}
                 className={INPUT}
               />
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <input
                   type="number" min="1"
-                  placeholder="Cant."
+                  placeholder="×1"
                   value={nuevaPieza.cantidad}
                   onChange={e => setNuevaPieza(p => ({ ...p, cantidad: e.target.value }))}
-                  className={INPUT + ' w-20 shrink-0'}
+                  className="w-14 shrink-0 rounded-lg border border-zinc-300 px-2 py-2 text-sm text-zinc-900 text-center placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
                 />
                 <div className="relative flex-1">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
@@ -402,18 +402,20 @@ export default function NuevaOrdenClient({
                     value={nuevaPieza.precio}
                     onChange={e => setNuevaPieza(p => ({ ...p, precio: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && agregarPieza()}
-                    className={INPUT + ' pl-7'}
+                    className="w-full rounded-lg border border-zinc-300 pl-7 pr-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
                   />
                 </div>
                 <button
                   onClick={agregarPieza}
-                  className="flex items-center justify-center w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors shrink-0"
+                  title="Agregar pieza"
+                  className="flex items-center justify-center w-9 h-9 shrink-0 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
           </div>
+          )}
 
         </div>
 
