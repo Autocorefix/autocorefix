@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   const origin = request.headers.get('origin') ?? 'https://autocorefix.vercel.app'
   const session = await stripe.billingPortal.sessions.create({
     customer: sub.stripe_customer_id,
-    return_url: `${origin}/dashboard/billing`,
+    return_url: `${origin}/billing`,
   })
 
   return NextResponse.json({ url: session.url })

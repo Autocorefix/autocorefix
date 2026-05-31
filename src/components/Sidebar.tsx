@@ -14,14 +14,14 @@ import { useSubscription } from '@/components/SubscriptionContext'
 type NavItem = { href: string; label: string; icon: React.ElementType; adminOnly?: boolean }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard',             label: 'Dashboard',   icon: LayoutDashboard },
-  { href: '/dashboard/diagnostico', label: 'Diagnóstico',  icon: FileSearch },
-  { href: '/dashboard/ordenes',     label: 'Ordenes',      icon: ClipboardList },
-  { href: '/dashboard/clientes',    label: 'Clientes',    icon: Users },
-  { href: '/dashboard/catalogo',    label: 'Catalogo',    icon: BookOpen,   adminOnly: true },
-  { href: '/dashboard/reportes',    label: 'Reportes',    icon: BarChart2,  adminOnly: true },
-  { href: '/dashboard/billing',     label: 'Facturacion', icon: CreditCard, adminOnly: true },
-  { href: '/dashboard/settings',    label: 'Ajustes',     icon: Settings,   adminOnly: true },
+  { href: '/dashboard',    label: 'Dashboard',   icon: LayoutDashboard },
+  { href: '/diagnostico',  label: 'Diagnóstico',  icon: FileSearch },
+  { href: '/ordenes',      label: 'Ordenes',      icon: ClipboardList },
+  { href: '/clientes',     label: 'Clientes',    icon: Users },
+  { href: '/catalogo',     label: 'Catalogo',    icon: BookOpen,   adminOnly: true },
+  { href: '/reportes',     label: 'Reportes',    icon: BarChart2,  adminOnly: true },
+  { href: '/billing',      label: 'Facturacion', icon: CreditCard, adminOnly: true },
+  { href: '/settings',     label: 'Ajustes',     icon: Settings,   adminOnly: true },
 ]
 
 export default function Sidebar({ rol }: { rol: string }) {
@@ -64,7 +64,7 @@ export default function Sidebar({ rol }: { rol: string }) {
       <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-0.5">
         {visibleItems.map(({ href, label, icon: Icon }) => {
           const isActive  = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
-          const isBilling = href === '/dashboard/billing'
+          const isBilling = href === '/billing'
           const locked    = isBlocked && !isBilling
 
           if (locked) {
@@ -113,11 +113,11 @@ export default function Sidebar({ rol }: { rol: string }) {
           </div>
         ) : (
           <Link
-            href="/dashboard/perfil"
+            href="/perfil"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
             style={
-              pathname === '/dashboard/perfil'
+              pathname === '/perfil'
                 ? { background: '#2563EB', color: '#fff', border: '1px solid #2563EB' }
                 : { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }
             }

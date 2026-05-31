@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -202,7 +202,7 @@ export default function ReportesClient({
 
   function aplicarFiltro(d: string, h: string) {
     setOpen(false)
-    router.push(`/dashboard/reportes?desde=${d}&hasta=${h}`)
+    router.push(`/reportes?desde=${d}&hasta=${h}`)
   }
 
   function aplicarCustom() {
@@ -672,3 +672,4 @@ export default function ReportesClient({
     </div>
   )
 }
+

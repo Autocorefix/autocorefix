@@ -117,7 +117,7 @@ export default function OrdenDetallePage() {
         `)
         .eq('id', id)
         .single()
-      setOrden(data as Orden)
+      setOrden(data as unknown as Orden)
 
       const { data: uData } = await supabase
         .from('usuarios')
@@ -148,7 +148,7 @@ export default function OrdenDetallePage() {
   async function eliminarOrden() {
     setDeleting(true)
     await supabase.from('ordenes').delete().eq('id', id)
-    router.push('/dashboard/ordenes')
+    router.push('/ordenes')
   }
 
   async function generarNota() {

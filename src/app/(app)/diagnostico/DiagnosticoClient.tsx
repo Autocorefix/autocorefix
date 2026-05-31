@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -189,7 +189,7 @@ export default function DiagnosticoClient({
       // Eliminar el diagnóstico — ya está en órdenes, no tiene caso mantenerlo aquí
       await (supabase as any).from('diagnosticos').delete().eq('id', d.id)
       setDiagnosticos(prev => prev.filter(x => x.id !== d.id))
-      router.push(`/dashboard/ordenes/${data.ordenId}`)
+      router.push(`/ordenes/${data.ordenId}`)
     }
     setConvirtiendo(null)
   }
@@ -602,3 +602,4 @@ export default function DiagnosticoClient({
     </div>
   )
 }
+

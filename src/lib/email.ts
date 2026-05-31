@@ -227,7 +227,7 @@ export async function notifyAdminInvitationAccepted({
 
                     <p style="margin:0;color:#a1a1aa;font-size:12px;">
                       Si no reconoces a esta persona, puedes revocar su acceso desde
-                      <a href="https://autocorefix.vercel.app/dashboard/settings" style="color:#2563EB;text-decoration:none;">Configuración → Acceso</a>.
+                      <a href="https://autocorefix.vercel.app/settings" style="color:#2563EB;text-decoration:none;">Configuración → Acceso</a>.
                     </p>
                   </td>
                 </tr>

@@ -76,8 +76,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       isBlocked = !isActive
     }
 
-    if (isBlocked && !pathname.startsWith('/dashboard/billing')) {
-      redirect('/dashboard/billing')
+    if (isBlocked && !pathname.startsWith('/billing')) {
+      redirect('/billing')
     }
   }
 

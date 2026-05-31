@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -80,6 +80,7 @@ export default function NuevaOrdenClient({
   const [piezas, setPiezas]         = useState<PiezaOrden[]>([])
   const [nuevaPieza, setNuevaPieza] = useState({ descripcion: '', cantidad: '1', precio: '' })
 
+  const [showFormPieza, setShowFormPieza] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
 
@@ -234,7 +235,7 @@ export default function NuevaOrdenClient({
         }
       }
 
-      router.push('/dashboard/ordenes')
+      router.push('/ordenes')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error inesperado')
       setLoading(false)
@@ -584,3 +585,4 @@ export default function NuevaOrdenClient({
     </div>
   )
 }
+

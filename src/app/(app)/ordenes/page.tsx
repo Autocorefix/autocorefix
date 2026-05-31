@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -235,7 +235,7 @@ export default function OrdenesPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/nueva-orden"
+          href="/nueva-orden"
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#1649C8] hover:bg-[#1340B0] text-white text-sm font-semibold rounded-xl transition-colors shrink-0"
         >
           <Plus className="w-4 h-4" />
@@ -370,7 +370,7 @@ export default function OrdenesPage() {
                 return (
                   <tr
                     key={o.id}
-                    onClick={() => router.push(`/dashboard/ordenes/${o.id}`)}
+                    onClick={() => router.push(`/ordenes/${o.id}`)}
                     className="group cursor-pointer transition-colors border-t border-zinc-100 hover:bg-[#EFF6FF]"
                   >
                     <td className="pl-3 pr-2 py-4 border-l-2 border-l-transparent group-hover:border-l-[#2563EB] transition-colors">
@@ -452,3 +452,4 @@ export default function OrdenesPage() {
     </div>
   )
 }
+
