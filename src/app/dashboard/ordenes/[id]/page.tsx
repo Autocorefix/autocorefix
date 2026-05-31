@@ -242,13 +242,12 @@ export default function OrdenDetallePage() {
 
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
     doc.text(cliente?.nombre ?? '—', MG, y)
-    doc.text(`${vehiculo?.marca ?? ''} ${vehiculo?.modelo ?? ''}`.trim() || '—', COL2, y); y += 5.5
+    const vLine = [vehiculo?.marca, vehiculo?.modelo, vehiculo?.anio?.toString()].filter(Boolean).join(' ')
+    doc.text(vLine || '—', COL2, y); y += 5.5
 
     doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC7)
-    if (cliente?.telefono) { doc.text(`Tel: ${cliente.telefono}`, MG, y) }
-    if (vehiculo?.anio)    { doc.text(`Año: ${vehiculo.anio}`, COL2, y) }
+    if (cliente?.cliente_id) { doc.text(`ID: ${cliente.cliente_id}`, MG, y) }
     y += 5
-    if (cliente?.email)    { doc.text(cliente.email, MG, y); y += 5 }
 
     y += 3
     doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, y, PW - MG, y); y += 5
@@ -339,49 +338,76 @@ export default function OrdenDetallePage() {
       doc.setTextColor(5, 150, 105); doc.text(`−${fmt(descuento)}`, PW - MG - 2, y, { align: 'right' }); y += 5.5
     }
 
-    /* Total — tipografía limpia, sin caja */
-    y += 3
-    doc.setDrawColor(30, 30, 30); doc.setLineWidth(0.8); doc.line(MG, y, PW - MG, y); y += 6
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
-    doc.text('TOTAL A COBRAR:', MG, y)
-    doc.text(fmt(totalCobrado), PW - MG, y, { align: 'right' }); y += 5
-    doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.4); doc.line(MG, y, PW - MG, y)
+    /* ── Totales — solo mitad derecha, estilo factura profesional ── */
+    const RX = PW - MG          // borde derecho
+    const LX = PW / 2 + 10     // inicio de la columna de totales
 
-    /* Observaciones — flotantes después del total */
-    y += 10
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
-    doc.text('OBSERVACIONES / NOTAS:', MG, y); y += 8
-    for (let i = 0; i < 3; i++) {
-      doc.setDrawColor(170, 170, 170); doc.setLineWidth(0.3)
-      doc.line(MG, y, PW - MG, y); y += 12
+    y += 4
+    doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3)
+    doc.line(LX, y, RX, y); y += 5
+
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal')
+    if (totalPiezas > 0) {
+      doc.setTextColor(...ZINC5); doc.text('Mano de obra:', LX, y)
+      doc.setTextColor(...ZINC9); doc.setFont('helvetica', 'bold')
+      doc.text(fmt(totalLabor), RX, y, { align: 'right' }); y += 5.5
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...ZINC5); doc.text('Refacciones:', LX, y)
+      doc.setTextColor(180, 100, 0); doc.setFont('helvetica', 'bold')
+      doc.text(fmt(totalPiezas), RX, y, { align: 'right' }); y += 5.5
+      doc.setFont('helvetica', 'normal')
     }
+    if (descuento > 0) {
+      doc.setTextColor(...ZINC5); doc.text('Subtotal:', LX, y)
+      doc.setTextColor(...ZINC9); doc.setFont('helvetica', 'bold')
+      doc.text(fmt(orden.total_base ?? totalCobrado), RX, y, { align: 'right' }); y += 5.5
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...ZINC5); doc.text('Descuento:', LX, y)
+      doc.setTextColor(5, 130, 90); doc.setFont('helvetica', 'bold')
+      doc.text(`−${fmt(descuento)}`, RX, y, { align: 'right' }); y += 5.5
+      doc.setFont('helvetica', 'normal')
+    }
+
+    doc.setDrawColor(40, 40, 40); doc.setLineWidth(0.6); doc.line(LX, y, RX, y); y += 6
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('Total a cobrar:', LX, y)
+    doc.text(fmt(totalCobrado), RX, y, { align: 'right' }); y += 4
+    doc.setDrawColor(40, 40, 40); doc.setLineWidth(0.3); doc.line(LX, y, RX, y)
+
+    /* ── Observaciones — flotantes, label en primera línea ── */
+    y += 12
+    const OBS = 'Observaciones:'
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text(OBS, MG, y)
+    const obsLabelW = doc.getTextWidth(OBS) + 4
+    doc.setDrawColor(160, 160, 160); doc.setLineWidth(0.3)
+    doc.line(MG + obsLabelW, y, PW - MG, y); y += 9
+    doc.line(MG, y, PW - MG, y); y += 9
+    doc.line(MG, y, PW - MG, y)
 
     /* ── SECCIÓN FIJA AL FONDO ── */
     const firmaW = (CW - 10) / 2
-    const contactLine = [nombreTaller, telefonoTaller ? `Tel: ${telefonoTaller}` : null, emailTaller]
-      .filter(Boolean).join('  ·  ')
+    const contactParts = [nombreTaller, telefonoTaller ? `Tel. ${telefonoTaller}` : null, emailTaller].filter(Boolean)
 
     /* Footer */
-    doc.setFillColor(...ZINC1); doc.rect(0, PH - 10, PW, 10, 'F')
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80)
-    doc.text(`${contactLine}  ·  ${fechaDoc}`, MG, PH - 3.5)
+    doc.setFillColor(245, 245, 247); doc.rect(0, PH - 13, PW, 13, 'F')
+    doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.3); doc.line(0, PH - 13, PW, PH - 13)
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80)
+    doc.text(contactParts.join('   |   '), MG, PH - 7)
+    doc.setFontSize(6.5); doc.setTextColor(140, 140, 140)
+    doc.text(`Orden ${ordenNum}  ·  ${fechaDoc}`, MG, PH - 2.5)
     doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
-    doc.text('AutoCoreFix', PW - MG, PH - 3.5, { align: 'right' })
+    doc.text('AutoCoreFix', PW - MG, PH - 5, { align: 'right' })
 
-    /* Garantía */
-    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, PH - 22, CW, 8, 1.5, 1.5, 'F')
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
-    doc.text('Garantía: 60 días a partir de la fecha de servicio', MG + 4, PH - 16.5)
-
-    /* Firmas — fijas, con espacio para escribir arriba */
-    doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.5)
-    doc.line(MG, PH - 44, MG + firmaW, PH - 44)
-    doc.line(MG + firmaW + 10, PH - 44, PW - MG, PH - 44)
+    /* Firmas — fijas con buen espacio para escribir */
+    doc.setDrawColor(80, 80, 80); doc.setLineWidth(0.5)
+    doc.line(MG, PH - 40, MG + firmaW, PH - 40)
+    doc.line(MG + firmaW + 10, PH - 40, PW - MG, PH - 40)
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
-    doc.text('Firma del cliente', MG + firmaW / 2, PH - 38, { align: 'center' })
-    doc.text('Autorizado por el taller', MG + firmaW + 10 + firmaW / 2, PH - 38, { align: 'center' })
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60)
-    doc.text('Acepto los servicios descritos y el monto total indicado.', MG + firmaW / 2, PH - 33, { align: 'center' })
+    doc.text('Firma del cliente', MG + firmaW / 2, PH - 35, { align: 'center' })
+    doc.text('Autorizado por el taller', MG + firmaW + 10 + firmaW / 2, PH - 35, { align: 'center' })
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100)
+    doc.text('Acepto los trabajos y el importe indicados.', MG + firmaW / 2, PH - 30, { align: 'center' })
 
     const blob = doc.output('blob')
     window.open(URL.createObjectURL(blob), '_blank')
