@@ -339,19 +339,29 @@ export default function OrdenDetallePage() {
       doc.setTextColor(5, 150, 105); doc.text(`−${fmt(descuento)}`, PW - MG - 2, y, { align: 'right' }); y += 5.5
     }
 
-    /* Total — barra oscura profesional */
-    y += 2
-    doc.setFillColor(24, 24, 27)
-    doc.roundedRect(TX - 4, y - 1, PW - MG - TX + 6, 11, 1.5, 1.5, 'F')
-    doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
-    doc.text('TOTAL A COBRAR:', TX, y + 7)
-    doc.text(fmt(totalCobrado), PW - MG - 2, y + 7, { align: 'right' })
+    /* Total — tipografía limpia, sin caja */
+    y += 3
+    doc.setDrawColor(30, 30, 30); doc.setLineWidth(0.8); doc.line(MG, y, PW - MG, y); y += 6
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('TOTAL A COBRAR:', MG, y)
+    doc.text(fmt(totalCobrado), PW - MG, y, { align: 'right' }); y += 5
+    doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.4); doc.line(MG, y, PW - MG, y)
 
-    /* ── SECCIÓN FIJA EN EL FONDO (posiciones absolutas desde PH) ── */
+    /* Observaciones — flotantes después del total */
+    y += 10
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('OBSERVACIONES / NOTAS:', MG, y); y += 8
+    for (let i = 0; i < 3; i++) {
+      doc.setDrawColor(170, 170, 170); doc.setLineWidth(0.3)
+      doc.line(MG, y, PW - MG, y); y += 12
+    }
 
-    /* Footer */
+    /* ── SECCIÓN FIJA AL FONDO ── */
+    const firmaW = (CW - 10) / 2
     const contactLine = [nombreTaller, telefonoTaller ? `Tel: ${telefonoTaller}` : null, emailTaller]
       .filter(Boolean).join('  ·  ')
+
+    /* Footer */
     doc.setFillColor(...ZINC1); doc.rect(0, PH - 10, PW, 10, 'F')
     doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80)
     doc.text(`${contactLine}  ·  ${fechaDoc}`, MG, PH - 3.5)
@@ -359,28 +369,19 @@ export default function OrdenDetallePage() {
     doc.text('AutoCoreFix', PW - MG, PH - 3.5, { align: 'right' })
 
     /* Garantía */
-    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, PH - 21, CW, 8, 1.5, 1.5, 'F')
+    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, PH - 22, CW, 8, 1.5, 1.5, 'F')
     doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
-    doc.text('Garantía: 60 días a partir de la fecha de servicio', MG + 4, PH - 15.5)
+    doc.text('Garantía: 60 días a partir de la fecha de servicio', MG + 4, PH - 16.5)
 
-    /* Firmas */
-    const firmaW = (CW - 10) / 2
+    /* Firmas — fijas, con espacio para escribir arriba */
     doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.5)
-    doc.line(MG, PH - 42, MG + firmaW, PH - 42)
-    doc.line(MG + firmaW + 10, PH - 42, PW - MG, PH - 42)
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
-    doc.text('Firma del cliente', MG + firmaW / 2, PH - 37, { align: 'center' })
-    doc.text('Autorizado por el taller', MG + firmaW + 10 + firmaW / 2, PH - 37, { align: 'center' })
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60)
+    doc.line(MG, PH - 44, MG + firmaW, PH - 44)
+    doc.line(MG + firmaW + 10, PH - 44, PW - MG, PH - 44)
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('Firma del cliente', MG + firmaW / 2, PH - 38, { align: 'center' })
+    doc.text('Autorizado por el taller', MG + firmaW + 10 + firmaW / 2, PH - 38, { align: 'center' })
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60)
     doc.text('Acepto los servicios descritos y el monto total indicado.', MG + firmaW / 2, PH - 33, { align: 'center' })
-
-    /* Observaciones */
-    doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, PH - 76, PW - MG, PH - 76)
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
-    doc.text('OBSERVACIONES:', MG, PH - 70);
-    [PH - 63, PH - 56, PH - 49].forEach(yL => {
-      doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.3); doc.line(MG, yL, PW - MG, yL)
-    })
 
     const blob = doc.output('blob')
     window.open(URL.createObjectURL(blob), '_blank')
