@@ -18,9 +18,8 @@ type Diagnostico = {
 }
 
 const ESTADO_STYLES: Record<string, { label: string; badge: string }> = {
-  pendiente:   { label: 'Pendiente',   badge: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  aprobado:    { label: 'Aprobado',    badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  no_aprobado: { label: 'No aprobado', badge: 'bg-red-50 text-red-600 ring-red-200' },
+  pendiente: { label: 'Pendiente', badge: 'bg-amber-50 text-amber-700 ring-amber-200' },
+  aprobado:  { label: 'Aprobado',  badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
 }
 
 function diasRestantes(created_at: string) {
@@ -383,7 +382,6 @@ export default function DiagnosticoClient({
                           className={`text-xs font-medium rounded-full px-2.5 py-1 ring-1 ring-inset border-none focus:outline-none cursor-pointer ${estilo.badge}`}>
                           <option value="pendiente">Pendiente</option>
                           <option value="aprobado">Aprobado</option>
-                          <option value="no_aprobado">No aprobado</option>
                         </select>
                       </td>
                       <td className="px-5 py-4 text-right font-semibold text-zinc-800">{fmt(d.total_estimado)}</td>
