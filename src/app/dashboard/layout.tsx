@@ -1,8 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import Sidebar from '@/components/Sidebar'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 import { SubscriptionProvider } from '@/components/SubscriptionContext'
 
 function isSuperadminEmail(email: string | undefined | null): boolean {

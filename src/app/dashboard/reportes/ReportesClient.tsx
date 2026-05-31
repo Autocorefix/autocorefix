@@ -67,7 +67,7 @@ function delta(actual: number, anterior: number) {
 }
 
 function DeltaBadge({ pct }: { pct: number | null }) {
-  if (pct === null) return <span className="text-xs text-zinc-400">Sin datos ant.</span>
+  if (pct === null) return null
   const up = pct > 0
   const eq = pct === 0
   return (
@@ -345,11 +345,12 @@ export default function ReportesClient({
     .slice(0, 5)
     .map(c => ({ nombre: c.nombre.length > 22 ? c.nombre.slice(0, 20) + '…' : c.nombre, total: c.total }))
 
+  const sinActividad = ordenesMesCnt === 0
   const kpis = [
-    { label: 'Ingresos del período', value: fmt(ingresosMes),         delta: delta(ingresosMes, ingresosAnt),         icon: DollarSign,  color: 'bg-blue-50 text-[#2563EB]' },
-    { label: 'Órdenes del período',  value: ordenesMesCnt.toString(), delta: delta(ordenesMesCnt, ordenesAntCnt),     icon: ShoppingBag, color: 'bg-violet-50 text-violet-600' },
-    { label: 'Ticket promedio',      value: fmt(ticketProm),          delta: delta(ticketProm, ticketAnt),            icon: Tag,         color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Clientes únicos',      value: clientesUnicos.toString(),delta: delta(clientesUnicos, clientesUnicosAnt),icon: Users,       color: 'bg-sky-50 text-sky-600' },
+    { label: 'Ingresos del período', value: fmt(ingresosMes),         delta: sinActividad ? null : delta(ingresosMes, ingresosAnt),         icon: DollarSign,  color: 'bg-blue-50 text-[#2563EB]' },
+    { label: 'Órdenes del período',  value: ordenesMesCnt.toString(), delta: sinActividad ? null : delta(ordenesMesCnt, ordenesAntCnt),     icon: ShoppingBag, color: 'bg-violet-50 text-violet-600' },
+    { label: 'Ticket promedio',      value: fmt(ticketProm),          delta: sinActividad ? null : delta(ticketProm, ticketAnt),            icon: Tag,         color: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Clientes únicos',      value: clientesUnicos.toString(),delta: sinActividad ? null : delta(clientesUnicos, clientesUnicosAnt),icon: Users,       color: 'bg-sky-50 text-sky-600' },
   ]
 
   return (
@@ -467,7 +468,7 @@ export default function ReportesClient({
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 text-amber-600">
               <Percent className="w-5 h-5" strokeWidth={2} />
             </div>
-            <DeltaBadge pct={delta(descuentoMes, descuentoAnt) !== null ? -(delta(descuentoMes, descuentoAnt)!) : null} />
+            <DeltaBadge pct={sinActividad ? null : delta(descuentoMes, descuentoAnt) !== null ? -(delta(descuentoMes, descuentoAnt)!) : null} />
           </div>
           <div>
             <p className="text-2xl font-bold text-zinc-900">{fmt(descuentoMes)}</p>
