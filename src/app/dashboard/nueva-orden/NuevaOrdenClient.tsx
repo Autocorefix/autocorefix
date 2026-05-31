@@ -529,27 +529,27 @@ export default function NuevaOrdenClient({
                     {totalPiezas > 0 ? (
                       <>
                         <div className="flex justify-between text-sm">
-                          <span className="text-zinc-500">Mano de obra</span>
-                          <span className="font-semibold text-zinc-700">{fmt(totalLabor)}</span>
+                          <span className="text-zinc-700 font-medium">Mano de obra</span>
+                          <span className="font-semibold text-zinc-800">{fmt(totalLabor)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-zinc-500">Refacciones</span>
+                          <span className="text-zinc-700 font-medium">Refacciones</span>
                           <span className="font-semibold text-amber-700">{fmt(totalPiezas)}</span>
                         </div>
-                        <div className="border-t border-zinc-100 pt-2.5 flex justify-between text-sm">
-                          <span className="text-zinc-500">Subtotal</span>
-                          <span className="font-semibold text-zinc-800">{fmt(totalBase)}</span>
+                        <div className="border-t border-zinc-200 pt-2.5 flex justify-between text-sm">
+                          <span className="text-zinc-800 font-semibold">Subtotal</span>
+                          <span className="font-bold text-zinc-900">{fmt(totalBase)}</span>
                         </div>
                       </>
                     ) : (
                       <div className="flex justify-between text-sm">
-                        <span className="text-zinc-500">Subtotal</span>
-                        <span className="font-semibold text-zinc-800">{fmt(totalBase)}</span>
+                        <span className="text-zinc-800 font-semibold">Subtotal</span>
+                        <span className="font-bold text-zinc-900">{fmt(totalBase)}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm text-zinc-500 shrink-0">Precio final</label>
+                    <div className="flex items-center gap-2 border-t border-zinc-100 pt-2">
+                      <label className="text-sm text-zinc-700 font-medium shrink-0">Precio final</label>
                       <div className="relative flex-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
                         <input
@@ -564,8 +564,8 @@ export default function NuevaOrdenClient({
 
                     {descuento > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-emerald-600">Descuento</span>
-                        <span className="font-semibold text-emerald-600">−{fmt(descuento)} ({pctDescuento.toFixed(0)}%)</span>
+                        <span className="text-emerald-700 font-medium">Descuento ({pctDescuento.toFixed(0)}%)</span>
+                        <span className="font-semibold text-emerald-700">−{fmt(descuento)}</span>
                       </div>
                     )}
                   </div>
