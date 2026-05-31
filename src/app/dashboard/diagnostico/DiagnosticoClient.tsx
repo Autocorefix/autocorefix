@@ -535,22 +535,8 @@ export default function DiagnosticoClient({
               <h2 className="text-sm font-semibold text-zinc-900 mb-1">Trabajos y costo estimado</h2>
               <p className="text-xs text-zinc-500 mb-4">Agrega cada trabajo con su precio aproximado</p>
 
-              {lineas.length > 0 && (
-                <div className="flex flex-col divide-y divide-zinc-50 mb-4 rounded-xl border border-zinc-100 overflow-hidden">
-                  {lineas.map((l, i) => (
-                    <div key={l.tempId} className={`flex items-center justify-between px-4 py-3 gap-3 ${i % 2 === 0 ? 'bg-white' : 'bg-zinc-50/60'}`}>
-                      <span className="text-sm text-zinc-800 font-medium flex-1">{l.descripcion}</span>
-                      <span className="text-sm font-semibold text-zinc-700 shrink-0">{fmt(l.precio)}</span>
-                      <button onClick={() => setLineas(prev => prev.filter(x => x.tempId !== l.tempId))} className="text-red-400 hover:text-red-600 shrink-0 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Input nueva línea */}
-              <div className="flex gap-2 items-center">
+              {/* Input primera — siempre arriba */}
+              <div className="flex gap-2 items-center mb-3">
                 <input
                   placeholder="Descripción del trabajo o pieza..."
                   value={nuevaLinea.descripcion}
@@ -572,6 +558,21 @@ export default function DiagnosticoClient({
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
+
+              {/* Lista debajo del input */}
+              {lineas.length > 0 && (
+                <div className="flex flex-col divide-y divide-zinc-50 rounded-xl border border-zinc-100 overflow-hidden">
+                  {lineas.map((l, i) => (
+                    <div key={l.tempId} className={`flex items-center justify-between px-4 py-3 gap-3 ${i % 2 === 0 ? 'bg-white' : 'bg-zinc-50/60'}`}>
+                      <span className="text-sm text-zinc-800 font-medium flex-1">{l.descripcion}</span>
+                      <span className="text-sm font-semibold text-zinc-700 shrink-0">{fmt(l.precio)}</span>
+                      <button onClick={() => setLineas(prev => prev.filter(x => x.tempId !== l.tempId))} className="text-red-400 hover:text-red-600 shrink-0 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Total + acciones */}

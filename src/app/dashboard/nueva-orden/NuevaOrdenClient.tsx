@@ -369,25 +369,7 @@ export default function NuevaOrdenClient({
               <p className="text-xs text-zinc-500 pl-6">Piezas compradas específicamente para esta orden</p>
             </div>
 
-            {/* Lista de piezas */}
-            {piezas.length > 0 && (
-              <div className="flex flex-col gap-1.5 mb-3">
-                {piezas.map(p => (
-                  <div key={p.tempId} className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-zinc-800 truncate">{p.descripcion}</p>
-                      {p.cantidad > 1 && <p className="text-xs text-amber-600">×{p.cantidad} — {fmt(p.precioUnitario)} c/u</p>}
-                    </div>
-                    <span className="text-sm font-semibold text-amber-700 shrink-0">{fmt(p.cantidad * p.precioUnitario)}</span>
-                    <button onClick={() => quitarPieza(p.tempId)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Formulario */}
+            {/* Formulario — siempre visible arriba */}
             <div className="flex flex-col gap-2">
               <input
                 placeholder="Ej. Bomba de agua, Balero, Correa especial..."
@@ -424,6 +406,24 @@ export default function NuevaOrdenClient({
                 </button>
               </div>
             </div>
+
+            {/* Lista debajo del formulario */}
+            {piezas.length > 0 && (
+              <div className="flex flex-col gap-1.5 mt-3">
+                {piezas.map(p => (
+                  <div key={p.tempId} className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-zinc-800 truncate">{p.descripcion}</p>
+                      {p.cantidad > 1 && <p className="text-xs text-amber-600">×{p.cantidad} — {fmt(p.precioUnitario)} c/u</p>}
+                    </div>
+                    <span className="text-sm font-semibold text-amber-700 shrink-0">{fmt(p.cantidad * p.precioUnitario)}</span>
+                    <button onClick={() => quitarPieza(p.tempId)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           )}
 
