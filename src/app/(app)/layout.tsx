@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/lib/supabase-admin'
 import Sidebar from '@/components/Sidebar'
 
 export const metadata: Metadata = {
@@ -18,9 +18,17 @@ function isSuperadminEmail(email: string | undefined | null): boolean {
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+
+  // Paralelizar: validar sesión y leer pathname al mismo tiempo
+  const [{ data: { user } }, headersList] = await Promise.all([
+    supabase.auth.getUser(),
+    headers(),
+  ])
 
   if (!user) redirect('/login')
+
+  const pathname = headersList.get('x-pathname') ?? ''
+  const superadmin = isSuperadminEmail(user.email)
 
   const { data: usuario } = await supabase
     .from('usuarios')
@@ -39,19 +47,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/bienvenida')
   }
 
-  const superadmin = isSuperadminEmail(user.email)
-
-  const adminClient = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') ?? ''
-
   let isBlocked = false
 
   if (!superadmin) {
+    const adminClient = getAdminClient()
     const { data: sub } = await adminClient
       .from('subscriptions')
       .select('status, trial_end, current_period_end')
