@@ -350,8 +350,6 @@ export default function OrdenDetallePage() {
     const LX = PW / 2 + 10     // inicio de la columna de totales
 
     y += 4
-    doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3)
-    doc.line(LX, y, RX, y); y += 5
 
     doc.setFontSize(8.5); doc.setFont('helvetica', 'normal')
     if (totalPiezas > 0) {
@@ -382,7 +380,7 @@ export default function OrdenDetallePage() {
     doc.setDrawColor(40, 40, 40); doc.setLineWidth(0.3); doc.line(LX, y, RX, y)
 
     /* ── Observaciones — flotantes, label en primera línea ── */
-    y += 12
+    y += 22
     const OBS = 'Observaciones:'
     doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
     doc.text(OBS, MG, y)
