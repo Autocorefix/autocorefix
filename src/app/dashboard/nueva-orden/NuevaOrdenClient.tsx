@@ -215,16 +215,20 @@ export default function NuevaOrdenClient({
       if (e2) throw new Error('Error al guardar servicios')
 
       if (piezas.length > 0) {
-        const { error: e3 } = await supabase.from('orden_piezas').insert(
-          piezas.map(p => ({
-            orden_id:       orden.id,
-            tenant_id:      tenantId,
-            descripcion:    p.descripcion,
-            cantidad:       p.cantidad,
-            precio_unitario: p.precioUnitario,
-          }))
-        )
-        if (e3) throw new Error('Error al guardar piezas')
+        const res = await fetch('/api/orden-piezas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            piezas: piezas.map(p => ({
+              orden_id:        orden.id,
+              tenant_id:       tenantId,
+              descripcion:     p.descripcion,
+              cantidad:        p.cantidad,
+              precio_unitario: p.precioUnitario,
+            }))
+          })
+        })
+        if (!res.ok) throw new Error('Error al guardar piezas')
       }
 
       router.push('/dashboard')
@@ -526,27 +530,10 @@ export default function NuevaOrdenClient({
                 {/* Sub-card totales */}
                 <div className="rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
                   <div className="bg-white px-4 py-3 flex flex-col gap-2.5">
-                    {totalPiezas > 0 ? (
-                      <>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-700 font-medium">Mano de obra</span>
-                          <span className="font-semibold text-zinc-800">{fmt(totalLabor)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-700 font-medium">Refacciones</span>
-                          <span className="font-semibold text-amber-700">{fmt(totalPiezas)}</span>
-                        </div>
-                        <div className="border-t border-zinc-200 pt-2.5 flex justify-between text-sm">
-                          <span className="text-zinc-800 font-semibold">Subtotal</span>
-                          <span className="font-bold text-zinc-900">{fmt(totalBase)}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-zinc-800 font-semibold">Subtotal</span>
-                        <span className="font-bold text-zinc-900">{fmt(totalBase)}</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-zinc-800 font-semibold">Subtotal</span>
+                      <span className="font-bold text-zinc-900">{fmt(totalBase)}</span>
+                    </div>
 
                     <div className="flex items-center gap-2 border-t border-zinc-100 pt-2">
                       <label className="text-sm text-zinc-700 font-medium shrink-0">Precio final</label>
