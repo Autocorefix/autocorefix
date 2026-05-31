@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, UserPlus, X, Trash2, Car, Plus, FileText, FileSearch, ChevronRight } from 'lucide-react'
+import { Search, UserPlus, X, Trash2, Car, Plus, FileText, FileSearch, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 
 /* ── Types ── */
@@ -286,43 +286,43 @@ export default function DiagnosticoClient({
 
     y += 4
 
-    /* Total */
-    doc.setFillColor(...BLUE); doc.roundedRect(PW - MG - 74, y - 5, 76, 11, 2, 2, 'F')
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
-    doc.text('TOTAL ESTIMADO:', PW - MG - 70, y + 2)
-    doc.text(fmtN(d.total_estimado), PW - MG - 2, y + 2, { align: 'right' })
-    y += 16
+    /* Total — caja completa ancha, bien espaciada */
+    doc.setFillColor(...BLUE); doc.roundedRect(MG, y, CW, 11, 2, 2, 'F')
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+    doc.text('TOTAL ESTIMADO:', MG + 4, y + 7.5)
+    doc.text(fmtN(d.total_estimado), PW - MG - 2, y + 7.5, { align: 'right' })
 
-    /* Observaciones */
-    doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, y, PW - MG, y); y += 6
-    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
-    doc.text('OBSERVACIONES / NOTAS:', MG, y); y += 5
-    for (let i = 0; i < 3; i++) { doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3); doc.line(MG, y, PW - MG, y); y += 7 }
-    y += 6
-
-    /* Firmas */
+    /* ── SECCIÓN FIJA AL FONDO (posición absoluta desde PH) ── */
     const fw = (CW - 10) / 2
-    doc.setDrawColor(...ZINC5); doc.setLineWidth(0.4)
-    doc.line(MG, y, MG + fw, y); doc.line(MG + fw + 10, y, PW - MG, y); y += 5
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC5)
-    doc.text('Firma del cliente', MG + fw / 2, y, { align: 'center' })
-    doc.text('Autorización del taller', MG + fw + 10 + fw / 2, y, { align: 'center' })
-    y += 3
-    doc.setFontSize(6.5); doc.setTextColor(170, 170, 170)
-    doc.text('Acepto el presupuesto indicado y autorizo los trabajos descritos.', MG + fw / 2, y, { align: 'center' })
-    y += 10
-
-    /* Vigencia — debajo de firmas */
-    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, y, CW, 8, 1.5, 1.5, 'F')
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
-    doc.text('Este presupuesto tiene vigencia de 30 días a partir de la fecha de emisión.', MG + 4, y + 5.5)
 
     /* Footer */
     doc.setFillColor(...ZINC1); doc.rect(0, PH - 10, PW, 10, 'F')
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC5)
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80)
     doc.text(`${nombreTaller}  ·  Diagnóstico y Presupuesto  ·  ${fecha}`, MG, PH - 3.5)
     doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
     doc.text('AutoCoreFix', PW - MG, PH - 3.5, { align: 'right' })
+
+    /* Vigencia */
+    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, PH - 21, CW, 8, 1.5, 1.5, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
+    doc.text('Este presupuesto tiene vigencia de 30 días a partir de la fecha de emisión.', MG + 4, PH - 15.5)
+
+    /* Firmas */
+    doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.5)
+    doc.line(MG, PH - 42, MG + fw, PH - 42)
+    doc.line(MG + fw + 10, PH - 42, PW - MG, PH - 42)
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('Firma del cliente', MG + fw / 2, PH - 37, { align: 'center' })
+    doc.text('Autorización del taller', MG + fw + 10 + fw / 2, PH - 37, { align: 'center' })
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60)
+    doc.text('Acepto el presupuesto indicado y autorizo los trabajos descritos.', MG + fw / 2, PH - 33, { align: 'center' })
+
+    /* Observaciones */
+    doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, PH - 76, PW - MG, PH - 76)
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('OBSERVACIONES / NOTAS:', MG, PH - 70)
+    const obsY = [PH - 63, PH - 56, PH - 49]
+    obsY.forEach(yLine => { doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.3); doc.line(MG, yLine, PW - MG, yLine) })
 
     window.open(URL.createObjectURL(doc.output('blob')), '_blank')
   }
@@ -361,7 +361,6 @@ export default function DiagnosticoClient({
                 <tr className="bg-zinc-50 border-b border-zinc-200 text-left">
                   <th className="px-5 py-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Cliente</th>
                   <th className="hidden sm:table-cell px-5 py-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Vehículo</th>
-                  <th className="px-5 py-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Estado</th>
                   <th className="px-5 py-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest text-right">Estimado</th>
                   <th className="px-5 py-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest text-center">Días</th>
                   <th className="px-5 py-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Acciones</th>
@@ -369,20 +368,20 @@ export default function DiagnosticoClient({
               </thead>
               <tbody className="divide-y divide-zinc-50">
                 {diagnosticos.map(d => {
-                  const dias   = diasRestantes(d.created_at)
-                  const estilo = ESTADO_STYLES[d.estado] ?? ESTADO_STYLES['pendiente']
+                  const dias      = diasRestantes(d.created_at)
+                  const aprobado  = d.estado === 'aprobado'
                   return (
                     <tr key={d.id} className="hover:bg-zinc-50 transition-colors">
-                      <td className="px-5 py-4 font-medium text-zinc-800">{d.clientes?.nombre ?? '—'}</td>
+                      <td className="px-5 py-4">
+                        <p className="font-medium text-zinc-800">{d.clientes?.nombre ?? '—'}</p>
+                        {aprobado && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 mt-0.5">
+                            <CheckCircle2 className="w-3 h-3" /> Convertida a Orden
+                          </span>
+                        )}
+                      </td>
                       <td className="hidden sm:table-cell px-5 py-4 text-zinc-500 text-sm">
                         {d.vehiculos ? `${d.vehiculos.marca ?? ''} ${d.vehiculos.modelo ?? ''} ${d.vehiculos.anio ?? ''}`.trim() : '—'}
-                      </td>
-                      <td className="px-5 py-4">
-                        <select value={d.estado} onChange={e => cambiarEstado(d.id, e.target.value)}
-                          className={`text-xs font-medium rounded-full px-2.5 py-1 ring-1 ring-inset border-none focus:outline-none cursor-pointer ${estilo.badge}`}>
-                          <option value="pendiente">Pendiente</option>
-                          <option value="aprobado">Aprobado</option>
-                        </select>
                       </td>
                       <td className="px-5 py-4 text-right font-semibold text-zinc-800">{fmt(d.total_estimado)}</td>
                       <td className="px-5 py-4 text-center">
@@ -393,22 +392,24 @@ export default function DiagnosticoClient({
                           <button onClick={() => generarPDF(d)} className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-[#2563EB] border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
                             <FileText className="w-3.5 h-3.5" /> PDF
                           </button>
-                          {d.estado === 'aprobado' && (
+                          {!aprobado && (
                             <button onClick={() => convertir(d)} disabled={convirtiendo === d.id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 disabled:opacity-50 transition-colors">
-                              <ChevronRight className="w-3.5 h-3.5" />
-                              {convirtiendo === d.id ? 'Creando…' : 'Convertir a Orden'}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg disabled:opacity-50 transition-colors">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              {convirtiendo === d.id ? 'Creando orden…' : 'Cliente aprobó'}
                             </button>
                           )}
-                          {deletingId === d.id ? (
-                            <span className="flex items-center gap-1.5 text-xs">
-                              <button onClick={() => eliminar(d.id)} className="text-red-500 font-semibold hover:underline">Sí</button>
-                              <button onClick={() => setDeletingId(null)} className="text-zinc-400 hover:underline">No</button>
-                            </span>
-                          ) : (
-                            <button onClick={() => setDeletingId(d.id)} className="text-red-400 hover:text-red-600 transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                          {!aprobado && (
+                            deletingId === d.id ? (
+                              <span className="flex items-center gap-1.5 text-xs">
+                                <button onClick={() => eliminar(d.id)} className="text-red-500 font-semibold hover:underline">Sí</button>
+                                <button onClick={() => setDeletingId(null)} className="text-zinc-400 hover:underline">No</button>
+                              </span>
+                            ) : (
+                              <button onClick={() => setDeletingId(d.id)} className="text-red-400 hover:text-red-600 transition-colors">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )
                           )}
                         </div>
                       </td>
