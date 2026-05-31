@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ArrowLeft, User, Car, ChevronDown, Package, FileText } from 'lucide-react'
+import { ArrowLeft, User, Car, ChevronDown, Package, FileText, Trash2 } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 
@@ -97,6 +97,8 @@ export default function OrdenDetallePage() {
   const [loading,      setLoading]      = useState(true)
   const [saving,       setSaving]       = useState(false)
   const [generandoPDF,    setGenerandoPDF]    = useState(false)
+  const [confirmDelete,   setConfirmDelete]   = useState(false)
+  const [deleting,        setDeleting]        = useState(false)
   const [nombreTaller,    setNombreTaller]    = useState('AutoCoreFix')
   const [logoUrl,         setLogoUrl]         = useState<string | null>(null)
   const [telefonoTaller,  setTelefonoTaller]  = useState<string | null>(null)
@@ -141,6 +143,12 @@ export default function OrdenDetallePage() {
     const { error } = await supabase.from('ordenes').update({ estado }).eq('id', id)
     if (!error) setOrden(p => p ? { ...p, estado } : p)
     setSaving(false)
+  }
+
+  async function eliminarOrden() {
+    setDeleting(true)
+    await supabase.from('ordenes').delete().eq('id', id)
+    router.push('/dashboard/ordenes')
   }
 
   async function generarNota() {
@@ -453,7 +461,7 @@ export default function OrdenDetallePage() {
             <p className="text-xs text-zinc-400 capitalize mt-0.5">{fecha}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={generarNota}
             disabled={generandoPDF}
@@ -462,6 +470,25 @@ export default function OrdenDetallePage() {
             <FileText className="w-4 h-4" />
             {generandoPDF ? 'Generando…' : 'Nota de servicio'}
           </button>
+
+          {confirmDelete ? (
+            <span className="inline-flex items-center gap-2 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <span className="text-red-600 font-medium">¿Eliminar orden?</span>
+              <button onClick={eliminarOrden} disabled={deleting} className="text-red-600 font-bold hover:underline disabled:opacity-50">
+                {deleting ? 'Eliminando…' : 'Sí, eliminar'}
+              </button>
+              <button onClick={() => setConfirmDelete(false)} className="text-zinc-400 hover:text-zinc-600">Cancelar</button>
+            </span>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Eliminar
+            </button>
+          )}
+
           <div className={saving ? 'opacity-50 pointer-events-none' : ''}>
             <StatusDropdown estado={estado} onChange={cambiarEstado} />
           </div>
