@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ArrowLeft, User, Car, ChevronDown, Package } from 'lucide-react'
+import { ArrowLeft, User, Car, ChevronDown, Package, FileText } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 
@@ -93,9 +93,12 @@ export default function OrdenDetallePage() {
   const router   = useRouter()
   const supabase = createClient()
 
-  const [orden,   setOrden]   = useState<Orden | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving,  setSaving]  = useState(false)
+  const [orden,        setOrden]        = useState<Orden | null>(null)
+  const [loading,      setLoading]      = useState(true)
+  const [saving,       setSaving]       = useState(false)
+  const [generandoPDF, setGenerandoPDF] = useState(false)
+  const [nombreTaller, setNombreTaller] = useState('AutoCoreFix')
+  const [logoUrl,      setLogoUrl]      = useState<string | null>(null)
 
   useEffect(() => {
     async function fetch() {
@@ -111,6 +114,14 @@ export default function OrdenDetallePage() {
         .eq('id', id)
         .single()
       setOrden(data as Orden)
+
+      const { data: uData } = await supabase
+        .from('usuarios')
+        .select('tenants(nombre, logo_url)')
+        .single()
+      const t = (uData?.tenants as { nombre: string; logo_url: string | null } | null)
+      if (t) { setNombreTaller(t.nombre); setLogoUrl(t.logo_url) }
+
       setLoading(false)
     }
     fetch()
@@ -123,6 +134,249 @@ export default function OrdenDetallePage() {
     const { error } = await supabase.from('ordenes').update({ estado }).eq('id', id)
     if (!error) setOrden(p => p ? { ...p, estado } : p)
     setSaving(false)
+  }
+
+  async function generarNota() {
+    if (!orden) return
+    setGenerandoPDF(true)
+    const { jsPDF } = await import('jspdf')
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+    const PW = 210, PH = 297, MG = 14, CW = PW - MG * 2
+    const BLUE:    [number,number,number] = [37,  99,  235]
+    const BLUEDARK:[number,number,number] = [22,  73,  200]
+    const BLUEBG:  [number,number,number] = [219, 234, 254]
+    const AMBER:   [number,number,number] = [217, 119,   6]
+    const AMBERBG: [number,number,number] = [255, 251, 235]
+    const WHITE:   [number,number,number] = [255, 255, 255]
+    const ZINC9:   [number,number,number] = [24,  24,  27]
+    const ZINC7:   [number,number,number] = [63,  63,  70]
+    const ZINC5:   [number,number,number] = [113, 113, 122]
+    const ZINC1:   [number,number,number] = [244, 244, 245]
+    const ROW_ALT: [number,number,number] = [248, 250, 252]
+
+    const fmt = (n: number) => '$' + n.toLocaleString('es-MX', { minimumFractionDigits: 0 })
+    const fechaDoc = orden.created_at
+      ? new Date(orden.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : new Date().toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    const ordenNum = `#${orden.id.slice(0, 8).toUpperCase()}`
+    const estadoLabel = { recibido: 'Recibido', en_proceso: 'En proceso', listo: 'Listo', entregado: 'Entregado' }[orden.estado ?? 'recibido'] ?? orden.estado
+
+    const cliente  = Array.isArray(orden.clientes)  ? orden.clientes[0]  : orden.clientes
+    const vehiculo = Array.isArray(orden.vehiculos) ? orden.vehiculos[0] : orden.vehiculos
+    const servicios = orden.orden_servicios ?? []
+    const piezas    = orden.orden_piezas ?? []
+
+    /* ── Logo ── */
+    let logoB64: string | null = null
+    let logoW = 20, logoH = 20
+    if (logoUrl) {
+      try {
+        const resp = await fetch(logoUrl)
+        const blob = await resp.blob()
+        logoB64 = await new Promise<string>((res, rej) => {
+          const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(blob)
+        })
+        await new Promise<void>(resolve => {
+          const img = new Image()
+          img.onload = () => {
+            const MAX_W = 36, MAX_H = 20, ratio = img.naturalWidth / img.naturalHeight
+            if (ratio > MAX_W / MAX_H) { logoW = MAX_W; logoH = MAX_W / ratio }
+            else { logoH = MAX_H; logoW = MAX_H * ratio }
+            resolve()
+          }
+          img.onerror = () => resolve()
+          img.src = logoB64!
+        })
+      } catch { logoB64 = null }
+    }
+
+    /* ── Header azul ── */
+    const BAND = 34
+    doc.setFillColor(...BLUE)
+    doc.rect(0, 0, PW, BAND, 'F')
+    doc.setFillColor(...BLUEDARK)
+    doc.rect(0, BAND - 1.2, PW, 1.2, 'F')
+
+    if (logoB64) {
+      const PAD = 2, LOGO_TOP = (BAND - logoH) / 2
+      doc.setFillColor(...WHITE); doc.roundedRect(MG, LOGO_TOP - PAD, logoW + PAD * 2, logoH + PAD * 2, 1.5, 1.5, 'F')
+      try { doc.addImage(logoB64, 'auto' as any, MG + PAD, LOGO_TOP, logoW, logoH) } catch {}
+      const tx = MG + logoW + 8
+      doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+      doc.text(nombreTaller, tx, BAND / 2 - 1)
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 228, 255)
+      doc.text('Orden de Servicio', tx, BAND / 2 + 6)
+    } else {
+      doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+      doc.text(nombreTaller, MG, BAND / 2 + 1)
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 228, 255)
+      doc.text('Orden de Servicio', MG, BAND / 2 + 8)
+    }
+    // Número orden + fecha (derecha)
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+    doc.text(ordenNum, PW - MG, BAND / 2 - 2, { align: 'right' })
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 228, 255)
+    doc.text(`Fecha: ${fechaDoc}  |  Estado: ${estadoLabel}`, PW - MG, BAND / 2 + 5, { align: 'right' })
+
+    let y = BAND + 8
+
+    /* ── Info cliente + vehículo ── */
+    const COL2 = PW / 2 + 2
+    // Labels
+    doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
+    doc.text('CLIENTE', MG, y); doc.text('VEHÍCULO', COL2, y)
+    y += 5
+    // Nombre cliente
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text(cliente?.nombre ?? '—', MG, y)
+    doc.text(`${vehiculo?.marca ?? ''} ${vehiculo?.modelo ?? ''}`.trim() || '—', COL2, y)
+    y += 5
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC7)
+    if (cliente?.telefono) { doc.text(`Tel: ${cliente.telefono}`, MG, y); y += 4.5 }
+    if (vehiculo?.anio)    { doc.text(`Año: ${vehiculo.anio}`, COL2, y - 4.5) }
+    if (cliente?.email)    { doc.text(cliente.email, MG, y); y += 4.5 }
+    y += 4
+
+    // Separador
+    doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, y, PW - MG, y); y += 5
+
+    /* ── Tabla ── */
+    const COL = { cant: MG, desc: MG + 16, punit: PW - MG - 28, imp: PW - MG }
+    const ROW_H = 7.5
+
+    // Header tabla
+    doc.setFillColor(...BLUE)
+    doc.rect(MG, y, CW, 8.5, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+    doc.text('CANT.',      COL.cant + 2,  y + 6)
+    doc.text('DESCRIPCIÓN', COL.desc + 2, y + 6)
+    doc.text('P. UNIT.',   COL.punit,     y + 6, { align: 'right' })
+    doc.text('IMPORTE',    COL.imp - 2,   y + 6, { align: 'right' })
+    y += 8.5
+
+    let rowIdx = 0
+    function drawRow(cant: string, desc: string, punit: string, imp: string, rowColor?: [number,number,number]) {
+      const bg = rowColor ?? (rowIdx % 2 === 0 ? WHITE : ROW_ALT)
+      doc.setFillColor(...bg); doc.rect(MG, y, CW, ROW_H, 'F')
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC9)
+      doc.text(cant,  COL.cant + 2,  y + 5)
+      doc.text(doc.splitTextToSize(desc, COL.punit - COL.desc - 4)[0], COL.desc + 2, y + 5)
+      doc.setTextColor(...ZINC7)
+      doc.text(punit, COL.punit,   y + 5, { align: 'right' })
+      doc.setFont('helvetica', 'bold')
+      doc.text(imp,   COL.imp - 2, y + 5, { align: 'right' })
+      doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.2); doc.line(MG, y + ROW_H, PW - MG, y + ROW_H)
+      y += ROW_H; rowIdx++
+    }
+
+    // Servicios
+    if (servicios.length > 0) {
+      // Sub-header "Mano de obra"
+      doc.setFillColor(...BLUEBG)
+      doc.rect(MG, y, CW, 6, 'F')
+      doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
+      doc.text('MANO DE OBRA', COL.desc + 2, y + 4.2)
+      y += 6; rowIdx = 0
+
+      for (const s of servicios) {
+        const cobrado = s.precio_cobrado ?? 0
+        drawRow('1', s.nombre_servicio ?? '—', fmt(s.precio_base ?? cobrado), fmt(cobrado))
+      }
+    }
+
+    // Piezas
+    if (piezas.length > 0) {
+      // Sub-header "Refacciones"
+      doc.setFillColor(...AMBERBG)
+      doc.rect(MG, y, CW, 6, 'F')
+      doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...AMBER)
+      doc.text('REFACCIONES ADQUIRIDAS', COL.desc + 2, y + 4.2)
+      y += 6; rowIdx = 0
+
+      for (const p of piezas) {
+        drawRow(
+          String(p.cantidad),
+          p.descripcion,
+          fmt(p.precio_unitario),
+          fmt(p.cantidad * p.precio_unitario),
+        )
+      }
+    }
+
+    y += 4
+
+    /* ── Totales ── */
+    const totalLabor  = servicios.reduce((s, x) => s + (x.precio_cobrado ?? 0), 0)
+    const totalPiezas = piezas.reduce((s, p) => s + p.cantidad * p.precio_unitario, 0)
+    const totalCobrado = orden.total_cobrado ?? 0
+    const descuento    = orden.descuento ?? 0
+
+    const TOTAL_X = PW - MG - 70
+    function totalRow(label: string, value: string, bold = false, color: [number,number,number] = ZINC7) {
+      doc.setFontSize(8.5)
+      doc.setFont('helvetica', bold ? 'bold' : 'normal')
+      doc.setTextColor(...ZINC5); doc.text(label, TOTAL_X, y)
+      doc.setTextColor(...color); doc.text(value, PW - MG - 2, y, { align: 'right' })
+      y += 5.5
+    }
+
+    if (totalPiezas > 0) {
+      totalRow('Mano de obra:', fmt(totalLabor))
+      totalRow('Refacciones:', fmt(totalPiezas), false, AMBER)
+    }
+    if (descuento > 0) {
+      totalRow(`Subtotal:`, fmt((orden.total_base ?? totalCobrado)))
+      totalRow(`Descuento (${Math.round(orden.pct_descuento ?? 0)}%):`, `−${fmt(descuento)}`, false, [5, 150, 105])
+    }
+
+    // Total final — caja azul
+    y += 2
+    doc.setFillColor(...BLUE); doc.roundedRect(TOTAL_X - 4, y - 5, PW - MG - TOTAL_X + 6, 11, 2, 2, 'F')
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+    doc.text('TOTAL:', TOTAL_X, y + 2)
+    doc.text(fmt(totalCobrado), PW - MG - 2, y + 2, { align: 'right' })
+    y += 14
+
+    /* ── Observaciones ── */
+    doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, y, PW - MG, y); y += 6
+    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
+    doc.text('OBSERVACIONES:', MG, y); y += 5
+    for (let i = 0; i < 3; i++) {
+      doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3)
+      doc.line(MG, y, PW - MG, y); y += 7
+    }
+    y += 4
+
+    /* ── Garantía ── */
+    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, y, CW, 8, 1.5, 1.5, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
+    doc.text('Garantía: 60 días a partir de la fecha de servicio', MG + 4, y + 5.5)
+    y += 14
+
+    /* ── Firmas ── */
+    const firmaW = (CW - 10) / 2
+    doc.setDrawColor(...ZINC5); doc.setLineWidth(0.4)
+    doc.line(MG, y, MG + firmaW, y)
+    doc.line(MG + firmaW + 10, y, PW - MG, y)
+    y += 5
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC5)
+    doc.text('Firma del cliente', MG + firmaW / 2, y, { align: 'center' })
+    doc.text('Autorizado por el taller', MG + firmaW + 10 + firmaW / 2, y, { align: 'center' })
+    y += 3
+    doc.setFontSize(6.5); doc.setTextColor(160, 160, 160)
+    doc.text('Acepto los servicios descritos y el monto total indicado.', MG + firmaW / 2, y, { align: 'center' })
+
+    /* ── Footer ── */
+    doc.setFillColor(...ZINC1); doc.rect(0, PH - 10, PW, 10, 'F')
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC5)
+    doc.text(`${nombreTaller}  ·  Orden ${ordenNum}  ·  ${fechaDoc}`, MG, PH - 3.5)
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
+    doc.text('AutoCoreFix', PW - MG, PH - 3.5, { align: 'right' })
+
+    const blob = doc.output('blob')
+    window.open(URL.createObjectURL(blob), '_blank')
+    setGenerandoPDF(false)
   }
 
   if (loading) return (
@@ -158,8 +412,18 @@ export default function OrdenDetallePage() {
             <p className="text-xs text-zinc-400 capitalize mt-0.5">{fecha}</p>
           </div>
         </div>
-        <div className={saving ? 'opacity-50 pointer-events-none' : ''}>
-          <StatusDropdown estado={estado} onChange={cambiarEstado} />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={generarNota}
+            disabled={generandoPDF}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            {generandoPDF ? 'Generando…' : 'Nota de servicio'}
+          </button>
+          <div className={saving ? 'opacity-50 pointer-events-none' : ''}>
+            <StatusDropdown estado={estado} onChange={cambiarEstado} />
+          </div>
         </div>
       </div>
 

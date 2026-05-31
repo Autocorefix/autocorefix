@@ -470,72 +470,110 @@ export default function NuevaOrdenClient({
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
-            <h2 className="text-sm font-semibold text-zinc-900 mb-4">Resumen de orden</h2>
+          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-zinc-100">
+              <h2 className="text-sm font-semibold text-zinc-900">Resumen de orden</h2>
+            </div>
 
             {items.length === 0 ? (
-              <p className="text-sm text-zinc-600 py-6 text-center">Selecciona servicios del panel de arriba</p>
+              <div className="px-5 py-10 text-center text-sm text-zinc-500">
+                Selecciona servicios del panel de arriba
+              </div>
             ) : (
               <>
-                <div className="grid grid-cols-[1fr_80px] gap-3 items-center text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2 px-1">
-                  <span>Servicio</span><span className="text-right">Precio base</span>
-                </div>
-                <div className="flex flex-col gap-2 mb-4">
-                  {items.map(item => (
-                    <div key={item.servicioId} className="grid grid-cols-[1fr_80px_24px] gap-3 items-center">
-                      <span className="text-sm text-zinc-800 font-medium leading-tight">{item.nombre}</span>
-                      <span className="text-sm text-zinc-500 text-right">{fmt(item.precioBase)}</span>
-                      <button onClick={() => quitarServicio(item.servicioId)} className="flex justify-center text-red-400 hover:text-red-600 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t border-zinc-100 pt-4 flex flex-col gap-3">
-                  {totalPiezas > 0 && (
-                    <>
-                      <div className="flex justify-between text-sm text-zinc-500">
-                        <span>Mano de obra</span>
-                        <span className="font-medium text-zinc-700">{fmt(totalLabor)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm text-zinc-500">
-                        <span className="flex items-center gap-1.5">
-                          <Package className="w-3.5 h-3.5 text-amber-500" /> Piezas
-                        </span>
-                        <span className="font-medium text-amber-700">{fmt(totalPiezas)}</span>
-                      </div>
-                    </>
-                  )}
-                  <div className="flex justify-between text-sm text-zinc-500">
-                    <span>Subtotal</span>
-                    <span className="font-medium text-zinc-800">{fmt(totalBase)}</span>
+                {/* Sección mano de obra */}
+                <div className="px-5 pt-4 pb-2">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Wrench className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest">Mano de obra</span>
                   </div>
+                  <div className="flex flex-col divide-y divide-zinc-50">
+                    {items.map(item => (
+                      <div key={item.servicioId} className="flex items-center justify-between py-2.5 gap-3">
+                        <span className="text-sm text-zinc-800 font-medium leading-snug flex-1">{item.nombre}</span>
+                        <span className="text-sm font-semibold text-zinc-700 shrink-0">{fmt(item.precioBase)}</span>
+                        <button onClick={() => quitarServicio(item.servicioId)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                  <div className="flex items-center gap-3">
-                    <label className="text-sm text-zinc-500 shrink-0">Precio final</label>
-                    <div className="relative flex-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
-                      <input
-                        type="number" min="0" max={totalBase}
-                        placeholder={totalBase.toString()}
-                        value={precioFinalInput}
-                        onChange={e => setPrecioFinalInput(e.target.value)}
-                        className="w-full rounded-lg border border-zinc-300 pl-7 pr-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
-                      />
+                {/* Sección refacciones (si las hay) */}
+                {totalPiezas > 0 && (
+                  <div className="px-5 pt-3 pb-2 border-t border-zinc-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Package className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Refacciones adquiridas</span>
+                    </div>
+                    <div className="flex flex-col divide-y divide-amber-50">
+                      {piezas.map(p => (
+                        <div key={p.tempId} className="flex items-center justify-between py-2.5 gap-3">
+                          <span className="text-sm text-zinc-700 flex-1 leading-snug">
+                            {p.descripcion}
+                            {p.cantidad > 1 && <span className="text-amber-600 ml-2 text-xs font-semibold">×{p.cantidad}</span>}
+                          </span>
+                          <span className="text-sm font-semibold text-amber-700 shrink-0">{fmt(p.cantidad * p.precioUnitario)}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
+                )}
 
-                  {descuento > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-500">Descuento aplicado</span>
-                      <span className="text-emerald-600 font-medium">{fmt(descuento)} ({pctDescuento.toFixed(1)}%)</span>
+                {/* Bloque de totales */}
+                <div className="mx-5 my-4 bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden">
+                  <div className="px-4 py-3 flex flex-col gap-2">
+                    {totalPiezas > 0 ? (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-500">Mano de obra</span>
+                          <span className="font-semibold text-zinc-700">{fmt(totalLabor)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-500">Refacciones</span>
+                          <span className="font-semibold text-amber-700">{fmt(totalPiezas)}</span>
+                        </div>
+                        <div className="border-t border-zinc-200 pt-2 flex justify-between text-sm">
+                          <span className="text-zinc-500">Subtotal</span>
+                          <span className="font-semibold text-zinc-800">{fmt(totalBase)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-500">Subtotal</span>
+                        <span className="font-semibold text-zinc-800">{fmt(totalBase)}</span>
+                      </div>
+                    )}
+
+                    {/* Descuento */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <label className="text-sm text-zinc-500 shrink-0">Precio final</label>
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
+                        <input
+                          type="number" min="0" max={totalBase}
+                          placeholder={totalBase.toString()}
+                          value={precioFinalInput}
+                          onChange={e => setPrecioFinalInput(e.target.value)}
+                          className="w-full rounded-lg border border-zinc-200 bg-white pl-7 pr-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+                        />
+                      </div>
                     </div>
-                  )}
 
-                  <div className="flex justify-between text-base font-semibold text-zinc-900 pt-2 border-t border-zinc-100">
-                    <span>Total a cobrar</span>
-                    <span className="text-[#2563EB]">{fmt(precioFinal)}</span>
+                    {descuento > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-emerald-600">Descuento</span>
+                        <span className="font-semibold text-emerald-600">−{fmt(descuento)} ({pctDescuento.toFixed(0)}%)</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Total prominente */}
+                  <div className="bg-[#2563EB] px-4 py-3.5 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-white">Total a cobrar</span>
+                    <span className="text-xl font-bold text-white">{fmt(precioFinal)}</span>
                   </div>
                 </div>
               </>
