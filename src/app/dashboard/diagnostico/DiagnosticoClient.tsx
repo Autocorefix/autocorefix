@@ -401,17 +401,15 @@ export default function DiagnosticoClient({
                               {convirtiendo === d.id ? 'Creando orden…' : 'Cliente aprobó'}
                             </button>
                           )}
-                          {!aprobado && (
-                            deletingId === d.id ? (
-                              <span className="flex items-center gap-1.5 text-xs">
-                                <button onClick={() => eliminar(d.id)} className="text-red-500 font-semibold hover:underline">Sí</button>
-                                <button onClick={() => setDeletingId(null)} className="text-zinc-400 hover:underline">No</button>
-                              </span>
-                            ) : (
-                              <button onClick={() => setDeletingId(d.id)} className="text-red-400 hover:text-red-600 transition-colors">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )
+                          {deletingId === d.id ? (
+                            <span className="flex items-center gap-1.5 text-xs">
+                              <button onClick={() => eliminar(d.id)} className="text-red-500 font-semibold hover:underline">Sí</button>
+                              <button onClick={() => setDeletingId(null)} className="text-zinc-400 hover:underline">No</button>
+                            </span>
+                          ) : (
+                            <button onClick={() => setDeletingId(d.id)} className="text-red-400 hover:text-red-600 transition-colors" title="Eliminar diagnóstico">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           )}
                         </div>
                       </td>
