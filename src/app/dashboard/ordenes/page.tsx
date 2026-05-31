@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ChevronDown, ChevronRight, Search } from 'lucide-react'
+import { ChevronDown, ChevronRight, Search, Trash2 } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 
@@ -96,6 +96,7 @@ export default function OrdenesPage() {
   const [ordenes,      setOrdenes]      = useState<Orden[]>([])
   const [loading,      setLoading]      = useState(true)
   const [updating,     setUpdating]     = useState<string | null>(null)
+  const [deletingId,   setDeletingId]   = useState<string | null>(null)
   const [filtroEstado, setFiltroEstado] = useState<Estado | 'todos'>('todos')
   const [busqueda,     setBusqueda]     = useState('')
   const [busquedaDB,   setBusquedaDB]   = useState('')
@@ -142,6 +143,12 @@ export default function OrdenesPage() {
     const { error } = await supabase.from('ordenes').update({ estado }).eq('id', id)
     if (!error) setOrdenes(p => p.map(o => o.id === id ? { ...o, estado } : o))
     setUpdating(null)
+  }
+
+  async function eliminarOrden(id: string) {
+    await supabase.from('ordenes').delete().eq('id', id)
+    setOrdenes(p => p.filter(o => o.id !== id))
+    setDeletingId(null)
   }
 
   const filtradas = useMemo(() => ordenes.filter(o => {
@@ -302,6 +309,21 @@ export default function OrdenesPage() {
                     <td className="px-5 py-4 text-zinc-500">{fecha}</td>
                     <td className="px-5 py-4 font-semibold text-zinc-800 text-right">
                       ${(o.total_cobrado ?? 0).toLocaleString('es-MX')}
+                    </td>
+                    <td className="px-3 py-4 text-right" onClick={e => e.stopPropagation()}>
+                      {deletingId === o.id ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs">
+                          <button onClick={() => eliminarOrden(o.id)} className="text-red-600 font-bold hover:underline">Sí</button>
+                          <button onClick={() => setDeletingId(null)} className="text-zinc-400 hover:underline">No</button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setDeletingId(o.id)}
+                          className="text-red-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )
