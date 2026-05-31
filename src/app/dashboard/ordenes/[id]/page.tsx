@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ArrowLeft, User, Car, ChevronDown } from 'lucide-react'
+import { ArrowLeft, User, Car, ChevronDown, Package } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 
@@ -26,6 +26,7 @@ type Orden = {
   clientes: { nombre: string; telefono: string | null; email: string | null; cliente_id: string | null } | null
   vehiculos: { marca: string | null; modelo: string | null; anio: number | null } | null
   orden_servicios: { id: string; nombre_servicio: string | null; precio_base: number | null; precio_cobrado: number | null }[]
+  orden_piezas: { id: string; descripcion: string; cantidad: number; precio_unitario: number }[]
 }
 
 function StatusDropdown({ estado, onChange }: { estado: Estado; onChange: (e: Estado) => void }) {
@@ -104,7 +105,8 @@ export default function OrdenDetallePage() {
           id, estado, total_cobrado, total_base, descuento, pct_descuento, created_at,
           clientes(nombre, telefono, email, cliente_id),
           vehiculos(marca, modelo, anio),
-          orden_servicios(id, nombre_servicio, precio_base, precio_cobrado)
+          orden_servicios(id, nombre_servicio, precio_base, precio_cobrado),
+          orden_piezas(id, descripcion, cantidad, precio_unitario)
         `)
         .eq('id', id)
         .single()
@@ -134,6 +136,7 @@ export default function OrdenDetallePage() {
   const cliente   = Array.isArray(orden.clientes)  ? orden.clientes[0]  : orden.clientes
   const vehiculo  = Array.isArray(orden.vehiculos) ? orden.vehiculos[0] : orden.vehiculos
   const servicios = orden.orden_servicios ?? []
+  const piezas    = orden.orden_piezas ?? []
   const fecha     = orden.created_at
     ? new Date(orden.created_at).toLocaleDateString('es-MX', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
     : '—'
@@ -195,7 +198,7 @@ export default function OrdenDetallePage() {
         </div>
       </div>
 
-      {/* Servicios */}
+      {/* Servicios y Piezas */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-zinc-100">
           <h2 className="text-sm font-semibold text-zinc-900">Servicios</h2>
@@ -223,6 +226,27 @@ export default function OrdenDetallePage() {
             ))}
           </tbody>
         </table>
+
+        {/* Piezas y materiales */}
+        {piezas.length > 0 && (
+          <>
+            <div className="px-6 py-3 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
+              <Package className="w-3.5 h-3.5 text-amber-600" />
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Piezas y materiales</p>
+            </div>
+            <div className="divide-y divide-amber-50">
+              {piezas.map(p => (
+                <div key={p.id} className="px-6 py-3 flex items-center justify-between bg-amber-50/40">
+                  <span className="text-sm text-zinc-800 font-medium">
+                    {p.descripcion}
+                    {p.cantidad > 1 && <span className="text-amber-600 ml-2 text-xs font-semibold">×{p.cantidad}</span>}
+                  </span>
+                  <span className="text-sm font-semibold text-amber-700">{fmt(p.cantidad * p.precio_unitario)}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Totales */}
         <div className="border-t border-zinc-100 px-6 py-4 flex flex-col items-end gap-1.5">
