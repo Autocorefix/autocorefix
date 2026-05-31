@@ -234,28 +234,26 @@ export default function OrdenDetallePage() {
 
     let y = BAND + 8
 
-    /* ── Info cliente + vehículo — label:valor en línea ── */
-    const LBL = MG        // inicio del label
-    const VAL = MG + 30   // inicio del valor (columna izquierda)
-    const LBL2 = PW / 2   // inicio del label columna derecha
-    const VAL2 = PW / 2 + 22 // inicio del valor columna derecha
-
+    /* ── 3 columnas iguales: ID de Cliente | Cliente | Vehículo ── */
+    const colW = CW / 3
+    const C1 = MG
+    const C2 = MG + colW
+    const C3 = MG + colW * 2
     const vLine = [vehiculo?.marca, vehiculo?.modelo, vehiculo?.anio?.toString()].filter(Boolean).join(' ')
 
-    // Fila 1: ID de Cliente + Vehículo
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
-    doc.text('ID de Cliente:', LBL, y)
-    doc.text('Vehículo:', LBL2, y)
-    doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
-    doc.setFontSize(9)
-    doc.text(cliente?.cliente_id ?? '—', VAL, y)
-    doc.text(vLine || '—', VAL2, y); y += 7
+    // Labels (fila 1)
+    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
+    doc.text('ID DE CLIENTE', C1, y)
+    doc.text('CLIENTE',       C2, y)
+    doc.text('VEHÍCULO',      C3, y)
+    y += 5
 
-    // Fila 2: Nombre del cliente
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
-    doc.text('Cliente:', LBL, y)
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
-    doc.text(cliente?.nombre ?? '—', VAL, y); y += 7
+    // Valores (fila 2)
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text(cliente?.cliente_id ?? '—', C1, y)
+    doc.text(cliente?.nombre ?? '—',     C2, y)
+    doc.text(vLine || '—',               C3, y)
+    y += 8
 
     y += 3
     doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, y, PW - MG, y); y += 5
