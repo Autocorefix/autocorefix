@@ -14,18 +14,21 @@ export default async function ReportesPage({
   const { data: usuario }  = await supabase.from('usuarios').select('rol').eq('id', user!.id).single()
   if (usuario?.rol !== 'admin') redirect('/dashboard')
 
-  const now = new Date()
-  const y   = now.getFullYear()
-  const m   = now.getMonth()
-  const d   = now.getDate()
+  // Todas las fechas se interpretan en hora México (UTC-6)
+  // El servidor corre en UTC — sin el offset explícito incluiría 6h del día anterior
+  const MX_OFFSET = '-06:00'
+  const nowMx  = new Date(new Date().getTime() - 6 * 3600 * 1000) // desplaza a UTC-6
+  const y      = nowMx.getUTCFullYear()
+  const m      = nowMx.getUTCMonth()
+  const d      = nowMx.getUTCDate()
   const todayStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
   // Rango seleccionado (default: hoy)
   const desdeStr = params.desde ?? todayStr
   const hastaStr = params.hasta ?? todayStr
 
-  const inicioActual = new Date(desdeStr + 'T00:00:00').toISOString()
-  const finActual    = new Date(hastaStr + 'T23:59:59').toISOString()
+  const inicioActual = new Date(desdeStr + 'T00:00:00' + MX_OFFSET).toISOString()
+  const finActual    = new Date(hastaStr + 'T23:59:59' + MX_OFFSET).toISOString()
 
   // Período anterior equivalente (misma duración)
   const duracionMs = new Date(finActual).getTime() - new Date(inicioActual).getTime()
