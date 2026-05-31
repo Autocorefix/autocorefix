@@ -359,7 +359,7 @@ export default function ReportesClient({
       <div className="flex flex-wrap items-start justify-between gap-4 print:block">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Reportes</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">{mesLabel} · comparado con {mesAntLabel}</p>
+          <p className="text-sm text-zinc-400 mt-0.5">{mesLabel}</p>
         </div>
 
         {/* Filtro + acciones */}
