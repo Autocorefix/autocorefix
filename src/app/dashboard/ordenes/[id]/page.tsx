@@ -297,13 +297,6 @@ export default function OrdenDetallePage() {
 
     // Servicios
     if (servicios.length > 0) {
-      // Sub-header "Mano de obra"
-      doc.setFillColor(...BLUEBG)
-      doc.rect(MG, y, CW, 6, 'F')
-      doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
-      doc.text('MANO DE OBRA', COL.desc + 2, y + 4.2)
-      y += 6; rowIdx = 0
-
       for (const s of servicios) {
         const cobrado = s.precio_cobrado ?? 0
         drawRow('1', s.nombre_servicio ?? '—', fmt(s.precio_base ?? cobrado), fmt(cobrado))

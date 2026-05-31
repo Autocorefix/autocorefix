@@ -186,7 +186,9 @@ export default function DiagnosticoClient({
     })
     const data = await res.json()
     if (res.ok && data.ordenId) {
-      await cambiarEstado(d.id, 'aprobado')
+      // Eliminar el diagnóstico — ya está en órdenes, no tiene caso mantenerlo aquí
+      await (supabase as any).from('diagnosticos').delete().eq('id', d.id)
+      setDiagnosticos(prev => prev.filter(x => x.id !== d.id))
       router.push(`/dashboard/ordenes/${data.ordenId}`)
     }
     setConvirtiendo(null)
