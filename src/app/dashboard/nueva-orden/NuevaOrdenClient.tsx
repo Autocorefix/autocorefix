@@ -354,9 +354,12 @@ export default function NuevaOrdenClient({
           )}
           {hayCliente && (
           <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Package className="w-4 h-4 text-amber-500" />
-              <h2 className="text-sm font-semibold text-zinc-900">Piezas y materiales</h2>
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-0.5">
+                <Package className="w-4 h-4 text-amber-500" />
+                <h2 className="text-sm font-semibold text-zinc-900">Refacciones adquiridas</h2>
+              </div>
+              <p className="text-xs text-zinc-500 pl-6">Piezas compradas específicamente para esta orden</p>
             </div>
 
             {/* Lista de piezas */}
@@ -380,7 +383,7 @@ export default function NuevaOrdenClient({
             {/* Formulario */}
             <div className="flex flex-col gap-2">
               <input
-                placeholder="Descripción (ej. Aceite 5W-30)"
+                placeholder="Ej. Bomba de agua, Balero, Correa especial..."
                 value={nuevaPieza.descripcion}
                 onChange={e => setNuevaPieza(p => ({ ...p, descripcion: e.target.value }))}
                 onKeyDown={e => e.key === 'Enter' && agregarPieza()}

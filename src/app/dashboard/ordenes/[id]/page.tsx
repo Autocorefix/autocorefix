@@ -232,7 +232,7 @@ export default function OrdenDetallePage() {
           <>
             <div className="px-6 py-3 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
               <Package className="w-3.5 h-3.5 text-amber-600" />
-              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Piezas y materiales</p>
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Refacciones adquiridas</p>
             </div>
             <div className="divide-y divide-amber-50">
               {piezas.map(p => (
