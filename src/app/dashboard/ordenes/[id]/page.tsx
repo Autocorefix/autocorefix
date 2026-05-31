@@ -96,9 +96,11 @@ export default function OrdenDetallePage() {
   const [orden,        setOrden]        = useState<Orden | null>(null)
   const [loading,      setLoading]      = useState(true)
   const [saving,       setSaving]       = useState(false)
-  const [generandoPDF, setGenerandoPDF] = useState(false)
-  const [nombreTaller, setNombreTaller] = useState('AutoCoreFix')
-  const [logoUrl,      setLogoUrl]      = useState<string | null>(null)
+  const [generandoPDF,    setGenerandoPDF]    = useState(false)
+  const [nombreTaller,    setNombreTaller]    = useState('AutoCoreFix')
+  const [logoUrl,         setLogoUrl]         = useState<string | null>(null)
+  const [telefonoTaller,  setTelefonoTaller]  = useState<string | null>(null)
+  const [emailTaller,     setEmailTaller]     = useState<string | null>(null)
 
   useEffect(() => {
     async function fetch() {
@@ -117,10 +119,15 @@ export default function OrdenDetallePage() {
 
       const { data: uData } = await supabase
         .from('usuarios')
-        .select('tenants(nombre, logo_url)')
+        .select('tenants(nombre, logo_url, telefono, email_taller)')
         .single()
-      const t = (uData?.tenants as { nombre: string; logo_url: string | null } | null)
-      if (t) { setNombreTaller(t.nombre); setLogoUrl(t.logo_url) }
+      const t = (uData?.tenants as { nombre: string; logo_url: string | null; telefono: string | null; email_taller: string | null } | null)
+      if (t) {
+        setNombreTaller(t.nombre)
+        setLogoUrl(t.logo_url)
+        setTelefonoTaller(t.telefono)
+        setEmailTaller(t.email_taller)
+      }
 
       setLoading(false)
     }
@@ -205,13 +212,19 @@ export default function OrdenDetallePage() {
       const tx = MG + logoW + 8
       doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
       doc.text(nombreTaller, tx, BAND / 2 - 1)
-      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 228, 255)
-      doc.text('Orden de Servicio', tx, BAND / 2 + 6)
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 228, 255)
+      const contactHeader = [telefonoTaller && `Tel: ${telefonoTaller}`, emailTaller].filter(Boolean).join('  |  ')
+      if (contactHeader) doc.text(contactHeader, tx, BAND / 2 + 6)
+      doc.setFontSize(7); doc.setTextColor(180, 210, 255)
+      doc.text('Orden de Servicio', tx, contactHeader ? BAND / 2 + 11 : BAND / 2 + 6)
     } else {
       doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
-      doc.text(nombreTaller, MG, BAND / 2 + 1)
-      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 228, 255)
-      doc.text('Orden de Servicio', MG, BAND / 2 + 8)
+      doc.text(nombreTaller, MG, BAND / 2 - 1)
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(210, 228, 255)
+      const contactHeader = [telefonoTaller && `Tel: ${telefonoTaller}`, emailTaller].filter(Boolean).join('  |  ')
+      if (contactHeader) doc.text(contactHeader, MG, BAND / 2 + 5)
+      doc.setFontSize(7); doc.setTextColor(180, 210, 255)
+      doc.text('Orden de Servicio', MG, contactHeader ? BAND / 2 + 10 : BAND / 2 + 5)
     }
     // Número orden + fecha (derecha)
     doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
@@ -221,24 +234,23 @@ export default function OrdenDetallePage() {
 
     let y = BAND + 8
 
-    /* ── Info cliente + vehículo ── */
+    /* ── Info cliente + vehículo (dos columnas limpias) ── */
     const COL2 = PW / 2 + 2
-    // Labels
+
     doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
-    doc.text('CLIENTE', MG, y); doc.text('VEHÍCULO', COL2, y)
-    y += 5
-    // Nombre cliente
+    doc.text('CLIENTE', MG, y); doc.text('VEHÍCULO', COL2, y); y += 5
+
     doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
     doc.text(cliente?.nombre ?? '—', MG, y)
-    doc.text(`${vehiculo?.marca ?? ''} ${vehiculo?.modelo ?? ''}`.trim() || '—', COL2, y)
-    y += 5
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC7)
-    if (cliente?.telefono) { doc.text(`Tel: ${cliente.telefono}`, MG, y); y += 4.5 }
-    if (vehiculo?.anio)    { doc.text(`Año: ${vehiculo.anio}`, COL2, y - 4.5) }
-    if (cliente?.email)    { doc.text(cliente.email, MG, y); y += 4.5 }
-    y += 4
+    doc.text(`${vehiculo?.marca ?? ''} ${vehiculo?.modelo ?? ''}`.trim() || '—', COL2, y); y += 5.5
 
-    // Separador
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC7)
+    if (cliente?.telefono) { doc.text(`Tel: ${cliente.telefono}`, MG, y) }
+    if (vehiculo?.anio)    { doc.text(`Año: ${vehiculo.anio}`, COL2, y) }
+    y += 5
+    if (cliente?.email)    { doc.text(cliente.email, MG, y); y += 5 }
+
+    y += 3
     doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, y, PW - MG, y); y += 5
 
     /* ── Tabla ── */
@@ -307,72 +319,68 @@ export default function OrdenDetallePage() {
     y += 4
 
     /* ── Totales ── */
-    const totalLabor  = servicios.reduce((s, x) => s + (x.precio_cobrado ?? 0), 0)
-    const totalPiezas = piezas.reduce((s, p) => s + p.cantidad * p.precio_unitario, 0)
+    const totalLabor   = servicios.reduce((s, x) => s + (x.precio_cobrado ?? 0), 0)
+    const totalPiezas  = piezas.reduce((s, p) => s + p.cantidad * p.precio_unitario, 0)
     const totalCobrado = orden.total_cobrado ?? 0
     const descuento    = orden.descuento ?? 0
+    const TX = PW - MG - 75
 
-    const TOTAL_X = PW - MG - 70
-    function totalRow(label: string, value: string, bold = false, color: [number,number,number] = ZINC7) {
-      doc.setFontSize(8.5)
-      doc.setFont('helvetica', bold ? 'bold' : 'normal')
-      doc.setTextColor(...ZINC5); doc.text(label, TOTAL_X, y)
-      doc.setTextColor(...color); doc.text(value, PW - MG - 2, y, { align: 'right' })
-      y += 5.5
-    }
-
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal')
     if (totalPiezas > 0) {
-      totalRow('Mano de obra:', fmt(totalLabor))
-      totalRow('Refacciones:', fmt(totalPiezas), false, AMBER)
+      doc.setTextColor(...ZINC5); doc.text('Mano de obra:', TX, y)
+      doc.setTextColor(...ZINC9); doc.text(fmt(totalLabor), PW - MG - 2, y, { align: 'right' }); y += 5.5
+      doc.setTextColor(...ZINC5); doc.text('Refacciones:', TX, y)
+      doc.setTextColor(...AMBER); doc.text(fmt(totalPiezas), PW - MG - 2, y, { align: 'right' }); y += 5.5
     }
     if (descuento > 0) {
-      totalRow(`Subtotal:`, fmt((orden.total_base ?? totalCobrado)))
-      totalRow(`Descuento (${Math.round(orden.pct_descuento ?? 0)}%):`, `−${fmt(descuento)}`, false, [5, 150, 105])
+      doc.setTextColor(...ZINC5); doc.text('Subtotal:', TX, y)
+      doc.setTextColor(...ZINC9); doc.text(fmt(orden.total_base ?? totalCobrado), PW - MG - 2, y, { align: 'right' }); y += 5.5
+      doc.setTextColor(...ZINC5); doc.text(`Descuento (${Math.round(orden.pct_descuento ?? 0)}%):`, TX, y)
+      doc.setTextColor(5, 150, 105); doc.text(`−${fmt(descuento)}`, PW - MG - 2, y, { align: 'right' }); y += 5.5
     }
 
-    // Total final — caja azul
+    /* Total — barra oscura profesional */
     y += 2
-    doc.setFillColor(...BLUE); doc.roundedRect(TOTAL_X - 4, y - 5, PW - MG - TOTAL_X + 6, 11, 2, 2, 'F')
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
-    doc.text('TOTAL:', TOTAL_X, y + 2)
-    doc.text(fmt(totalCobrado), PW - MG - 2, y + 2, { align: 'right' })
-    y += 14
+    doc.setFillColor(24, 24, 27)
+    doc.roundedRect(TX - 4, y - 1, PW - MG - TX + 6, 11, 1.5, 1.5, 'F')
+    doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+    doc.text('TOTAL A COBRAR:', TX, y + 7)
+    doc.text(fmt(totalCobrado), PW - MG - 2, y + 7, { align: 'right' })
 
-    /* ── Observaciones ── */
-    doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, y, PW - MG, y); y += 6
-    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC5)
-    doc.text('OBSERVACIONES:', MG, y); y += 5
-    for (let i = 0; i < 3; i++) {
-      doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3)
-      doc.line(MG, y, PW - MG, y); y += 7
-    }
-    y += 4
+    /* ── SECCIÓN FIJA EN EL FONDO (posiciones absolutas desde PH) ── */
 
-    /* ── Garantía ── */
-    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, y, CW, 8, 1.5, 1.5, 'F')
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
-    doc.text('Garantía: 60 días a partir de la fecha de servicio', MG + 4, y + 5.5)
-    y += 14
-
-    /* ── Firmas ── */
-    const firmaW = (CW - 10) / 2
-    doc.setDrawColor(...ZINC5); doc.setLineWidth(0.4)
-    doc.line(MG, y, MG + firmaW, y)
-    doc.line(MG + firmaW + 10, y, PW - MG, y)
-    y += 5
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC5)
-    doc.text('Firma del cliente', MG + firmaW / 2, y, { align: 'center' })
-    doc.text('Autorizado por el taller', MG + firmaW + 10 + firmaW / 2, y, { align: 'center' })
-    y += 3
-    doc.setFontSize(6.5); doc.setTextColor(160, 160, 160)
-    doc.text('Acepto los servicios descritos y el monto total indicado.', MG + firmaW / 2, y, { align: 'center' })
-
-    /* ── Footer ── */
+    /* Footer */
+    const contactLine = [nombreTaller, telefonoTaller ? `Tel: ${telefonoTaller}` : null, emailTaller]
+      .filter(Boolean).join('  ·  ')
     doc.setFillColor(...ZINC1); doc.rect(0, PH - 10, PW, 10, 'F')
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ZINC5)
-    doc.text(`${nombreTaller}  ·  Orden ${ordenNum}  ·  ${fechaDoc}`, MG, PH - 3.5)
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80)
+    doc.text(`${contactLine}  ·  ${fechaDoc}`, MG, PH - 3.5)
     doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
     doc.text('AutoCoreFix', PW - MG, PH - 3.5, { align: 'right' })
+
+    /* Garantía */
+    doc.setFillColor(...BLUEBG); doc.roundedRect(MG, PH - 21, CW, 8, 1.5, 1.5, 'F')
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...BLUE)
+    doc.text('Garantía: 60 días a partir de la fecha de servicio', MG + 4, PH - 15.5)
+
+    /* Firmas */
+    const firmaW = (CW - 10) / 2
+    doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.5)
+    doc.line(MG, PH - 42, MG + firmaW, PH - 42)
+    doc.line(MG + firmaW + 10, PH - 42, PW - MG, PH - 42)
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('Firma del cliente', MG + firmaW / 2, PH - 37, { align: 'center' })
+    doc.text('Autorizado por el taller', MG + firmaW + 10 + firmaW / 2, PH - 37, { align: 'center' })
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60)
+    doc.text('Acepto los servicios descritos y el monto total indicado.', MG + firmaW / 2, PH - 33, { align: 'center' })
+
+    /* Observaciones */
+    doc.setDrawColor(...BLUEBG); doc.setLineWidth(0.5); doc.line(MG, PH - 76, PW - MG, PH - 76)
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ZINC9)
+    doc.text('OBSERVACIONES:', MG, PH - 70);
+    [PH - 63, PH - 56, PH - 49].forEach(yL => {
+      doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.3); doc.line(MG, yL, PW - MG, yL)
+    })
 
     const blob = doc.output('blob')
     window.open(URL.createObjectURL(blob), '_blank')

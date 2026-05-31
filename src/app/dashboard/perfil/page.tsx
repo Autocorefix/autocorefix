@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Eye, EyeOff, Save, KeyRound, User, ImagePlus, Trash2, Building2 } from 'lucide-react'
+import { Eye, EyeOff, Save, KeyRound, User, ImagePlus, Trash2, Building2, Phone } from 'lucide-react'
 
 export default function PerfilPage() {
   const supabase = createClient()
@@ -22,13 +22,17 @@ export default function PerfilPage() {
   const [msgPass,         setMsgPass]         = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   /* ── Taller / logo (solo admin) ────────────────────────── */
-  const [rol,           setRol]           = useState<string | null>(null)
-  const [tenantId,      setTenantId]      = useState('')
-  const [nombreTaller,  setNombreTaller]  = useState('')
-  const [logoUrl,       setLogoUrl]       = useState<string | null>(null)
-  const [uploadingLogo, setUploadingLogo] = useState(false)
-  const [deletingLogo,  setDeletingLogo]  = useState(false)
-  const [msgLogo,       setMsgLogo]       = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [rol,              setRol]              = useState<string | null>(null)
+  const [tenantId,         setTenantId]         = useState('')
+  const [nombreTaller,     setNombreTaller]     = useState('')
+  const [logoUrl,          setLogoUrl]          = useState<string | null>(null)
+  const [telefonoTaller,   setTelefonoTaller]   = useState('')
+  const [emailTaller,      setEmailTaller]      = useState('')
+  const [savingContacto,   setSavingContacto]   = useState(false)
+  const [msgContacto,      setMsgContacto]      = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [uploadingLogo,    setUploadingLogo]    = useState(false)
+  const [deletingLogo,     setDeletingLogo]     = useState(false)
+  const [msgLogo,          setMsgLogo]          = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   /* ── Carga inicial ─────────────────────────────────────── */
@@ -50,9 +54,11 @@ export default function PerfilPage() {
       setRol(usuario?.rol ?? null)
       setTenantId(usuario?.tenant_id ?? '')
 
-      const t = usuario?.tenants as { nombre: string; logo_url: string | null } | null
+      const t = usuario?.tenants as { nombre: string; logo_url: string | null; telefono: string | null; email_taller: string | null } | null
       setNombreTaller(t?.nombre ?? '')
       setLogoUrl(t?.logo_url ?? null)
+      setTelefonoTaller(t?.telefono ?? '')
+      setEmailTaller(t?.email_taller ?? '')
 
       setLoadingPerfil(false)
     }
@@ -130,6 +136,21 @@ export default function PerfilPage() {
       img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('load')) }
       img.src = objectUrl
     })
+  }
+
+  /* ── Guardar contacto del taller ──────────────────────── */
+  async function guardarContacto(e: React.FormEvent) {
+    e.preventDefault()
+    setSavingContacto(true); setMsgContacto(null)
+    const { error } = await (supabase as any)
+      .from('tenants')
+      .update({ telefono: telefonoTaller.trim() || null, email_taller: emailTaller.trim() || null })
+      .eq('id', tenantId)
+    setMsgContacto(error
+      ? { type: 'err', text: 'Error al guardar datos de contacto' }
+      : { type: 'ok',  text: 'Datos de contacto actualizados' }
+    )
+    setSavingContacto(false)
   }
 
   /* ── Subir logo ────────────────────────────────────────── */
@@ -290,6 +311,60 @@ export default function PerfilPage() {
               {msgLogo.text}
             </p>
           )}
+        </div>
+      )}
+
+      {/* ── Contacto del taller (solo admin) ───────────────── */}
+      {esAdmin && (
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
+              <Phone className="w-4 h-4 text-[#2563EB]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-900">Contacto del taller</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Aparece en los PDF de órdenes y diagnósticos</p>
+            </div>
+          </div>
+          <form onSubmit={guardarContacto} className="space-y-4">
+            <div>
+              <label className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest block mb-1.5">
+                Teléfono del taller
+              </label>
+              <input
+                type="tel"
+                value={telefonoTaller}
+                onChange={e => setTelefonoTaller(e.target.value)}
+                placeholder="Ej. 9981234567"
+                className="w-full text-sm text-zinc-900 placeholder-zinc-400 border border-zinc-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest block mb-1.5">
+                Correo del taller
+              </label>
+              <input
+                type="email"
+                value={emailTaller}
+                onChange={e => setEmailTaller(e.target.value)}
+                placeholder="contacto@mitaller.com"
+                className="w-full text-sm text-zinc-900 placeholder-zinc-400 border border-zinc-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-colors"
+              />
+            </div>
+            {msgContacto && (
+              <p className={`text-sm ${msgContacto.type === 'ok' ? 'text-emerald-600' : 'text-red-500'}`}>
+                {msgContacto.text}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={savingContacto}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              {savingContacto ? 'Guardando…' : 'Guardar contacto'}
+            </button>
+          </form>
         </div>
       )}
 

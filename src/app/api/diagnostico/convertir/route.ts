@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       diag.servicios.map((s: any) => ({
         orden_id:        orden.id,
         servicio_id:     null,
-        nombre_servicio: s.nombre,
+        nombre_servicio: s.descripcion ?? s.nombre ?? '—',
         precio_base:     s.precio,
         precio_cobrado:  s.precio,
       }))
