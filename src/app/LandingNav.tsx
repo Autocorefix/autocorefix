@@ -50,7 +50,7 @@ export default function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             </Link>
           ) : (
             <>
-              <Link href="/login" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-slate-600 hover:text-[#0F172A] transition-colors">
+              <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-[#0F172A] transition-colors">
                 Iniciar sesión
               </Link>
               <Link href="/register" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-[#2563EB] text-white text-sm font-medium rounded-lg hover:bg-[#1D4ED8] transition-colors">
