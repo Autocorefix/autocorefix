@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard, ClipboardPlus, ClipboardList, Users,
+  LayoutDashboard, ClipboardList, Users,
   BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle, CreditCard, Lock,
   Menu, X, FileSearch,
 } from 'lucide-react'
@@ -15,7 +15,6 @@ type NavItem = { href: string; label: string; icon: React.ElementType; adminOnly
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard',             label: 'Dashboard',   icon: LayoutDashboard },
-  { href: '/dashboard/nueva-orden',  label: 'Nueva Orden',  icon: ClipboardPlus },
   { href: '/dashboard/diagnostico', label: 'Diagnóstico',  icon: FileSearch },
   { href: '/dashboard/ordenes',     label: 'Ordenes',      icon: ClipboardList },
   { href: '/dashboard/clientes',    label: 'Clientes',    icon: Users },

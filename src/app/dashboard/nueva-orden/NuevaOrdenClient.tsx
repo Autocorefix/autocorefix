@@ -234,7 +234,7 @@ export default function NuevaOrdenClient({
         }
       }
 
-      router.push('/dashboard')
+      router.push('/dashboard/ordenes')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error inesperado')
       setLoading(false)

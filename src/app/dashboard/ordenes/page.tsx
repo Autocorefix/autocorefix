@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import { ChevronDown, ChevronRight, Search, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronDown, ChevronRight, Plus, Search, Trash2 } from 'lucide-react'
 
 type Estado = 'recibido' | 'en_proceso' | 'listo' | 'entregado'
 
@@ -177,12 +178,21 @@ export default function OrdenesPage() {
 
   return (
     <div className="max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-zinc-900">Órdenes</h1>
-        <p className="text-sm text-zinc-500 mt-0.5">
-          {filtradas.length} {filtradas.length === 1 ? 'orden' : 'órdenes'} · ${totalFiltrado.toLocaleString('es-MX')} total
-          {filtradas.length > 0 && <span className="ml-2 text-zinc-300">· Mostrando {desde_item}–{hasta_item}</span>}
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-zinc-900">Órdenes</h1>
+          <p className="text-sm text-zinc-500 mt-0.5">
+            {filtradas.length} {filtradas.length === 1 ? 'orden' : 'órdenes'} · ${totalFiltrado.toLocaleString('es-MX')} total
+            {filtradas.length > 0 && <span className="ml-2 text-zinc-300">· Mostrando {desde_item}–{hasta_item}</span>}
+          </p>
+        </div>
+        <Link
+          href="/dashboard/nueva-orden"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#1649C8] hover:bg-[#1340B0] text-white text-sm font-semibold rounded-xl transition-colors shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          Nueva Orden
+        </Link>
       </div>
 
       {/* Filtros */}
