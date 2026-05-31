@@ -169,7 +169,7 @@ export default function NuevaOrdenClient({
     if (modoNuevoCliente && !nuevoCliente.nombre.trim())                                             { setError('El nombre del cliente es requerido.'); return }
     if (!vehiculoSeleccionado && !modoNuevoVehiculo)                                                 { setError('Selecciona o registra un vehículo.'); return }
     if (modoNuevoVehiculo && (!nuevoVehiculo.marca || !nuevoVehiculo.modelo || !nuevoVehiculo.anio)) { setError('Completa marca, modelo y año del vehículo.'); return }
-    if (items.length === 0)                                                                          { setError('Agrega al menos un servicio.'); return }
+    if (items.length === 0 && piezas.length === 0)                                                   { setError('Agrega al menos un servicio o refacción.'); return }
 
     setLoading(true)
 
@@ -228,7 +228,10 @@ export default function NuevaOrdenClient({
             }))
           })
         })
-        if (!res.ok) throw new Error('Error al guardar piezas')
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data.error ?? 'Error al guardar piezas')
+        }
       }
 
       router.push('/dashboard')
