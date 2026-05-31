@@ -21,7 +21,6 @@ type OrdenMes = {
   clientes: { nombre: string } | { nombre: string }[] | null
 }
 type OrdenAnt   = { id: string; total_cobrado: number | null; descuento: number | null; cliente_id: string | null }
-type Orden90    = { id: string; total_cobrado: number | null; created_at: string | null }
 type TopSvc     = {
   nombre_servicio: string | null
   precio_cobrado: number | null
@@ -42,7 +41,6 @@ type TopClienteRaw = {
 type Props = {
   ordenesMes:       OrdenMes[]
   ordenesAnt:       OrdenAnt[]
-  ordenes90:        Orden90[]
   topServicios:     TopSvc[]
   porCategoria:     PorCat[]
   topClientesRaw:   TopClienteRaw[]
@@ -184,7 +182,7 @@ function EmptyChart() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ReportesClient({
-  ordenesMes, ordenesAnt, ordenes90, topServicios, porCategoria, topClientesRaw,
+  ordenesMes, ordenesAnt, topServicios, porCategoria, topClientesRaw,
   mesLabel, mesAntLabel, desde, hasta,
 }: Props) {
 
@@ -285,18 +283,7 @@ export default function ReportesClient({
   const descuentoAnt      = ordenesAnt.reduce((s, o) => s + (o.descuento ?? 0), 0)
   const clientesUnicosAnt = new Set(ordenesAnt.map(o => o.cliente_id).filter(Boolean)).size
 
-  // ── Gráfica tendencia 90 días
-  const tendencia = (() => {
-    const map: Record<string, number> = {}
-    ordenes90.forEach(o => {
-      if (!o.created_at) return
-      const d = new Date(o.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })
-      map[d] = (map[d] ?? 0) + (o.total_cobrado ?? 0)
-    })
-    return Object.entries(map).map(([fecha, ingresos]) => ({ fecha, ingresos }))
-  })()
-
-  // ── Ingresos diarios período actual
+  // ── Ingresos diarios período seleccionado
   const diariosMes = (() => {
     const map: Record<string, number> = {}
     ordenesMes.forEach(o => {
@@ -495,11 +482,11 @@ export default function ReportesClient({
         <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-200 shadow-sm p-6">
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-zinc-900">Tendencia de ingresos</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Últimos 90 días</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Período seleccionado</p>
           </div>
-          {tendencia.length > 0 ? (
+          {diariosMes.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={tendencia} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
+              <AreaChart data={diariosMes} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradBlue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor="#2563EB" stopOpacity={0.15} />

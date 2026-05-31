@@ -102,16 +102,64 @@ export default function OrdenesPage() {
   const [busqueda,     setBusqueda]     = useState('')
   const [busquedaDB,   setBusquedaDB]   = useState('')
 
-  const hoy = new Date()
-  const [desde, setDesde] = useState(() =>
-    new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0]
-  )
-  const [hasta, setHasta] = useState(() => hoy.toISOString().split('T')[0])
+  const isoHoy = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}` }
+  const [desde, setDesde]           = useState(isoHoy)
+  const [hasta, setHasta]           = useState(isoHoy)
+  const [openPicker, setOpenPicker] = useState(false)
+  const [desdeLocal, setDesdeLocal] = useState(isoHoy)
+  const [hastaLocal, setHastaLocal] = useState(isoHoy)
+  const pickerRef                   = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setBusquedaDB(busqueda), 400)
     return () => clearTimeout(t)
   }, [busqueda])
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setOpenPicker(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function aplicarFiltro(d: string, h: string) {
+    setDesde(d); setDesdeLocal(d)
+    setHasta(h); setHastaLocal(h)
+    setOpenPicker(false)
+  }
+
+  function preset(tipo: string) {
+    const n   = new Date()
+    const pad = (x: number) => String(x).padStart(2, '0')
+    const iso = (dt: Date) => `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`
+    const shift = (days: number) => { const dt = new Date(n); dt.setDate(n.getDate() + days); return dt }
+    const ranges: Record<string, [string, string]> = {
+      hoy:     [iso(n),                                                         iso(n)],
+      ayer:    [iso(shift(-1)),                                                  iso(shift(-1))],
+      '7d':    [iso(shift(-6)),                                                  iso(n)],
+      '14d':   [iso(shift(-13)),                                                 iso(n)],
+      '30d':   [iso(shift(-29)),                                                 iso(n)],
+      mes:     [iso(new Date(n.getFullYear(), n.getMonth(), 1)),                 iso(n)],
+      mes_ant: [iso(new Date(n.getFullYear(), n.getMonth()-1, 1)),              iso(new Date(n.getFullYear(), n.getMonth(), 0))],
+    }
+    const [d, h] = ranges[tipo]
+    aplicarFiltro(d, h)
+  }
+
+  const PRESETS_ORD = [
+    { key: 'hoy',     label: 'Hoy' },
+    { key: 'ayer',    label: 'Ayer' },
+    { key: '7d',      label: 'Últimos 7 días' },
+    { key: '14d',     label: 'Últimos 14 días' },
+    { key: '30d',     label: 'Últimos 30 días' },
+    { key: 'mes',     label: 'Este mes' },
+    { key: 'mes_ant', label: 'Mes anterior' },
+  ]
+
+  const btnLabel = desde === hasta
+    ? new Date(desde + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+    : `${new Date(desde + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })} – ${new Date(hasta + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}`
 
   const fetchOrdenes = useCallback(async () => {
     setLoading(true)
@@ -212,20 +260,54 @@ export default function OrdenesPage() {
             </span>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="date"
-            value={desde}
-            onChange={e => setDesde(e.target.value)}
-            className="text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
-          />
-          <span className="text-zinc-400 text-sm">—</span>
-          <input
-            type="date"
-            value={hasta}
-            onChange={e => setHasta(e.target.value)}
-            className="text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
-          />
+        {/* Date range picker */}
+        <div className="relative" ref={pickerRef}>
+          <button
+            onClick={() => setOpenPicker(p => !p)}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium border border-zinc-200 text-zinc-700 rounded-lg hover:bg-zinc-50 transition-colors"
+          >
+            <span>{btnLabel}</span>
+            <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${openPicker ? 'rotate-180' : ''}`} />
+          </button>
+
+          {openPicker && (
+            <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl flex flex-col sm:flex-row overflow-hidden max-w-[calc(100vw-2rem)] sm:min-w-[420px]">
+              {/* Presets */}
+              <div className="flex flex-col border-b sm:border-b-0 sm:border-r border-zinc-100 py-2 sm:min-w-[160px]">
+                {PRESETS_ORD.map(p => (
+                  <button
+                    key={p.key}
+                    onClick={() => preset(p.key)}
+                    className="text-left px-4 py-2 text-sm text-zinc-600 hover:bg-blue-50 hover:text-[#2563EB] transition-colors"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {/* Custom range */}
+              <div className="flex flex-col gap-3 p-4 flex-1">
+                <p className="text-xs font-medium text-zinc-400 uppercase tracking-wide">Personalizado</p>
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <label className="text-xs text-zinc-500 mb-1 block">Desde</label>
+                    <input type="date" value={desdeLocal} onChange={e => setDesdeLocal(e.target.value)}
+                      className="w-full text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 mb-1 block">Hasta</label>
+                    <input type="date" value={hastaLocal} onChange={e => setHastaLocal(e.target.value)}
+                      className="w-full text-sm text-zinc-900 border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]" />
+                  </div>
+                </div>
+                <button
+                  onClick={() => aplicarFiltro(desdeLocal, hastaLocal)}
+                  className="w-full px-4 py-2 text-sm font-medium bg-[#2563EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors"
+                >
+                  Aplicar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

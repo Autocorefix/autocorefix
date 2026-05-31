@@ -17,10 +17,12 @@ export default async function ReportesPage({
   const now = new Date()
   const y   = now.getFullYear()
   const m   = now.getMonth()
+  const d   = now.getDate()
+  const todayStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
-  // Rango seleccionado (default: mes actual)
-  const desdeStr = params.desde ?? new Date(y, m, 1).toISOString().split('T')[0]
-  const hastaStr = params.hasta ?? new Date(y, m + 1, 0).toISOString().split('T')[0]
+  // Rango seleccionado (default: hoy)
+  const desdeStr = params.desde ?? todayStr
+  const hastaStr = params.hasta ?? todayStr
 
   const inicioActual = new Date(desdeStr + 'T00:00:00').toISOString()
   const finActual    = new Date(hastaStr + 'T23:59:59').toISOString()
@@ -30,13 +32,9 @@ export default async function ReportesPage({
   const inicioAnt  = new Date(new Date(inicioActual).getTime() - duracionMs - 1000).toISOString()
   const finAnt     = new Date(new Date(inicioActual).getTime() - 1000).toISOString()
 
-  // Tendencia: siempre 90 días hacia atrás desde hoy
-  const inicio90dias = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
-
   const [
     { data: ordenesMes },
     { data: ordenesAnt },
-    { data: ordenes90 },
     { data: topServicios },
     { data: porCategoria },
     { data: topClientes },
@@ -53,12 +51,6 @@ export default async function ReportesPage({
       .select('id, total_cobrado, descuento, cliente_id')
       .gte('created_at', inicioAnt)
       .lte('created_at', finAnt),
-
-    supabase
-      .from('ordenes')
-      .select('id, total_cobrado, created_at')
-      .gte('created_at', inicio90dias)
-      .order('created_at', { ascending: true }),
 
     supabase
       .from('orden_servicios')
@@ -88,7 +80,6 @@ export default async function ReportesPage({
     <ReportesClient
       ordenesMes={ordenesMes ?? []}
       ordenesAnt={ordenesAnt ?? []}
-      ordenes90={ordenes90 ?? []}
       topServicios={topServicios ?? []}
       porCategoria={porCategoria ?? []}
       topClientesRaw={topClientes ?? []}
