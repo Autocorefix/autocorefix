@@ -481,16 +481,17 @@ export default function NuevaOrdenClient({
                 Selecciona servicios del panel de arriba
               </div>
             ) : (
-              <>
-                {/* Sección mano de obra */}
-                <div className="px-5 pt-4 pb-2">
-                  <div className="flex items-center gap-2 mb-3">
+              <div className="p-4 flex flex-col gap-3">
+
+                {/* Sub-card mano de obra */}
+                <div className="rounded-xl border border-blue-100 overflow-hidden shadow-sm">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 border-b border-blue-100">
                     <Wrench className="w-3.5 h-3.5 text-[#2563EB]" />
                     <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest">Mano de obra</span>
                   </div>
-                  <div className="flex flex-col divide-y divide-zinc-50">
+                  <div className="bg-white divide-y divide-zinc-50">
                     {items.map(item => (
-                      <div key={item.servicioId} className="flex items-center justify-between py-2.5 gap-3">
+                      <div key={item.servicioId} className="flex items-center justify-between px-4 py-3 gap-3">
                         <span className="text-sm text-zinc-800 font-medium leading-snug flex-1">{item.nombre}</span>
                         <span className="text-sm font-semibold text-zinc-700 shrink-0">{fmt(item.precioBase)}</span>
                         <button onClick={() => quitarServicio(item.servicioId)} className="text-red-400 hover:text-red-600 transition-colors shrink-0">
@@ -501,16 +502,16 @@ export default function NuevaOrdenClient({
                   </div>
                 </div>
 
-                {/* Sección refacciones (si las hay) */}
+                {/* Sub-card refacciones */}
                 {totalPiezas > 0 && (
-                  <div className="px-5 pt-3 pb-2 border-t border-zinc-100">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Package className="w-3.5 h-3.5 text-amber-500" />
+                  <div className="rounded-xl border border-amber-200 overflow-hidden shadow-sm">
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border-b border-amber-100">
+                      <Package className="w-3.5 h-3.5 text-amber-600" />
                       <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Refacciones adquiridas</span>
                     </div>
-                    <div className="flex flex-col divide-y divide-amber-50">
+                    <div className="bg-white divide-y divide-amber-50">
                       {piezas.map(p => (
-                        <div key={p.tempId} className="flex items-center justify-between py-2.5 gap-3">
+                        <div key={p.tempId} className="flex items-center justify-between px-4 py-3 gap-3">
                           <span className="text-sm text-zinc-700 flex-1 leading-snug">
                             {p.descripcion}
                             {p.cantidad > 1 && <span className="text-amber-600 ml-2 text-xs font-semibold">×{p.cantidad}</span>}
@@ -522,9 +523,9 @@ export default function NuevaOrdenClient({
                   </div>
                 )}
 
-                {/* Bloque de totales */}
-                <div className="mx-5 my-4 bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden">
-                  <div className="px-4 py-3 flex flex-col gap-2">
+                {/* Sub-card totales */}
+                <div className="rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
+                  <div className="bg-white px-4 py-3 flex flex-col gap-2.5">
                     {totalPiezas > 0 ? (
                       <>
                         <div className="flex justify-between text-sm">
@@ -535,7 +536,7 @@ export default function NuevaOrdenClient({
                           <span className="text-zinc-500">Refacciones</span>
                           <span className="font-semibold text-amber-700">{fmt(totalPiezas)}</span>
                         </div>
-                        <div className="border-t border-zinc-200 pt-2 flex justify-between text-sm">
+                        <div className="border-t border-zinc-100 pt-2.5 flex justify-between text-sm">
                           <span className="text-zinc-500">Subtotal</span>
                           <span className="font-semibold text-zinc-800">{fmt(totalBase)}</span>
                         </div>
@@ -547,8 +548,7 @@ export default function NuevaOrdenClient({
                       </div>
                     )}
 
-                    {/* Descuento */}
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center gap-2">
                       <label className="text-sm text-zinc-500 shrink-0">Precio final</label>
                       <div className="relative flex-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">$</span>
@@ -557,7 +557,7 @@ export default function NuevaOrdenClient({
                           placeholder={totalBase.toString()}
                           value={precioFinalInput}
                           onChange={e => setPrecioFinalInput(e.target.value)}
-                          className="w-full rounded-lg border border-zinc-200 bg-white pl-7 pr-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+                          className="w-full rounded-lg border border-zinc-200 bg-zinc-50 pl-7 pr-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -576,7 +576,8 @@ export default function NuevaOrdenClient({
                     <span className="text-xl font-bold text-white">{fmt(precioFinal)}</span>
                   </div>
                 </div>
-              </>
+
+              </div>
             )}
           </div>
 
