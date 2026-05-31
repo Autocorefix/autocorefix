@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, ClipboardPlus, ClipboardList, Users,
   BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle, CreditCard, Lock,
-  Menu, X,
+  Menu, X, FileSearch,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { useSubscription } from '@/components/SubscriptionContext'
@@ -15,8 +15,9 @@ type NavItem = { href: string; label: string; icon: React.ElementType; adminOnly
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard',             label: 'Dashboard',   icon: LayoutDashboard },
-  { href: '/dashboard/nueva-orden', label: 'Nueva Orden', icon: ClipboardPlus },
-  { href: '/dashboard/ordenes',     label: 'Ordenes',     icon: ClipboardList },
+  { href: '/dashboard/nueva-orden',  label: 'Nueva Orden',  icon: ClipboardPlus },
+  { href: '/dashboard/diagnostico', label: 'Diagnóstico',  icon: FileSearch },
+  { href: '/dashboard/ordenes',     label: 'Ordenes',      icon: ClipboardList },
   { href: '/dashboard/clientes',    label: 'Clientes',    icon: Users },
   { href: '/dashboard/catalogo',    label: 'Catalogo',    icon: BookOpen,   adminOnly: true },
   { href: '/dashboard/reportes',    label: 'Reportes',    icon: BarChart2,  adminOnly: true },
