@@ -49,14 +49,18 @@ const CATEGORIA_ICONS: Record<string, React.ElementType> = {
 
 const INPUT = 'rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent w-full'
 
+type TrabajadorOption = { id: string; nombre: string; especialidad: string | null }
+
 export default function NuevaOrdenClient({
   servicios,
   tenantId,
   prefijo,
+  trabajadores = [],
 }: {
   servicios: ServicioOrden[]
   tenantId: string
   prefijo: string
+  trabajadores?: TrabajadorOption[]
 }) {
   const router   = useRouter()
   const supabase = createClient()
@@ -79,6 +83,9 @@ export default function NuevaOrdenClient({
 
   const [piezas, setPiezas]         = useState<PiezaOrden[]>([])
   const [nuevaPieza, setNuevaPieza] = useState({ descripcion: '', cantidad: '1', precio: '' })
+
+  const [responsableId, setResponsableId] = useState('')
+  const [ayudanteId, setAyudanteId]       = useState('')
 
   const [showFormPieza, setShowFormPieza] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -197,9 +204,9 @@ export default function NuevaOrdenClient({
         vehiculoId = data.id
       }
 
-      const { data: orden, error: e } = await supabase
+      const { data: orden, error: e } = await (supabase as any)
         .from('ordenes')
-        .insert({ tenant_id: tenantId, cliente_id: clienteId, vehiculo_id: vehiculoId, estado: 'recibido', total_base: totalBase, total_cobrado: precioFinal, descuento, pct_descuento: pctDescuento })
+        .insert({ tenant_id: tenantId, cliente_id: clienteId, vehiculo_id: vehiculoId, estado: 'recibido', total_base: totalBase, total_cobrado: precioFinal, descuento, pct_descuento: pctDescuento, responsable_id: responsableId || null, ayudante_id: ayudanteId || null })
         .select('id').single()
       if (e) throw new Error('Error al crear orden')
 
@@ -432,6 +439,33 @@ export default function NuevaOrdenClient({
 
         {/* RIGHT */}
         <div className="lg:col-span-3 flex flex-col gap-5">
+
+          {/* Asignación de mecánico */}
+          {trabajadores.length > 0 && (
+            <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
+              <h2 className="text-sm font-semibold text-zinc-900 mb-4">Asignación</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1 block">Responsable del servicio</label>
+                  <select value={responsableId} onChange={e => setResponsableId(e.target.value)} className={INPUT}>
+                    <option value="">Sin asignar</option>
+                    {trabajadores.map(t => (
+                      <option key={t.id} value={t.id}>{t.nombre}{t.especialidad ? ` · ${t.especialidad}` : ''}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1 block">Ayudante <span className="normal-case font-normal text-zinc-300">(opcional)</span></label>
+                  <select value={ayudanteId} onChange={e => setAyudanteId(e.target.value)} className={INPUT}>
+                    <option value="">Sin ayudante</option>
+                    {trabajadores.filter(t => t.id !== responsableId).map(t => (
+                      <option key={t.id} value={t.id}>{t.nombre}{t.especialidad ? ` · ${t.especialidad}` : ''}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-zinc-900 mb-4">Servicios</h2>

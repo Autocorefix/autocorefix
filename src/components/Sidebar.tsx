@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, ClipboardList, Users,
   BookOpen, BarChart2, LogOut, Wrench, Settings, UserCircle, CreditCard, Lock,
-  Menu, X, FileSearch,
+  Menu, X, FileSearch, Wallet,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
 import { useSubscription } from '@/components/SubscriptionContext'
@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/clientes',     label: 'Clientes',    icon: Users },
   { href: '/catalogo',     label: 'Catalogo',    icon: BookOpen,   adminOnly: true },
   { href: '/reportes',     label: 'Reportes',    icon: BarChart2,  adminOnly: true },
+  { href: '/finanzas',     label: 'Finanzas',    icon: Wallet,     adminOnly: true },
   { href: '/billing',      label: 'Facturacion', icon: CreditCard, adminOnly: true },
   { href: '/settings',     label: 'Ajustes',     icon: Settings,   adminOnly: true },
 ]
