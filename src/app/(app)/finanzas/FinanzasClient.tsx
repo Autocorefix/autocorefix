@@ -19,8 +19,18 @@ type Props = {
   nominaData:      TrabajadorCalc[]
   totalNomina:     number
   semanasEnPeriodo: number
+  daysDiff:        number
   desde:           string
   hasta:           string
+}
+
+function periodLabel(days: number): string {
+  if (days === 1) return '1 día'
+  if (days % 7 === 0 && days <= 28) {
+    const w = days / 7
+    return `${w} ${w === 1 ? 'semana' : 'semanas'}`
+  }
+  return `${days} días`
 }
 
 const PRESETS = [
@@ -58,7 +68,7 @@ const INPUT = 'border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-900
 
 export default function FinanzasClient({
   totalIngresos, countOrdenes, egresosMap, totalEgresos,
-  nominaData, totalNomina, semanasEnPeriodo, desde, hasta,
+  nominaData, totalNomina, semanasEnPeriodo, daysDiff, desde, hasta,
 }: Props) {
   const router = useRouter()
   const [desdeLocal, setDesdeLocal] = useState(desde)
@@ -114,7 +124,7 @@ export default function FinanzasClient({
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Resumen financiero</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">{btnLabel} · {semanasEnPeriodo} {semanasEnPeriodo === 1 ? 'semana' : 'semanas'}</p>
+          <p className="text-sm text-zinc-500 mt-0.5">{btnLabel} · {periodLabel(daysDiff)}</p>
         </div>
         <div className="relative" ref={pickerRef}>
           <button onClick={() => setOpen(p => !p)}

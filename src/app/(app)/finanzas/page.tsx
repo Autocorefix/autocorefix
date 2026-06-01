@@ -25,8 +25,8 @@ export default async function FinanzasPage({
   const inicio = new Date(desdeStr + 'T00:00:00' + MX_OFFSET).toISOString()
   const fin    = new Date(hastaStr + 'T23:59:59' + MX_OFFSET).toISOString()
 
-  const daysDiff        = (new Date(hastaStr).getTime() - new Date(desdeStr).getTime()) / 86400000 + 1
-  const semanasEnPeriodo = Math.max(1, Math.ceil(daysDiff / 7))
+  const daysDiff         = Math.round((new Date(hastaStr).getTime() - new Date(desdeStr).getTime()) / 86400000) + 1
+  const semanasEnPeriodo = Math.max(1, Math.round(daysDiff / 7))
 
   const adminClient = getAdminClient()
   const tenantId    = usuario!.tenant_id!
@@ -124,6 +124,7 @@ export default async function FinanzasPage({
       nominaData={nominaData}
       totalNomina={totalNomina}
       semanasEnPeriodo={semanasEnPeriodo}
+      daysDiff={daysDiff}
       desde={desdeStr}
       hasta={hastaStr}
     />
