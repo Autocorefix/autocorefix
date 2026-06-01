@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
-import { Plus, Pencil, Check, X, ToggleLeft, ToggleRight, Trash2, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Check, X, Trash2 } from 'lucide-react'
 import FinanzasNav from '../FinanzasNav'
 
 type Trabajador = {
@@ -139,14 +139,20 @@ export default function TrabajadoresPage() {
   }
 
   async function confirmarEliminar() {
-    if (!deleteTarget || deleteTarget.orderCount > 0) return
-    await (supabase as any).from('trabajadores').delete().eq('id', deleteTarget.id)
+    if (!deleteTarget) return
+    if (deleteTarget.orderCount === 0) {
+      // Sin órdenes → eliminación permanente
+      await (supabase as any).from('trabajadores').delete().eq('id', deleteTarget.id)
+    } else {
+      // Con órdenes → archivo silencioso (preserva historial en DB)
+      await (supabase as any).from('trabajadores').update({ activo: false }).eq('id', deleteTarget.id)
+    }
+    // En ambos casos desaparece del UI
     setTrabajadores(prev => prev.filter(w => w.id !== deleteTarget.id))
     setDeleteTarget(null)
   }
 
-  const activos   = trabajadores.filter(t => t.activo)
-  const inactivos = trabajadores.filter(t => !t.activo)
+  const activos = trabajadores.filter(t => t.activo)
 
   return (
     <div className="max-w-5xl">
@@ -163,64 +169,29 @@ export default function TrabajadoresPage() {
         </button>
       </div>
 
-      {/* Modal de eliminación */}
+      {/* Modal de eliminación — una sola confirmación, el sistema decide internamente */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
-            {deleteTarget.orderCount > 0 ? (
-              <>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-zinc-900">No se puede eliminar</h3>
-                    <p className="text-sm text-zinc-500 mt-0.5">
-                      <strong>{deleteTarget.nombre}</strong> tiene {deleteTarget.orderCount} {deleteTarget.orderCount === 1 ? 'orden registrada' : 'órdenes registradas'}.
-                    </p>
-                  </div>
-                </div>
-                <p className="text-sm text-zinc-600 mb-5">
-                  Eliminar un mecánico con órdenes borra su historial de comisiones y trabajo. La opción correcta es <strong>desactivarlo</strong> — deja de aparecer en nuevas órdenes pero su historial queda intacto.
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { const t = trabajadores.find(w => w.id === deleteTarget.id); if (t) toggleActivo(t); setDeleteTarget(null) }}
-                    className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg transition-colors">
-                    Desactivar
-                  </button>
-                  <button onClick={() => setDeleteTarget(null)}
-                    className="px-4 py-2 text-sm text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors">
-                    Cancelar
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                    <Trash2 className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-zinc-900">Eliminar trabajador</h3>
-                    <p className="text-sm text-zinc-500 mt-0.5">Esta acción no se puede deshacer.</p>
-                  </div>
-                </div>
-                <p className="text-sm text-zinc-600 mb-5">
-                  ¿Eliminar a <strong>{deleteTarget.nombre}</strong> permanentemente? No tiene órdenes registradas, por lo que no hay historial que preservar.
-                </p>
-                <div className="flex gap-2">
-                  <button onClick={confirmarEliminar}
-                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">
-                    Eliminar permanentemente
-                  </button>
-                  <button onClick={() => setDeleteTarget(null)}
-                    className="px-4 py-2 text-sm text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors">
-                    Cancelar
-                  </button>
-                </div>
-              </>
-            )}
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-zinc-900">Eliminar trabajador</h3>
+                <p className="text-sm text-zinc-500 mt-0.5">¿Eliminar a <strong>{deleteTarget.nombre}</strong>?</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={confirmarEliminar}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                Eliminar
+              </button>
+              <button onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 text-sm text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors">
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -314,10 +285,6 @@ export default function TrabajadoresPage() {
                           className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900 transition-colors">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => toggleActivo(t)} title="Desactivar"
-                          className="p-1.5 rounded-lg hover:bg-zinc-100 text-emerald-600 hover:text-emerald-700 transition-colors">
-                          <ToggleRight className="w-4 h-4" />
-                        </button>
                         <button onClick={() => iniciarEliminar(t)} title="Eliminar" disabled={checkingOrders}
                           className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-red-500 transition-colors disabled:opacity-40">
                           <Trash2 className="w-3.5 h-3.5" />
@@ -330,37 +297,6 @@ export default function TrabajadoresPage() {
             </table>
           </div>
 
-          {/* Inactivos */}
-          {inactivos.length > 0 && (
-            <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-3 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Inactivos — historial preservado</span>
-              </div>
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-zinc-50">
-                  {inactivos.map(t => (
-                    <tr key={t.id} className="hover:bg-zinc-50">
-                      <td className="px-5 py-3 text-zinc-400 line-through">{t.nombre}</td>
-                      <td className="hidden sm:table-cell px-5 py-3 text-zinc-300">{t.especialidad ?? '—'}</td>
-                      <td className="hidden sm:table-cell px-5 py-3 text-right text-zinc-300">{fmt(t.salario_semanal)}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => toggleActivo(t)} title="Reactivar"
-                            className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-emerald-600 transition-colors">
-                            <ToggleLeft className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => iniciarEliminar(t)} title="Eliminar" disabled={checkingOrders}
-                            className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-300 hover:text-red-500 transition-colors disabled:opacity-40">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </>
       )}
     </div>
