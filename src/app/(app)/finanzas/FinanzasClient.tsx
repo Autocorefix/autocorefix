@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, TrendingUp, TrendingDown } from 'lucide-react'
+import { ChevronDown, TrendingUp, TrendingDown, Info } from 'lucide-react'
+import { createClient } from '@/lib/supabase-browser'
 import FinanzasNav from './FinanzasNav'
 
 type TrabajadorCalc = {
@@ -12,16 +13,18 @@ type TrabajadorCalc = {
 }
 
 type Props = {
-  totalIngresos:   number
-  countOrdenes:    number
-  egresosMap:      Record<string, number>
-  totalEgresos:    number
-  nominaData:      TrabajadorCalc[]
-  totalNomina:     number
-  semanasEnPeriodo: number
-  daysDiff:        number
-  desde:           string
-  hasta:           string
+  totalIngresos:      number
+  countOrdenes:       number
+  egresosMap:         Record<string, number>
+  totalEgresos:       number
+  nominaData:         TrabajadorCalc[]
+  totalNomina:        number
+  semanasEnPeriodo:   number
+  daysDiff:           number
+  desde:              string
+  hasta:              string
+  tenantId:           string
+  showingPreviousWeek: boolean
 }
 
 function periodLabel(days: number): string {
@@ -43,38 +46,35 @@ const PRESETS = [
   { key: 'mes_ant', label: 'Mes anterior' },
 ]
 
-// Categorías del sistema — el fallback ?? cat maneja las personalizadas automáticamente
 const CAT_LABELS: Record<string, string> = {
-  renta:          'Renta / Arrendamiento',
-  electricidad:   'Electricidad',
-  agua:           'Agua',
-  gas:            'Gas',
-  movil:          'Teléfono móvil',
-  tel_fijo:       'Teléfono fijo',
-  internet:       'Internet',
-  cable_tv:       'Cable / TV',
-  herramientas:   'Herramientas',
-  insumos:        'Insumos de taller',
-  imprevistos:    'Imprevistos',
-  // Compatibilidad con registros anteriores
-  telefono:       'Comunicaciones',
-  consumibles:    'Insumos de taller',
-  otros:          'Otros',
+  renta: 'Renta / Arrendamiento', electricidad: 'Electricidad', agua: 'Agua', gas: 'Gas',
+  movil: 'Teléfono móvil', tel_fijo: 'Teléfono fijo', internet: 'Internet', cable_tv: 'Cable / TV',
+  herramientas: 'Herramientas', insumos: 'Insumos de taller', imprevistos: 'Imprevistos',
+  telefono: 'Comunicaciones', consumibles: 'Insumos de taller', otros: 'Otros',
 }
 
-const fmt  = (n: number) => `$${Math.round(n).toLocaleString('es-MX')}`
-const pct  = (n: number, total: number) => total > 0 ? `${((n / total) * 100).toFixed(1)}%` : '—'
+const fmt   = (n: number) => `$${Math.round(n).toLocaleString('es-MX')}`
+const pct   = (n: number, total: number) => total > 0 ? `${((n / total) * 100).toFixed(1)}%` : '—'
 const INPUT = 'border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] w-full'
+const isoHoy = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}` }
 
 export default function FinanzasClient({
   totalIngresos, countOrdenes, egresosMap, totalEgresos,
   nominaData, totalNomina, semanasEnPeriodo, daysDiff, desde, hasta,
+  tenantId, showingPreviousWeek,
 }: Props) {
-  const router = useRouter()
+  const router    = useRouter()
+  const supabase  = createClient()
+
   const [desdeLocal, setDesdeLocal] = useState(desde)
   const [hastaLocal, setHastaLocal] = useState(hasta)
   const [open, setOpen]             = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
+
+  // Extra inline
+  const [editingId,  setEditingId]  = useState<string | null>(null)
+  const [extraInput, setExtraInput] = useState('')
+  const [savingExtra, setSavingExtra] = useState(false)
 
   useEffect(() => {
     function h(e: MouseEvent) {
@@ -108,6 +108,23 @@ export default function FinanzasClient({
     aplicar(d, h)
   }
 
+  async function guardarExtra(trabajadorId: string) {
+    const monto = parseFloat(extraInput)
+    if (isNaN(monto) || monto <= 0) { setEditingId(null); setExtraInput(''); return }
+    setSavingExtra(true)
+    await (supabase as any).from('pagos_trabajadores').insert({
+      tenant_id:     tenantId,
+      trabajador_id: trabajadorId,
+      tipo:          'bono',
+      monto,
+      fecha:         isoHoy(),
+    })
+    setEditingId(null)
+    setExtraInput('')
+    setSavingExtra(false)
+    router.refresh()
+  }
+
   const btnLabel = desde === hasta
     ? new Date(desde + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
     : `${new Date(desde+'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short' })} – ${new Date(hasta+'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' })}`
@@ -121,7 +138,7 @@ export default function FinanzasClient({
       <FinanzasNav />
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Resumen financiero</h1>
           <p className="text-sm text-zinc-500 mt-0.5">{btnLabel} · {periodLabel(daysDiff)}</p>
@@ -157,6 +174,17 @@ export default function FinanzasClient({
           )}
         </div>
       </div>
+
+      {/* Leyenda semana anterior */}
+      {showingPreviousWeek && (
+        <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5">
+          <Info className="w-4 h-4 text-[#2563EB] mt-0.5 shrink-0" />
+          <p className="text-sm text-[#2563EB]">
+            Mostrando la <strong>semana anterior</strong> — aún no hay actividad registrada esta semana.
+            En cuanto se registre la primera orden, gasto o pago, el resumen cambiará automáticamente a la semana actual.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-5">
 
@@ -199,6 +227,7 @@ export default function FinanzasClient({
                   const salario    = t.salario_semanal * semanasEnPeriodo
                   const comisiones = t.comisionResponsable + t.comisionAyudante
                   const totalT     = salario + comisiones + t.pagosExtra
+                  const isEditing  = editingId === t.id
                   return (
                     <tr key={t.id} className="hover:bg-[#EFF6FF]">
                       <td className="px-5 py-3.5">
@@ -210,7 +239,44 @@ export default function FinanzasClient({
                         {semanasEnPeriodo > 1 && <span className="text-xs text-zinc-400 ml-1">×{semanasEnPeriodo}</span>}
                       </td>
                       <td className="hidden sm:table-cell px-4 py-3.5 text-right text-zinc-600">{fmt(comisiones)}</td>
-                      <td className="hidden sm:table-cell px-4 py-3.5 text-right text-zinc-600">{t.pagosExtra > 0 ? fmt(t.pagosExtra) : <span className="text-zinc-300">—</span>}</td>
+
+                      {/* Celda Extras — siempre editable */}
+                      <td className="hidden sm:table-cell px-4 py-2.5 text-right">
+                        {isEditing ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <span className="text-zinc-400 text-xs">$</span>
+                            <input
+                              autoFocus
+                              type="number"
+                              min="0"
+                              value={extraInput}
+                              onChange={e => setExtraInput(e.target.value)}
+                              onBlur={() => guardarExtra(t.id)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') guardarExtra(t.id)
+                                if (e.key === 'Escape') { setEditingId(null); setExtraInput('') }
+                              }}
+                              disabled={savingExtra}
+                              className="w-20 border border-[#2563EB] rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20"
+                            />
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setEditingId(t.id); setExtraInput('') }}
+                            className="inline-flex items-center gap-1.5 justify-end w-full"
+                          >
+                            {t.pagosExtra > 0 && (
+                              <span className="text-sm font-semibold text-zinc-800">{fmt(t.pagosExtra)}</span>
+                            )}
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md transition-colors ${
+                              t.pagosExtra > 0
+                                ? 'text-[#2563EB] hover:bg-blue-100'
+                                : 'text-[#2563EB] bg-blue-50 hover:bg-blue-100'
+                            }`}>+</span>
+                          </button>
+                        )}
+                      </td>
+
                       <td className="px-5 py-3.5 text-right font-bold text-zinc-800">{fmt(totalT)}</td>
                     </tr>
                   )
