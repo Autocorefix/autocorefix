@@ -268,11 +268,11 @@ export default function FinanzasClient({
                             {t.pagosExtra > 0 && (
                               <span className="text-sm font-semibold text-zinc-800">{fmt(t.pagosExtra)}</span>
                             )}
-                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md transition-colors ${
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-md transition-colors inline-flex items-center gap-0.5 ${
                               t.pagosExtra > 0
                                 ? 'text-[#2563EB] hover:bg-blue-100'
                                 : 'text-[#2563EB] bg-blue-50 hover:bg-blue-100'
-                            }`}>+</span>
+                            }`}>+ Agregar</span>
                           </button>
                         )}
                       </td>
